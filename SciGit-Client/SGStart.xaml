@@ -1,0 +1,31 @@
+﻿<Window x:Class="SciGit_Client.SGStart"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SciGit_Client"
+        Title="Login to SciGit" Height="500" Width="575">
+    <Window.Background>
+        <ImageBrush ImageSource="/SciGit-Client;component/Images/scigit2-logo-bg.png" />
+    </Window.Background>
+    <Grid x:Name="outer" Background="{x:Null}" Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Label Name="title" Content="Welcome to SciGit!" FontWeight="Bold" Grid.ColumnSpan="2" />
+        <Rectangle Grid.Row="1" HorizontalAlignment="Stretch" Name="rectangle1" Stroke="Black" VerticalAlignment="Stretch" Fill="#DCFFFFFF" Grid.ColumnSpan="2" />
+        <local:SGWelcome Grid.Row="1" Grid.Column="0" x:Name="welcome" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <local:SGLogin Grid.Row="1" Grid.Column="0" x:Name="login" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Back" Margin="0,10,0,0" HorizontalAlignment="Right" Name="back" Width="80" Click="back_Click" Visibility="Collapsed" />
+            <Button Grid.Column="1" Content="Continue" Margin="10,10,0,0" HorizontalAlignment="Right" Padding="3" Name="continue" Grid.ColumnSpan="2" Click="continue_Click" Width="80" />
+        </Grid>
+    </Grid>
+</Window>
