@@ -15,6 +15,12 @@ namespace SciGit_Client
         CreateProjectDirectory();
       }
 
+      /* TODO:
+       * - check Git/ssh installations
+       * - add SSH public key to SciGit
+       * - make sure the scigit server is a known_host / override that
+       */
+
       Projects = projects;
       foreach (var project in Projects) {
         InitializeProject(project);
@@ -30,7 +36,7 @@ namespace SciGit_Client
 
     private static void CreateProjectDirectory() {
       Directory.CreateDirectory(GetProjectDirectory());
-      // add special shell properties
+      // TODO: add special shell properties
     }
 
     public static string GetProjectDirectory() {
