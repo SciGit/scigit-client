@@ -15,26 +15,23 @@ using System.Diagnostics;
 
 namespace SciGit_Client
 {
-    /// <summary>
-    /// Interaction logic for test.xaml
-    /// </summary>
-    public partial class SGLogin : UserControl
-    {
-        public SGLogin()
-        {
-            InitializeComponent();
-            if (Properties.Settings.Default.RememberUser)
-            {
-                rememberMe.IsChecked = true;
-                emailValue.Text = Properties.Settings.Default.SavedUsername;
-                passwordValue.Password = Properties.Settings.Default.SavedPassword;
-            }
-        }
-
-        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            Process.Start(e.Uri.AbsoluteUri);
-            e.Handled = true;
-        }
+  /// <summary>
+  /// Interaction logic for test.xaml
+  /// </summary>
+  public partial class SGLogin : UserControl
+  {
+    public SGLogin() {
+      InitializeComponent();
+      if (Properties.Settings.Default.RememberUser) {
+        rememberMe.IsChecked = true;
+        emailValue.Text = Properties.Settings.Default.SavedUsername;
+        passwordValue.Password = Properties.Settings.Default.SavedPassword;
+      }
     }
+
+    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e) {
+      Process.Start(e.Uri.AbsoluteUri);
+      e.Handled = true;
+    }
+  }
 }

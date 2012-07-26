@@ -81,7 +81,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="GitWrapper.cs" />
     <Compile Include="Project.cs" />
+    <Compile Include="SGProjectManager.cs" />
     <Compile Include="SGRestClient.cs" />
     <Compile Include="SGMain.cs">
       <SubType>Form</SubType>
