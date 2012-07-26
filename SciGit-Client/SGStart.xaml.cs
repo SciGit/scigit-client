@@ -57,13 +57,20 @@ namespace SciGit_Client
                     }
                     else
                     {
-                        System.Diagnostics.Process.Start("https://scigit.sherk.me/auth/login");
+                        System.Diagnostics.Process.Start("https://scigit.sherk.me/auth/register");
                     }
 
                     break;
                 case Phase.Start_Login:
                     if (SGRestClient.Login(login.emailValue.Text, login.passwordValue.Password))
                     {
+                        if (login.rememberMe.IsChecked ?? false)
+                        {
+                            Properties.Settings.Default.RememberUser = true;
+                            Properties.Settings.Default.SavedUsername = login.emailValue.Text;
+                            Properties.Settings.Default.SavedPassword = login.passwordValue.Password;
+                            Properties.Settings.Default.Save();
+                        }
                         SGMain sgMain = new SGMain();
                         sgMain.Show();
                         sgMain.Hide();

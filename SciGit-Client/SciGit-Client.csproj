@@ -81,6 +81,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Project.cs" />
     <Compile Include="SGRestClient.cs" />
     <Compile Include="SGMain.cs">
       <SubType>Form</SubType>
@@ -135,6 +136,7 @@
     <EmbeddedResource Include="SGMain.resx">
       <DependentUpon>SGMain.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -8,17 +8,17 @@
     <Grid x:Name="LayoutRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="41" />
+            <RowDefinition Height="41" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="75" />
-            <ColumnDefinition Width="225" />
+            <ColumnDefinition Width="47" />
+            <ColumnDefinition Width="253" />
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="Welcome to SciGit! Before you begin, you'll need to login or create a new account. Do you have an account already?" Margin="5" Padding="5" TextWrapping="Wrap" HorizontalAlignment="Left" FontSize="14" />
-        <RadioButton Grid.Row="1" Grid.Column="0" Margin="25" HorizontalAlignment="Right" Name="haveAccount" />
-        <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Text="I have a SciGit account." Margin="0" Padding="0" TextWrapping="Wrap" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" FontSize="14" />
-        <RadioButton Grid.Row="2" Grid.Column="0" Margin="25" HorizontalAlignment="Right" Name="dontHaveAccount" />
-        <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Text="I don't have a SciGit account." Margin="0" Padding="0" TextWrapping="Wrap" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" FontSize="14" />
+        <TextBlock Grid.ColumnSpan="2" Text="Welcome to SciGit! Before you begin, you'll need to login or create a new account. Do you have an account already?" Margin="5,5,5,5" Padding="5" TextWrapping="Wrap" HorizontalAlignment="Left" FontSize="14" Width="288" />
+        <RadioButton Grid.Row="1" Margin="0,14,11,13" HorizontalAlignment="Right" Name="haveAccount" />
+        <TextBlock Grid.Row="1" Text="I have a SciGit account." Padding="0" TextWrapping="Wrap" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" FontSize="14" Grid.Column="1" />
+        <RadioButton Grid.Row="2" Margin="0,14,11,13" HorizontalAlignment="Right" Name="dontHaveAccount" Width="14" />
+        <TextBlock Grid.Row="2" Text="I don't have a SciGit account." Padding="0" TextWrapping="Wrap" HorizontalAlignment="Left" TextAlignment="Center" VerticalAlignment="Center" FontSize="14" Grid.Column="1" />
     </Grid>
 </UserControl>

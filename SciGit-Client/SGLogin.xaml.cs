@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Diagnostics;
 
 namespace SciGit_Client
 {
@@ -22,6 +23,18 @@ namespace SciGit_Client
         public SGLogin()
         {
             InitializeComponent();
+            if (Properties.Settings.Default.RememberUser)
+            {
+                rememberMe.IsChecked = true;
+                emailValue.Text = Properties.Settings.Default.SavedUsername;
+                passwordValue.Password = Properties.Settings.Default.SavedPassword;
+            }
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(e.Uri.AbsoluteUri);
+            e.Handled = true;
         }
     }
 }

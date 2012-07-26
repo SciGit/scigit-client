@@ -17,8 +17,8 @@
         </Grid.ColumnDefinitions>
         <Label Name="title" Content="Welcome to SciGit!" FontWeight="Bold" Grid.ColumnSpan="2" />
         <Rectangle Grid.Row="1" HorizontalAlignment="Stretch" Name="rectangle1" Stroke="Black" VerticalAlignment="Stretch" Fill="#DCFFFFFF" Grid.ColumnSpan="2" />
-        <local:SGWelcome Grid.Row="1" Grid.Column="0" x:Name="welcome" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <local:SGLogin Grid.Row="1" Grid.Column="0" x:Name="login" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
+        <local:SGWelcome Grid.Row="1" x:Name="welcome" HorizontalAlignment="Center" VerticalAlignment="Center" Height="162" Visibility="Collapsed" />
+        <local:SGLogin Grid.Row="1" Grid.Column="0" x:Name="login" HorizontalAlignment="Center" VerticalAlignment="Center" />
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
