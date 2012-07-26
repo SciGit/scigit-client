@@ -25,7 +25,7 @@ namespace SciGit_Client
             Start_Length
         }
 
-        Phase mPhase = Phase.Start_Welcome;
+        Phase mPhase = Phase.Start_Login;
 
         public SGStart()
         {
@@ -62,10 +62,13 @@ namespace SciGit_Client
 
                     break;
                 case Phase.Start_Login:
-                    SGMain sgMain = new SGMain();
-                    sgMain.Show();
-                    sgMain.Hide();
-                    Hide();
+                    if (SGRestClient.Login(login.emailValue.Text, login.passwordValue.Password))
+                    {
+                        SGMain sgMain = new SGMain();
+                        sgMain.Show();
+                        sgMain.Hide();
+                        Hide();
+                    }
                     break;
             }
         }

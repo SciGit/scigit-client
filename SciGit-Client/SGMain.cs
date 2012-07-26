@@ -47,7 +47,7 @@ namespace SciGit_Client
 
         private void exit_Click(object sender, EventArgs e)
         {
-
+            Environment.Exit(0);
         }
     }
 }
