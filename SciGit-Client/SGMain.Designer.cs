@@ -37,10 +37,10 @@
       this.update = new System.Windows.Forms.ToolStripMenuItem();
       this.upload = new System.Windows.Forms.ToolStripMenuItem();
       this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-      this.exit = new System.Windows.Forms.ToolStripMenuItem();
-      this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
       this.updateAll = new System.Windows.Forms.ToolStripMenuItem();
       this.uploadAll = new System.Windows.Forms.ToolStripMenuItem();
+      this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+      this.exit = new System.Windows.Forms.ToolStripMenuItem();
       this.contextMenuStrip.SuspendLayout();
       this.SuspendLayout();
       // 
@@ -65,7 +65,7 @@
             this.toolStripSeparator3,
             this.exit});
       this.contextMenuStrip.Name = "contextMenuStrip";
-      this.contextMenuStrip.Size = new System.Drawing.Size(191, 176);
+      this.contextMenuStrip.Size = new System.Drawing.Size(191, 154);
       // 
       // openSciGitProjects
       // 
@@ -98,18 +98,6 @@
       this.toolStripSeparator2.Name = "toolStripSeparator2";
       this.toolStripSeparator2.Size = new System.Drawing.Size(187, 6);
       // 
-      // exit
-      // 
-      this.exit.Name = "exit";
-      this.exit.Size = new System.Drawing.Size(190, 22);
-      this.exit.Text = "Exit";
-      this.exit.Click += new System.EventHandler(this.exit_Click);
-      // 
-      // toolStripSeparator3
-      // 
-      this.toolStripSeparator3.Name = "toolStripSeparator3";
-      this.toolStripSeparator3.Size = new System.Drawing.Size(187, 6);
-      // 
       // updateAll
       // 
       this.updateAll.Name = "updateAll";
@@ -123,6 +111,18 @@
       this.uploadAll.Size = new System.Drawing.Size(190, 22);
       this.uploadAll.Text = "Upload All";
       this.uploadAll.Click += new System.EventHandler(this.uploadAll_Click);
+      // 
+      // toolStripSeparator3
+      // 
+      this.toolStripSeparator3.Name = "toolStripSeparator3";
+      this.toolStripSeparator3.Size = new System.Drawing.Size(187, 6);
+      // 
+      // exit
+      // 
+      this.exit.Name = "exit";
+      this.exit.Size = new System.Drawing.Size(190, 22);
+      this.exit.Text = "Exit";
+      this.exit.Click += new System.EventHandler(this.exit_Click);
       // 
       // SGMain
       // 

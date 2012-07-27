@@ -21,6 +21,11 @@ namespace SciGit_Client
   {
     public SGStart() {
       InitializeComponent();
+      if (Properties.Settings.Default.RememberUser) {
+        rememberMe.IsChecked = true;
+        emailValue.Text = Properties.Settings.Default.SavedUsername;
+        passwordValue.Password = Properties.Settings.Default.SavedPassword;
+      }
     }
 
     private void login_Click(object sender, RoutedEventArgs e) {
