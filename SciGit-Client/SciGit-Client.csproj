@@ -94,25 +94,11 @@
     <Compile Include="SGStart.xaml.cs">
       <DependentUpon>SGStart.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SGLogin.xaml.cs">
-      <DependentUpon>SGLogin.xaml</DependentUpon>
-    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SGWelcome.xaml.cs">
-      <DependentUpon>SGWelcome.xaml</DependentUpon>
-    </Compile>
     <Page Include="SGStart.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="SGLogin.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="SGWelcome.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -172,6 +158,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\scigit2-logo-bg.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\scigit2-logo-text.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
