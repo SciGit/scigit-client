@@ -39,12 +39,16 @@ namespace SciGit_Client
       // TODO: add special shell properties
     }
 
-    public static string GetProjectDirectory() {
+    public static string GetProjectDirectory(Project p = null) {
       string homepath = (Environment.OSVersion.Platform == PlatformID.Unix ||
               Environment.OSVersion.Platform == PlatformID.MacOSX)
           ? Environment.GetEnvironmentVariable("HOME")
           : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
-      return homepath + Path.DirectorySeparatorChar + "SciGit";
+      string path = homepath + Path.DirectorySeparatorChar + "SciGit";
+      if (p != null) {
+        path += Path.DirectorySeparatorChar + p.Name;
+      }
+      return path;
     }
   }
 }

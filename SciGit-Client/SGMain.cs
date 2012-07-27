@@ -43,18 +43,45 @@ namespace SciGit_Client
       Environment.Exit(0);
     }
 
+    private void UpdateProject(Project p) {
+      Directory.SetCurrentDirectory(SGProjectManager.GetProjectDirectory(p));
+      GitWrapper.Pull();
+    }
+
+    private void UploadProject(Project p) {
+      Directory.SetCurrentDirectory(SGProjectManager.GetProjectDirectory(p));
+      GitWrapper.Add(".");
+      if (GitWrapper.Commit(DateTime.Now + " commit")) {
+        GitWrapper.Pull();
+        GitWrapper.Push();
+      }
+    }
+
     private void InitializeProjects() {
       projectManager = new SGProjectManager(SGRestClient.GetProjects());
       var update = (ToolStripMenuItem)contextMenuStrip.Items["update"];
       var upload = (ToolStripMenuItem)contextMenuStrip.Items["upload"];
       foreach (var project in projectManager.Projects) {
-        update.DropDownItems.Add(new ToolStripMenuItem(project.Name, null, null, ""));
-        upload.DropDownItems.Add(new ToolStripMenuItem(project.Name, null, null, ""));
+        var thisProject = project; // avoid closure issues
+        update.DropDownItems.Add(new ToolStripMenuItem(project.Name, null, (sender, e) => UpdateProject(thisProject), ""));
+        upload.DropDownItems.Add(new ToolStripMenuItem(project.Name, null, (sender, e) => UploadProject(thisProject), ""));
       }
 
       if (projectManager.Projects.Count == 0) {
         update.Enabled = false;
         upload.Enabled = false;
+      }
+    }
+
+    private void updateAll_Click(object sender, EventArgs e) {
+      foreach (var project in projectManager.Projects) {
+        UpdateProject(project);
+      }
+    }
+
+    private void uploadAll_Click(object sender, EventArgs e) {
+      foreach (var project in projectManager.Projects) {
+        UploadProject(project);
       }
     }
   }

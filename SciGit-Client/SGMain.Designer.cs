@@ -115,12 +115,14 @@
       this.updateAll.Name = "updateAll";
       this.updateAll.Size = new System.Drawing.Size(190, 22);
       this.updateAll.Text = "Update All";
+      this.updateAll.Click += new System.EventHandler(this.updateAll_Click);
       // 
       // uploadAll
       // 
       this.uploadAll.Name = "uploadAll";
       this.uploadAll.Size = new System.Drawing.Size(190, 22);
       this.uploadAll.Text = "Upload All";
+      this.uploadAll.Click += new System.EventHandler(this.uploadAll_Click);
       // 
       // SGMain
       // 
