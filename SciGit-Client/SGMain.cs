@@ -108,13 +108,15 @@ namespace SciGit_Client
         HashSet<string> current = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
         HashSet<string> updated = new HashSet<string>(from p in projectManager.projects select p.Name);
 
-        foreach (MenuItem item in update.MenuItems) {
+        for (int i = update.MenuItems.Count - 1; i >= 0; i--) {
+          MenuItem item = update.MenuItems[i];
           if (!updated.Contains(item.Text)) {
             update.MenuItems.Remove(item);
           }
         }
 
-        foreach (MenuItem item in upload.MenuItems) {
+        for (int i = upload.MenuItems.Count - 1; i >= 0; i--) {
+          MenuItem item = upload.MenuItems[i];
           if (!updated.Contains(item.Text)) {
             upload.MenuItems.Remove(item);
           }
