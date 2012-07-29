@@ -10,18 +10,21 @@ using System.Diagnostics;
 using System.Runtime.Serialization.Json;
 using System.Xml;
 using System.Collections;
+using System.Windows.Threading;
 
 namespace SciGit_Client
 {
   class SGRestClient
   {
-    private const string ServerHost = "scigit.sherk.me";
-    private static string Username = "";
-    private static string AuthToken = "";
-    private static int ExpiryTime = 0;
+    private const string serverHost = "scigit.sherk.me";
+    private static string username = "";
+    private static string authToken = "";
+    private static int expiryTime = 0;
 
-    public static bool Login(string username, string password) {
-      string uri = "https://" + ServerHost + "/api/auth/login";
+    public delegate void LoginResponseCallback(bool success);
+
+    public static void Login(string username, string password, LoginResponseCallback callback, Dispatcher disp) {
+      string uri = "https://" + serverHost + "/api/auth/login";
       uri += "?username=" + username;
       uri += "&password=" + password;
       WebRequest request = WebRequest.Create(uri);
@@ -35,33 +38,34 @@ namespace SciGit_Client
           (sender, cert, chain, errors) => true // allow unverified certificate, just for testing purposes
       );
 
-      try {
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-        Stream dataStream = response.GetResponseStream();
+      request.BeginGetResponse(asyncResult => {
+        try {
+          WebResponse response = request.EndGetResponse(asyncResult);
+          Stream dataStream = response.GetResponseStream();
 
-        Username = username;
-        XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
-        XmlDocument doc = new XmlDocument();
-        doc.Load(reader);
-        XmlNode authToken = doc.SelectSingleNode("//auth_token");
-        XmlNode expiryTs = doc.SelectSingleNode("//expiry_ts");
+          SGRestClient.username = username;
+          XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
+          XmlDocument doc = new XmlDocument();
+          doc.Load(reader);
+          XmlNode authTokenNode = doc.SelectSingleNode("//auth_token");
+          XmlNode expiryTsNode = doc.SelectSingleNode("//expiry_ts");
 
-        AuthToken = authToken.InnerText;
-        ExpiryTime = Int32.Parse(expiryTs.InnerText);
-
-        return true;
-      } catch (WebException e) {
-        Debug.Write(e);
-        return false;
-      }
+          authToken = authTokenNode.InnerText;
+          expiryTime = Int32.Parse(expiryTsNode.InnerText);
+          disp.Invoke(callback, true);
+        } catch (WebException e) {
+          Debug.WriteLine(e);
+          disp.Invoke(callback, false);
+        }
+      }, null);
     }
 
     public static List<Project> GetProjects() {
-      if (Username == "") return null;
+      if (username == "") return null;
 
-      string uri = "http://" + ServerHost + "/api/projects";
-      uri += "?username=" + Username;
-      uri += "&auth_token=" + AuthToken;
+      string uri = "http://" + serverHost + "/api/projects";
+      uri += "?username=" + username;
+      uri += "&auth_token=" + authToken;
       WebRequest request = WebRequest.Create(uri);
       request.Timeout = 3000;
 

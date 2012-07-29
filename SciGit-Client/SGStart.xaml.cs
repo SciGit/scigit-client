@@ -20,6 +20,7 @@ namespace SciGit_Client
   public partial class SGStart : Window
   {
     public SGStart() {
+      System.Windows.Forms.Application.EnableVisualStyles();
       InitializeComponent();
       if (Properties.Settings.Default.RememberUser) {
         rememberMe.IsChecked = true;
@@ -29,7 +30,13 @@ namespace SciGit_Client
     }
 
     private void login_Click(object sender, RoutedEventArgs e) {
-      if (SGRestClient.Login(emailValue.Text, passwordValue.Password)) {
+      login.IsEnabled = false;
+      login.Content = "Logging in...";
+      SGRestClient.Login(emailValue.Text, passwordValue.Password, LoginCallback, Dispatcher);
+    }
+
+    private void LoginCallback(bool success) {
+      if (success) {
         if (rememberMe.IsChecked ?? false) {
           Properties.Settings.Default.RememberUser = true;
           Properties.Settings.Default.SavedUsername = emailValue.Text;
@@ -40,6 +47,10 @@ namespace SciGit_Client
         sgMain.Show();
         sgMain.Hide();
         Hide();
+      } else {
+        MessageBox.Show("Invalid username or password.", "Error");
+        login.IsEnabled = true;
+        login.Content = "Login";
       }
     }
 
