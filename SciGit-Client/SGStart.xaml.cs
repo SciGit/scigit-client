@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Diagnostics;
+using System.ComponentModel;
 
 namespace SciGit_Client
 {
@@ -32,7 +33,10 @@ namespace SciGit_Client
     private void login_Click(object sender, RoutedEventArgs e) {
       login.IsEnabled = false;
       login.Content = "Logging in...";
-      SGRestClient.Login(emailValue.Text, passwordValue.Password, LoginCallback, Dispatcher);
+      BackgroundWorker bg = new BackgroundWorker();
+      string email = emailValue.Text, password = passwordValue.Password;
+      bg.DoWork += (bw, _) => SGRestClient.Login(email, password, LoginCallback, Dispatcher);
+      bg.RunWorkerAsync();
     }
 
     private void LoginCallback(bool success) {

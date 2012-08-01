@@ -22,12 +22,6 @@ namespace SciGit_Client
         CreateProjectDirectory();
       }
 
-      /* TODO:
-       * - check Git/ssh installations
-       * - add SSH public key to SciGit
-       * - make sure the scigit server is a known_host / override that
-       */
-
       if (projects != null) {
         this.projects = projects;
         foreach (var project in projects) {
@@ -128,11 +122,7 @@ namespace SciGit_Client
     }
 
     public static string GetProjectDirectory(Project p = null) {
-      string homepath = (Environment.OSVersion.Platform == PlatformID.Unix ||
-              Environment.OSVersion.Platform == PlatformID.MacOSX)
-          ? Environment.GetEnvironmentVariable("HOME")
-          : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
-      string path = homepath + Path.DirectorySeparatorChar + "SciGit";
+      string path = Environment.GetEnvironmentVariable("HOME") + Path.DirectorySeparatorChar + "SciGit";
       if (p != null) {
         path += Path.DirectorySeparatorChar + p.Name;
       }

@@ -11,12 +11,13 @@ using System.Runtime.Serialization.Json;
 using System.Xml;
 using System.Collections;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace SciGit_Client
 {
   class SGRestClient
   {
-    private const string serverHost = "scigit.sherk.me";
+    public const string serverHost = "scigit.sherk.me";
     private static string username = "";
     private static string authToken = "";
     private static int expiryTime = 0;
@@ -38,26 +39,24 @@ namespace SciGit_Client
           (sender, cert, chain, errors) => true // allow unverified certificate, just for testing purposes
       );
 
-      request.BeginGetResponse(asyncResult => {
-        try {
-          WebResponse response = request.EndGetResponse(asyncResult);
-          Stream dataStream = response.GetResponseStream();
+      try {
+        WebResponse response = request.GetResponse();
+        Stream dataStream = response.GetResponseStream();
 
-          SGRestClient.username = username;
-          XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
-          XmlDocument doc = new XmlDocument();
-          doc.Load(reader);
-          XmlNode authTokenNode = doc.SelectSingleNode("//auth_token");
-          XmlNode expiryTsNode = doc.SelectSingleNode("//expiry_ts");
+        SGRestClient.username = username;
+        XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
+        XmlDocument doc = new XmlDocument();
+        doc.Load(reader);
+        XmlNode authTokenNode = doc.SelectSingleNode("//auth_token");
+        XmlNode expiryTsNode = doc.SelectSingleNode("//expiry_ts");
 
-          authToken = authTokenNode.InnerText;
-          expiryTime = Int32.Parse(expiryTsNode.InnerText);
-          disp.Invoke(callback, true);
-        } catch (WebException e) {
-          Debug.WriteLine(e);
-          disp.Invoke(callback, false);
-        }
-      }, null);
+        authToken = authTokenNode.InnerText;
+        expiryTime = Int32.Parse(expiryTsNode.InnerText);
+        disp.Invoke(callback, true);
+      } catch (WebException e) {
+        Debug.WriteLine(e);
+        disp.Invoke(callback, false);
+      }
     }
 
     public static List<Project> GetProjects() {
@@ -92,6 +91,31 @@ namespace SciGit_Client
         Debug.Write(e);
         return null;
       }
+    }
+
+    public static bool UploadPublicKey(string key) {
+      string uri = "http://" + serverHost + "/api/users/public_keys";
+      uri += "?username=" + username;
+      uri += "&auth_token=" + authToken;
+      WebRequest request = WebRequest.Create(uri);
+      request.Method = "PUT";
+      request.Timeout = 3000;
+      Stream reqStream = request.GetRequestStream();
+      byte[] postData = Encoding.UTF8.GetBytes("name=" + Environment.MachineName + "&public_key=" + Uri.EscapeDataString(key));
+      reqStream.Write(postData, 0, postData.Length);
+
+      try {
+        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+        Stream dataStream = response.GetResponseStream();
+        return true;
+      } catch (WebException e) {
+        HttpWebResponse response = (HttpWebResponse)e.Response;
+        if (response.StatusCode == HttpStatusCode.Conflict) {
+          return true; // just a duplicate key
+        }
+      }
+
+      return false;
     }
   }
 }

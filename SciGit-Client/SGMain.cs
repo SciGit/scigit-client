@@ -18,10 +18,18 @@ namespace SciGit_Client
     public SGMain() {
       InitializeComponent();
       InitializeContextMenu();
+
+      InitializeSSH();
+
       projectManager = new SGProjectManager();
       projectManager.projectUpdatedCallbacks.Add(ProjectUpdated);
       projectManager.StartMonitoring();
       UpdateContextMenu();
+    }
+
+    private void FatalError(string err) {
+      MessageBox.Show(err, "Error");
+      Environment.Exit(1);
     }
 
     private void OpenDirectory(object sender, EventArgs e) {
@@ -138,6 +146,46 @@ namespace SciGit_Client
           upload.Enabled = true;
         }
       }
+    }
+
+    private string RunProcess(string filename, string args) {
+      ProcessStartInfo startInfo = new ProcessStartInfo();
+      startInfo.FileName = filename;
+      startInfo.Arguments = args;
+      startInfo.CreateNoWindow = true;
+      startInfo.RedirectStandardOutput = true;
+      startInfo.UseShellExecute = false;
+      Process process = new Process();
+      process.StartInfo = startInfo;
+      process.Start();
+      string output = process.StandardOutput.ReadToEnd();
+      process.WaitForExit();
+      return output;
+    }
+
+    private void InitializeSSH() {
+      /* TODO:
+       * - check Git/ssh installations
+       */
+
+      string homeDir = Environment.GetEnvironmentVariable("HOME");
+      string keyFile = homeDir + @"\.ssh\id_rsa.pub";
+      if (!File.Exists(keyFile)) {
+        RunProcess("ssh-keygen.exe", String.Format("-t rsa -f '{0}' -P ''", keyFile));
+      }
+
+      string key = File.ReadAllText(keyFile).Trim();
+      if (!SGRestClient.UploadPublicKey(key)) {
+        FatalError("It appears that your public key is invalid. Please remove or regenerate it.");
+      }
+
+      // Add scigit server to known_hosts
+      string knownHostsFile = homeDir + @"\.ssh\known_hosts";
+      RunProcess("ssh-keygen.exe", "-R " + GitWrapper.ServerHost);
+      string hostKey = RunProcess("ssh-keyscan.exe", "-t rsa " + GitWrapper.ServerHost);
+      var knownHostsHandle = File.Open(knownHostsFile, FileMode.Append);
+      knownHostsHandle.Write(Encoding.ASCII.GetBytes(hostKey), 0, hostKey.Length);
+      knownHostsHandle.Close();
     }
   }
 }

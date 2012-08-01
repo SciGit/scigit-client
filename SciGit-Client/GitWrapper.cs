@@ -18,7 +18,7 @@ namespace SciGit_Client
 
   class GitWrapper
   {
-    public const string ServerHost = "git@scigit.sherk.me";
+    public const string ServerHost = "scigit.sherk.me";
 
     private static GitReturn ExecuteGitCommand(string args) {
       ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -42,7 +42,7 @@ namespace SciGit_Client
     }
 
     public static GitReturn Clone(Project p) {
-      return ExecuteGitCommand(String.Format("clone {0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)));
+      return ExecuteGitCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)));
     }
 
     public static GitReturn Add(string args) {
