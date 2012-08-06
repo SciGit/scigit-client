@@ -28,6 +28,9 @@ namespace SciGit_Client
         emailValue.Text = Properties.Settings.Default.SavedUsername;
         passwordValue.Password = Properties.Settings.Default.SavedPassword;
       }
+
+      MergeResolver mr = new MergeResolver();
+      mr.Show();
     }
 
     private void login_Click(object sender, RoutedEventArgs e) {

@@ -1,0 +1,76 @@
+﻿<UserControl x:Class="SciGit_Client.DiffViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="550" d:DesignWidth="850" SnapsToDevicePixels="True">
+    <UserControl.Resources>
+        <Style x:Key="lineNumber" TargetType="TextBlock">
+            <Setter Property="Padding" Value="0,2,5,2" />
+            <Setter Property="Background" Value="#f1f1f1" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#777" />
+            <Setter Property="TextAlignment" Value="Right" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+        </Style>
+        <Style x:Key="lineText" TargetType="TextBlock">
+            <Setter Property="Padding" Value="4,2,5,2" />
+            <Setter Property="Foreground" Value="#555" />
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style x:Key="lineNumConflict" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+            <Setter Property="Background" Value="#A884F3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style x:Key="lineTextConflict" TargetType="TextBlock" BasedOn="{StaticResource lineText}">
+            <Setter Property="Background" Value="#CBC2F7" />
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style x:Key="textConflict" TargetType="Run">
+            <Setter Property="Background" Value="#A884F3" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="17" />
+        </Grid.ColumnDefinitions>
+        
+        <TextBlock Text="Your Version" Grid.Row="0" Grid.Column="0" Margin="0,0,0,5" />
+        <TextBlock Text="Updated Version" Grid.Row="0" Grid.Column="1" />
+
+        <Border Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" BorderBrush="#999" Panel.ZIndex="1" BorderThickness="1" />
+        <ScrollViewer VerticalAlignment="Stretch" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Visible">
+            <Grid Visibility="Visible" VerticalAlignment="Stretch" Height="Auto" Name="grid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="30" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" MinWidth="30" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Rectangle Grid.Row="0"  Grid.Column="0" Grid.RowSpan="2147000000" Fill="#777" Panel.ZIndex="999" Width="1" HorizontalAlignment="Right" />
+                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#777" Panel.ZIndex="999" Width="1" HorizontalAlignment="Left" />
+                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#777" Panel.ZIndex="999" Width="1" HorizontalAlignment="Right" />
+                <Rectangle Grid.Row="0"  Grid.Column="0" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
+                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

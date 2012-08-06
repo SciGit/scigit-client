@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace SciGit_Filter
 {
-  class SentenceFilter
+  public class SentenceFilter
   {
     public const string MergedNewlineDelim = "%%%%%%%MNL%%%%%%%";
     public const string MergedWindowsNewlineDelim = "%%%%%%%MWNL%%%%%%%";
