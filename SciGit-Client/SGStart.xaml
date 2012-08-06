@@ -13,7 +13,7 @@
             <RowDefinition Height="130*" />
             <RowDefinition Height="191*" />
         </Grid.RowDefinitions>
-        <Rectangle Grid.RowSpan="2" Grid.ColumnSpan="1" Fill="#f1f1f1" />
+        <Rectangle Grid.Column="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Fill="#f1f1f1" />
         <Image Grid.RowSpan="2" Height="321" HorizontalAlignment="Left" Name="image1" Stretch="Uniform" VerticalAlignment="Center" Width="247" Source="/SciGit-Client;component/Images/scigit2-logo.png" Grid.ColumnSpan="1" DataContext="{Binding}" />
         <Image Grid.Column="1" HorizontalAlignment="Center" Name="image2" Stretch="Uniform" VerticalAlignment="Bottom" Source="/SciGit-Client;component/Images/scigit2-logo-text.png" Height="58" Width="230" Grid.ColumnSpan="2" Margin="22,0,20,14" />
         

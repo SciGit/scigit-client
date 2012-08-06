@@ -36,10 +36,10 @@ this is where %%%%%%%CS%%%%%%%things start%%%%%%%CD%%%%%%%stuff starts%%%%%%%CE%
         grid.RowDefinitions.Insert(0, rd);
       }
 
-      List<TextBlock>[] lineTexts = new List<TextBlock>[2];
+      List<RichTextBox>[] lineTexts = new List<RichTextBox>[2];
       List<TextBlock>[] lineNums = new List<TextBlock>[2];
       for (int i = 0; i < 2; i++) {
-        lineTexts[i] = new List<TextBlock>();
+        lineTexts[i] = new List<RichTextBox>();
         lineNums[i] = new List<TextBlock>();
         for (int j = 0; j < lines; j++) {
           TextBlock lineNum = new TextBlock();
@@ -47,13 +47,16 @@ this is where %%%%%%%CS%%%%%%%things start%%%%%%%CD%%%%%%%stuff starts%%%%%%%CE%
           lineNum.Style = (Style)Resources["lineNumber"];
           Grid.SetRow(lineNum, j);
           Grid.SetColumn(lineNum, 2*i);
-          grid.Children.Add(lineNum);
+          grid.Children.Add(lineNum);          
           lineNums[i].Add(lineNum);
 
-          TextBlock text = new TextBlock();
+          RichTextBox text = new RichTextBox();
           text.Style = (Style)Resources["lineText"];
           Grid.SetRow(text, j);
           Grid.SetColumn(text, 1 + 2*i);
+          FlowDocument doc = new FlowDocument();
+          doc.Blocks.Add(new Paragraph());
+          text.Document = doc;
           grid.Children.Add(text);
           lineTexts[i].Add(text);
         }
@@ -71,7 +74,8 @@ this is where %%%%%%%CS%%%%%%%things start%%%%%%%CD%%%%%%%stuff starts%%%%%%%CE%
               run.Style = (Style)Resources["textConflict"];
               conflict = true;
             }
-            lineTexts[i][curBlock].Inlines.Add(run);
+            Paragraph p = (Paragraph)lineTexts[i][curBlock].Document.Blocks.First();
+            p.Inlines.Add(run);
             if (j != blockLines.Length - 1) curBlock++;
           }
           if (conflict) {

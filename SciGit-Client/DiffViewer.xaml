@@ -16,12 +16,13 @@
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
-        <Style x:Key="lineText" TargetType="TextBlock">
-            <Setter Property="Padding" Value="4,2,5,2" />
+        <Style x:Key="lineText" TargetType="RichTextBox">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="2" />
             <Setter Property="Foreground" Value="#555" />
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Top" />
         </Style>
@@ -29,7 +30,7 @@
             <Setter Property="Background" Value="#A884F3" />
             <Setter Property="Foreground" Value="White" />
         </Style>
-        <Style x:Key="lineTextConflict" TargetType="TextBlock" BasedOn="{StaticResource lineText}">
+        <Style x:Key="lineTextConflict" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
             <Setter Property="Background" Value="#CBC2F7" />
             <Setter Property="Foreground" Value="Black" />
         </Style>
@@ -53,7 +54,7 @@
         <TextBlock Text="Updated Version" Grid.Row="0" Grid.Column="1" />
 
         <Border Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" BorderBrush="#999" Panel.ZIndex="1" BorderThickness="1" />
-        <ScrollViewer VerticalAlignment="Stretch" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Visible">
+        <ScrollViewer VerticalAlignment="Stretch" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Visible" Background="White">
             <Grid Visibility="Visible" VerticalAlignment="Stretch" Height="Auto" Name="grid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
