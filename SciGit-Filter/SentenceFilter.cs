@@ -10,11 +10,8 @@ namespace SciGit_Filter
   {
     public const string MergedNewlineDelim = "%%%%%%%MNL%%%%%%%";
     public const string MergedWindowsNewlineDelim = "%%%%%%%MWNL%%%%%%%";
-    public const string NewlineDelim = "%%%%%%%NL%%%%%%%";
-    public const string WindowsNewlineDelim = "%%%%%%%WNL%%%%%%%";
-    public const string ConflictStart = "%%%%%%%CS%%%%%%%";
-    public const string ConflictDelim = "%%%%%%%CD%%%%%%%";
-    public const string ConflictEnd = "%%%%%%%CE%%%%%%%";
+    public const string SentenceDelim = "%%%%%%%SNL%%%%%%%";
+    public static bool MergeSentences = false;
 
     public static bool IsWord(string str, bool allowEnd = false) {
       if (str == null) return false;
@@ -33,7 +30,7 @@ namespace SciGit_Filter
       string lastToken = tokens.LastOrDefault();
       for (int i = 1; i < lines.Length; i++) {
         tokens = lines[i].Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
-        if (IsWord(tokens.FirstOrDefault(), true) && IsWord(lastToken)) {
+        if (MergeSentences && IsWord(tokens.FirstOrDefault(), true) && IsWord(lastToken)) {
           currentLine = currentLine.Replace("\r\n", MergedWindowsNewlineDelim);
           currentLine = currentLine.Replace("\n", MergedNewlineDelim);
           currentLine += lines[i];
@@ -45,25 +42,9 @@ namespace SciGit_Filter
         }
       }
       merged.Add(currentLine);
+      str = String.Join("", merged);
 
-      // Replace all existing newlines with our own newline indicator.
-      // This lets us remember where the newlines originally were (when we add newlines for sentences)
-      str = "";
-      foreach (var line in merged) {
-        string cleanLine;
-        if (line.EndsWith("\r\n")) {
-          cleanLine = line.Replace("\r\n", "\n" + WindowsNewlineDelim + "\n");
-        } else {
-          cleanLine = line.Replace("\n", "\n" + NewlineDelim + "\n");
-        }
-        // Don't want any empty lines
-        if (cleanLine.StartsWith("\n")) {
-          cleanLine = cleanLine.Substring(1);
-        }
-        str += cleanLine;
-      }
-
-      // Finally, split any sentences on the same line.
+      // Split any sentences on the same line.
       // We'll define the end of a sentence to be a lowercase letter,
       // followed by [.!?] plus some whitespace, then a capital letter.
       str = Regex.Replace(str, @"([a-z][\.!?][ \t]+)([A-Z])", match => {
@@ -74,24 +55,9 @@ namespace SciGit_Filter
     }
 
     public static string Smudge(string str) {
-      str = str.Replace("\r\n", "\n");
-      string[] lines = str.Split('\n');
-      for (int i = 0; i < lines.Length; i++) {
-        if (lines[i].StartsWith("<<<<<<<")) {
-          lines[i] = ConflictStart;
-        } else if (lines[i].StartsWith("=======")) {
-          lines[i] = ConflictDelim;
-        } else if (lines[i].StartsWith(">>>>>>>")) {
-          lines[i] = ConflictEnd;
-        }
-      }
-      str = String.Join("\n", lines);
-
-      str = str.Replace("\n", "");
+      str = str.Replace(SentenceDelim + "\n", "");
       str = str.Replace(MergedNewlineDelim, "\n");
       str = str.Replace(MergedWindowsNewlineDelim, "\r\n");
-      str = str.Replace(NewlineDelim, "\n");
-      str = str.Replace(WindowsNewlineDelim, "\r\n");
       return str;
     }
   }

@@ -12,6 +12,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SciGit_Filter;
+using DiffPlex;
+using DiffPlex.Model;
+using System.Windows.Media.Effects;
 
 namespace SciGit_Client
 {
@@ -20,91 +23,458 @@ namespace SciGit_Client
   /// </summary>
   public partial class DiffViewer : UserControl
   {
-    public DiffViewer() {
+    List<LineBlock>[] content;
+    List<RichTextBox>[] lineTexts;
+    List<TextBlock>[] lineNums;
+    List<Border>[] lineTextBackgrounds;
+    List<Border>[] lineNumBackgrounds;
+    List<int> conflictBlocks;
+    int[] conflictHover;
+    int[] conflictChoice;
+    int[] lineCount;
+    int curConflict = 0;
+
+    public Action NextFileCallback { get; set; }
+    public Action FinishCallback { get; set; }
+
+    public DiffViewer(string original, string myVersion, string newVersion) {
       InitializeComponent();
 
-      string diff = @"This is sentence one.
-this is sentence two.
-this is where %%%%%%%CS%%%%%%%things start%%%%%%%CD%%%%%%%stuff starts%%%%%%%CE%%%%%%% to differ. long ass sentence here blahblahbalh";
+      if (original == null) {
+        // TODO: when a file is null, this means there was a deletion conflict. Handle these later
+      }
 
-      List<Block> blocks = SplitBlocks(diff);
+      ProcessDiff(original, myVersion, newVersion);
+      InitializeEditor();
+    }
 
-      int lines = diff.Count(ch => ch == '\n') + 1;
+    public bool Finished() {
+      return !conflictChoice.Contains(-1);
+    }
+
+    private void UpdateConflictBlock(int index) {
+      int block = conflictBlocks[index];
+      Style normal = (Style)Resources["textBackgroundConflict"];
+      Style active = (Style)Resources["textBackgroundConflictActive"];
+      Style hover = (Style)Resources["textBackgroundConflictHover"];
+      Style accepted = (Style)Resources["textBackgroundConflictAccepted"];
+      Style refused = (Style)Resources["textBackgroundConflictRefused"];
+      Style numNormal = (Style)Resources["numBackgroundConflict"];
+      for (int i = 0; i < 2; i++) {
+        Border textBackground = lineTextBackgrounds[i][block];
+        Border numBackground = lineNumBackgrounds[i][block];
+        // background color
+        if (conflictHover[index] == i && conflictChoice[index] != i) {
+          textBackground.Background = (hover.Setters[0] as Setter).Value as Brush;
+        } else if (conflictChoice[index] != -1) {
+          int startLine = lineCount.Take(block).Sum();
+          Style s;
+          double opacity = 1;
+          if (conflictChoice[index] == i) {
+            s = accepted;
+          } else {
+            s = refused;
+            opacity = 0.3;
+          }
+          textBackground.Background = (s.Setters[0] as Setter).Value as Brush;
+          for (int line = 0; line < lineCount[block]; line++) {
+            lineTexts[i][line + startLine].Opacity = opacity;
+          }
+
+        } else {
+          textBackground.Background = (normal.Setters[0] as Setter).Value as Brush;
+        }
+
+        // drop shadow
+        if (index == curConflict) {
+          textBackground.Effect = (active.Setters[0] as Setter).Value as Effect;
+        } else {
+          textBackground.Effect = null;
+        }
+      }
+    }
+
+    private void SelectConflict(int index) {
+      int oldBlock = conflictBlocks[curConflict];
+      int newBlock = conflictBlocks[index];
+      int line = lineCount.Take(newBlock).Sum();
+      Point p = lineNums[0][line].TransformToAncestor(grid).Transform(new Point(0, 0));
+      scrollViewer.ScrollToVerticalOffset(p.Y);
+
+      conflictNumber.Text = "Conflict " + (index + 1).ToString() + "/" + conflictBlocks.Count.ToString();
+      int prevConflict = curConflict;
+      curConflict = index;
+      UpdateConflictBlock(prevConflict);
+      UpdateConflictBlock(curConflict);
+    }
+
+    private void SelectPreviousConflict(object sender, RoutedEventArgs e) {
+      int numConflicts = conflictBlocks.Count;
+      SelectConflict((curConflict + numConflicts - 1) % numConflicts);
+    }
+
+    private void SelectNextConflict(object sender, RoutedEventArgs e) {
+      int numConflicts = conflictBlocks.Count;
+      SelectConflict((curConflict + 1) % numConflicts);
+    }
+
+    private void HoverConflict(int index, int side, bool on) {
+      conflictHover[index] = on ? side : -1;
+      UpdateConflictBlock(index);
+    }
+
+    private void ChooseConflict(int index, int side) {
+      conflictChoice[index] = side;
+      acceptMe.IsEnabled = side != 0;
+      acceptThem.IsEnabled = side != 1;
+    }
+
+    private void ClickAcceptMe(object sender, RoutedEventArgs e) {
+      ChooseConflict(curConflict, 0);
+      UpdateConflictBlock(curConflict);
+    }
+
+    private void ClickAcceptThem(object sender, RoutedEventArgs e) {
+      ChooseConflict(curConflict, 1);
+      UpdateConflictBlock(curConflict);
+    }
+
+    private void ClickEdit(object sender, RoutedEventArgs e) {
+      
+    }
+
+    private void ClickNextFile(object sender, RoutedEventArgs e) {
+      if (NextFileCallback != null) {
+        NextFileCallback();
+      }
+    }
+
+    private void ClickFinish(object sender, RoutedEventArgs e) {
+      if (FinishCallback != null) {
+        FinishCallback();
+      }
+    }
+
+    private void DisplayBlockContextMenu(int block, int side, MouseButtonEventArgs e) {
+      MessageBox.Show(e.GetPosition(Application.Current.MainWindow).ToString());
+    }
+
+    private void InitializeEditor() {
+      // Obtain line counts.
+      conflictBlocks = new List<int>();
+      lineCount = new int[content[0].Count];
+      for (int i = 0; i < content[0].Count; i++) {
+        lineCount[i] = Math.Max(content[0][i].lines.Count, content[1][i].lines.Count);
+        if (content[0][i].type == BlockType.Conflict) {
+          conflictBlocks.Add(i);
+        }
+      }
+
+      if (conflictBlocks.Count == 0) {
+        // TODO: this file shouldn't be here.
+      }
+
+      int lines = lineCount.Sum();
       for (int i = 0; i < lines; i++) {
         RowDefinition rd = new RowDefinition();
         rd.Height = GridLength.Auto;
         grid.RowDefinitions.Insert(0, rd);
       }
 
-      List<RichTextBox>[] lineTexts = new List<RichTextBox>[2];
-      List<TextBlock>[] lineNums = new List<TextBlock>[2];
+      // Create grid cells for text blocks.
+      lineTexts = new List<RichTextBox>[2];
+      lineNums = new List<TextBlock>[2];
+      lineTextBackgrounds = new List<Border>[2];
+      lineNumBackgrounds = new List<Border>[2];
       for (int i = 0; i < 2; i++) {
         lineTexts[i] = new List<RichTextBox>();
         lineNums[i] = new List<TextBlock>();
         for (int j = 0; j < lines; j++) {
           TextBlock lineNum = new TextBlock();
-          lineNum.Text = (j + 1).ToString();
           lineNum.Style = (Style)Resources["lineNumber"];
+          Panel.SetZIndex(lineNum, 5);
           Grid.SetRow(lineNum, j);
-          Grid.SetColumn(lineNum, 2*i);
-          grid.Children.Add(lineNum);          
+          Grid.SetColumn(lineNum, 2 * i);
+          grid.Children.Add(lineNum);
           lineNums[i].Add(lineNum);
 
           RichTextBox text = new RichTextBox();
           text.Style = (Style)Resources["lineText"];
+          text.HorizontalAlignment = HorizontalAlignment.Stretch;
+          Panel.SetZIndex(text, 5);
           Grid.SetRow(text, j);
-          Grid.SetColumn(text, 1 + 2*i);
+          Grid.SetColumn(text, 1 + 2 * i);
           FlowDocument doc = new FlowDocument();
-          doc.Blocks.Add(new Paragraph());
+          Paragraph p = new Paragraph();
+          doc.Blocks.Add(p);
           text.Document = doc;
           grid.Children.Add(text);
           lineTexts[i].Add(text);
         }
       }
 
-      for (int i = 0; i < 2; i++) {
-        int curBlock = 0;
-        foreach (var block in blocks) {
-          string str = block.value.Length == 1 ? block.value[0] : block.value[i];
-          string[] blockLines = str.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
-          bool conflict = false;
-          for (int j = 0; j < blockLines.Length; j++) {
-            Run run = new Run(blockLines[j]);
-            if (block.value.Length > 1) {
-              run.Style = (Style)Resources["textConflict"];
-              conflict = true;
+      // Draw the actual text blocks.
+      for (int side = 0; side < 2; side++) {
+        int prevLine = 0;
+        int lineNum = 1;
+        lineNumBackgrounds[side] = new List<Border>();
+        lineTextBackgrounds[side] = new List<Border>();
+        for (int g = 0; g < content[side].Count; g++) {
+          LineBlock lblock = content[side][g];
+          for (int i = 0; i < lblock.lines.Count; i++) {
+            Line line = lblock.lines[i];
+            Paragraph p = (Paragraph)lineTexts[side][prevLine + i].Document.Blocks.First();
+            foreach (Block b in line.blocks) {
+              string text = b.text;
+              if (text.EndsWith(SentenceFilter.SentenceDelim)) {
+                text = text.Substring(0, text.Length - SentenceFilter.SentenceDelim.Length);
+              }
+              Run run = new Run(text);
+              if (b.type != BlockType.Normal) {
+                if (lblock.type == BlockType.Conflict) {
+                  b.type = BlockType.Conflict;
+                }
+                run.Style = (Style)Resources["text" + b.type.ToString()];
+              }
+              p.Inlines.Add(run);
             }
-            Paragraph p = (Paragraph)lineTexts[i][curBlock].Document.Blocks.First();
-            p.Inlines.Add(run);
-            if (j != blockLines.Length - 1) curBlock++;
+            lineNums[side][prevLine + i].Text = lineNum++.ToString();
           }
-          if (conflict) {
-            lineTexts[i][curBlock].Style = (Style)Resources["lineTextConflict"];
-            lineNums[i][curBlock].Style = (Style)Resources["lineNumConflict"];
+
+          Border numBorder = new Border();
+          Panel.SetZIndex(numBorder, 3);
+          Grid.SetRow(numBorder, prevLine);
+          Grid.SetColumn(numBorder, side * 2);
+          Grid.SetRowSpan(numBorder, lineCount[g]);
+          grid.Children.Add(numBorder);
+          lineNumBackgrounds[side].Add(numBorder);
+
+          Border textBorder = new Border();
+          Panel.SetZIndex(textBorder, 2);
+          Grid.SetRow(textBorder, prevLine);
+          Grid.SetColumn(textBorder, side * 2 + 1);
+          Grid.SetRowSpan(textBorder, lineCount[g]);
+          grid.Children.Add(textBorder);
+          lineTextBackgrounds[side].Add(textBorder);
+
+          if (lblock.type != BlockType.Normal) {
+            numBorder.Style = (Style)Resources["numBackground" + lblock.type.ToString()];
+            textBorder.Style = (Style)Resources["textBackground" + lblock.type.ToString()];
+            for (int line = 0; line < lineCount[g]; line++) {
+              TextBlock num = lineNums[side][prevLine + line];
+              RichTextBox text = lineTexts[side][prevLine + line];
+              num.Style = (Style)Resources["lineNum" + lblock.type.ToString()];
+              text.Style = (Style)Resources["lineText" + lblock.type.ToString()];
+              if (lblock.type == BlockType.Conflict) {
+                int cIndex = conflictBlocks.IndexOf(g);
+                int myG = g; // for lambda scoping
+                int mySide = side; // for lambda scoping
+                text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex); };
+                text.ContextMenu = new ContextMenu();
+                //text.PreviewMouseRightButtonUp += (o, e) => DisplayBlockContextMenu(myG, mySide, e);
+                text.MouseEnter += (o, e) => HoverConflict(cIndex, mySide, true);
+                text.MouseLeave += (o, e) => HoverConflict(cIndex, mySide, false);
+              }
+            }
           }
+
+          prevLine += lineCount[g];
+        }
+      }
+
+      // Select the first conflict, update the conflict indicators.
+      conflictHover = new int[conflictBlocks.Count];
+      conflictChoice = new int[conflictBlocks.Count];
+      for (int i = 0; i < conflictChoice.Length; i++) {
+        conflictChoice[i] = -1;
+      }
+      SelectConflict(0);
+      if (conflictBlocks.Count > 1) {
+        nextConflict.IsEnabled = prevConflict.IsEnabled = true;
+      }
+    }
+
+    private string[] ArraySlice(string[] a, int start, int length) {
+      length = Math.Min(length, a.Length - start);
+      string[] ret = new string[length];
+      for (int i = 0; i < length; i++) {
+        ret[i] = a[start + i];
+      }
+      return ret;
+    }
+
+    private void ProcessBlockDiff(LineBlock oldLineBlock, LineBlock newLineBlock) {
+      // Do block-by-block diffs inside LineBlocks.
+      List<Block> oldBlocks = new List<Block>();
+      List<Block> newBlocks = new List<Block>();
+
+      foreach (var line in oldLineBlock.lines) {
+        oldBlocks.AddRange(line.blocks);
+      }
+
+      foreach (var line in newLineBlock.lines) {
+        newBlocks.AddRange(line.blocks);
+      }
+
+      Differ d = new Differ();
+      DiffResult diff = d.CreateLineDiffs(String.Join("\n", oldBlocks), String.Join("\n", newBlocks), false);
+
+      foreach (DiffBlock dblock in diff.DiffBlocks) {
+        for (int i = 0; i < dblock.DeleteCountA && dblock.DeleteStartA + i < oldBlocks.Count; i++) {
+          oldBlocks[i + dblock.DeleteStartA].type = BlockType.ChangeDelete;
+        }
+        for (int i = 0; i < dblock.InsertCountB && dblock.InsertStartB + i < newBlocks.Count; i++) {
+          newBlocks[i + dblock.InsertStartB].type = BlockType.ChangeAdd;
         }
       }
     }
 
-    public List<Block> SplitBlocks(string str) {
-      List<Block> blocks = new List<Block>();
-      int pos = str.IndexOf(SentenceFilter.ConflictStart);
-      while (pos != -1) {
-        if (pos != 0) {
-          blocks.Add(new Block(str.Substring(0, pos)));
+    private void ProcessDiff(string original, string myVersion, string newVersion) {
+      // Do a line-by-line diff, marking changed line groups.
+      // Also, find intersecting diffs and mark them as conflicted changes for resolution.
+      Differ d = new Differ();
+      DiffResult[] diffs = new DiffResult[2] { d.CreateLineDiffs(original, myVersion, false), d.CreateLineDiffs(original, newVersion, false) };
+
+      List<Tuple<DiffBlock, int>> dblocks = new List<Tuple<DiffBlock, int>>();
+      for (int side = 0; side < 2; side++) {
+        foreach (var block in diffs[side].DiffBlocks) {
+          dblocks.Add(new Tuple<DiffBlock, int>(block, side));
         }
-        int pos2 = str.IndexOf(SentenceFilter.ConflictDelim);
-        int pos3 = str.IndexOf(SentenceFilter.ConflictEnd);
-        int len = SentenceFilter.ConflictStart.Length;
-        blocks.Add(new Block(str.Substring(pos + len, pos2 - pos - len),
-                             str.Substring(pos2 + len, pos3 - pos2 - len)));
-        str = str.Substring(pos3 + SentenceFilter.ConflictEnd.Length);
-        pos = str.IndexOf(SentenceFilter.ConflictStart);
       }
-      if (str.Length > 0) {
-        blocks.Add(new Block(str));
+      dblocks.Sort(delegate(Tuple<DiffBlock, int> a, Tuple<DiffBlock, int> b) {
+        return a.Item1.DeleteStartA.CompareTo(b.Item1.DeleteStartA);
+      });
+
+      content = new List<LineBlock>[2];
+      for (int i = 0; i < 2; i++) {
+        content[i] = new List<LineBlock>();
       }
-      return blocks;
+
+      string[] origLines = diffs[0].PiecesOld;
+      int nextOriginalLine = 0;
+      for (int i = 0; i < dblocks.Count; ) {
+        DiffBlock block = dblocks[i].Item1;
+        int owner = dblocks[i].Item2;
+        // Add unchanged (original) lines.
+        if (block.DeleteStartA > nextOriginalLine) {
+          foreach (var lineBlocks in content) {
+            lineBlocks.Add(new LineBlock(ArraySlice(origLines, nextOriginalLine, block.DeleteStartA - nextOriginalLine)));
+          }
+          nextOriginalLine = block.DeleteStartA;
+        }
+
+        int rangeStart = block.DeleteStartA;
+        int rangeEnd = rangeStart + block.DeleteCountA;
+        int j = i;
+        // If this change intersects any other changes, then merge them together to form a conflict block.
+        while (j < dblocks.Count && dblocks[j].Item1.DeleteStartA <= rangeEnd) {
+          rangeEnd = Math.Max(rangeEnd, dblocks[j].Item1.DeleteStartA + dblocks[j].Item1.DeleteCountA);
+          j++;
+        }
+
+        if (j == i + 1) {
+          // No conflict - just add the change normally.
+          LineBlock oldBlock = new LineBlock(ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
+          LineBlock newBlock = new LineBlock(ArraySlice(diffs[owner].PiecesNew, block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
+          ProcessBlockDiff(oldBlock, newBlock);
+          content[owner].Add(newBlock);
+          content[1 - owner].Add(oldBlock);
+        } else {
+          // Create a conflict block.
+          for (int side = 0; side < 2; side++) {
+            int curOriginalLine = rangeStart;
+            LineBlock conflictBlock = new LineBlock();
+            conflictBlock.type = BlockType.Conflict;
+            for (int k = i; k < j; k++) {
+              DiffBlock subBlock = dblocks[k].Item1;
+              if (dblocks[k].Item2 != side) continue;
+              if (subBlock.DeleteStartA > curOriginalLine) {
+                conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, subBlock.DeleteStartA - curOriginalLine));
+              }
+              curOriginalLine = subBlock.DeleteStartA + subBlock.DeleteCountA;
+              LineBlock oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
+              LineBlock newBlock = new LineBlock(ArraySlice(diffs[side].PiecesNew, subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
+              ProcessBlockDiff(oldBlock, newBlock);
+              conflictBlock.Append(newBlock);
+            }
+            if (rangeEnd > curOriginalLine) {
+              conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, rangeEnd - curOriginalLine));
+            }
+            content[side].Add(conflictBlock);
+          }
+        }
+
+        nextOriginalLine = rangeEnd;
+        i = j;
+      }
+
+      // Add any remaining unchanged lines.
+      if (origLines.Length > nextOriginalLine) {
+        foreach (var lineBlocks in content) {
+          lineBlocks.Add(new LineBlock(ArraySlice(origLines, nextOriginalLine, origLines.Length - nextOriginalLine)));
+        }
+      }
     }
+  }
+
+  public enum BlockType
+  {
+    Normal,
+    ChangeAdd,
+    ChangeDelete,
+    Conflict
+  }
+
+  public class Block
+  {
+    public Block(string text, BlockType type = BlockType.Normal) {
+      this.text = text;
+      this.type = type;
+    }
+
+    public override string ToString() {
+      return text;
+    }
+
+    public string text;
+    public BlockType type;
+  }
+
+  public class Line
+  {
+    public Line(string strLine) {
+      strLine = SentenceFilter.Clean(strLine);
+      string[] strBlocks = strLine.Split('\n');
+      foreach (var str in strBlocks) {
+        blocks.Add(new Block(str, BlockType.Normal));
+      }
+    }
+
+    public List<Block> blocks = new List<Block>();
+  }
+
+  public class LineBlock
+  {
+    public LineBlock() { }
+
+    public LineBlock(string[] strLines, BlockType type = BlockType.Normal) {
+      this.type = type;
+      AddLines(strLines);
+    }
+
+    public void AddLines(string[] strLines) {
+      foreach (string line in strLines) {
+        lines.Add(new Line(line));
+      }
+    }
+
+    public void Append(LineBlock lb) {
+      foreach (Line line in lb.lines) {
+        lines.Add(line);
+      }
+    }
+
+    public List<Line> lines = new List<Line>();
+    public BlockType type;
   }
 }

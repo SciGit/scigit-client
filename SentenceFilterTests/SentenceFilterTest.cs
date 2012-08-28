@@ -76,36 +76,16 @@ namespace SentenceFilterTests
 
     [TestMethod()]
     public void CleanSplitSentenceTest() {
+      SentenceFilter.MergeSentences = true;
       RunCleanTest("I like\n\tturtles.", String.Format("I like{0}\tturtles.", SentenceFilter.MergedNewlineDelim));
       RunCleanTest("I like\r\n\tturtles.", String.Format("I like{0}\tturtles.", SentenceFilter.MergedWindowsNewlineDelim));
-      RunCleanTest("I \\begin{blah}\nlike turtles.\n\\end{blah}",
-        "I \\begin{blah}\n#\nlike turtles.\n#\n\\end{blah}".Replace("#", SentenceFilter.NewlineDelim));
+      RunCleanTest("I \\begin{blah}\nlike turtles.\n\\end{blah}", "I \\begin{blah}\nlike turtles.\n\\end{blah}");
     }
 
     [TestMethod()]
     public void CleanMultipleSentenceTest() {
       RunCleanTest("I like turtles. I also like pie. Said A. Lincoln",
-        "I like turtles. \nI also like pie. \nSaid A. Lincoln");
-    }
-
-    [TestMethod()]
-    public void CleanWindowsNewlineTest() {
-      RunCleanTest("a.\r\nb", String.Format("a.\n{0}\nb", SentenceFilter.WindowsNewlineDelim));
-    }
-
-    [TestMethod()]
-    public void CleanParagraphTest() {
-      RunCleanTest("a\n\nb", "a\n#\n#\nb".Replace("#", SentenceFilter.NewlineDelim));
-    }
-
-    [TestMethod()]
-    public void SmudgeConflictTest() {
-      RunSmudgeTest(
-        String.Format("Sentence one. \n<<<<<<< HEAD\nSentence two. \n=======\nSentence two! \n>>>>>>> test\n{0}\n",
-          SentenceFilter.NewlineDelim),
-        String.Format("Sentence one. {0}Sentence two. {1}Sentence two! {2}\n",
-          SentenceFilter.ConflictStart, SentenceFilter.ConflictDelim, SentenceFilter.ConflictEnd)
-      );
+        "I like turtles. #\nI also like pie. #\nSaid A. Lincoln".Replace("#", SentenceFilter.SentenceDelim));
     }
 
     [TestMethod()]

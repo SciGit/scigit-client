@@ -29,7 +29,7 @@ namespace SciGit_Client
         passwordValue.Password = Properties.Settings.Default.SavedPassword;
       }
 
-      MergeResolver mr = new MergeResolver();
+      MergeResolver mr = new MergeResolver(new Project { Id = 1, Name = "project1" });
       mr.Show();
     }
 

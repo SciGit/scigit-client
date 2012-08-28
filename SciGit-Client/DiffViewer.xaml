@@ -8,7 +8,6 @@
     <UserControl.Resources>
         <Style x:Key="lineNumber" TargetType="TextBlock">
             <Setter Property="Padding" Value="0,2,5,2" />
-            <Setter Property="Background" Value="#f1f1f1" />
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="#777" />
@@ -16,26 +15,86 @@
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
+        <Style x:Key="lineNumConflict" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style x:Key="lineNumChangeAdd" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+        </Style>
+        <Style x:Key="lineNumChangeDelete" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+        </Style>
+
+        <Style x:Key="numBackgroundNormal" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#999" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style x:Key="numBackgroundConflict" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+            <Setter Property="Background" Value="#A884F3" />
+            <Setter Property="BorderBrush" Value="#7162B8" />
+        </Style>
+        <Style x:Key="numBackgroundChangeAdd" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+            <Setter Property="Background" Value="#88FF88" />
+            <Setter Property="BorderBrush" Value="#60C95B" />
+        </Style>
+        <Style x:Key="numBackgroundChangeDelete" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+            <Setter Property="Background" Value="#FFE1E1" />
+            <Setter Property="BorderBrush" Value="#E67D7D" />
+        </Style>
+
+        <Style x:Key="textBackgroundConflict" TargetType="Border">
+            <Setter Property="Background" Value="#CBC2F7" />
+        </Style>
+        <Style x:Key="textBackgroundConflictHover" TargetType="Border">
+            <Setter Property="Background" Value="#DCD3F8" />
+        </Style>
+        <Style x:Key="textBackgroundConflictActive" TargetType="Border">
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="GreenYellow" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="textBackgroundConflictAccepted" TargetType="Border">
+            <Setter Property="Background" Value="#CBC2F7" />
+        </Style>
+        <Style x:Key="textBackgroundConflictRefused" TargetType="Border">
+            <Setter Property="Background" Value="#EFE6FF" />
+        </Style>
+        <Style x:Key="textBackgroundChangeAdd" TargetType="Border">
+            <Setter Property="Background" Value="#E0FFDF" />
+        </Style>
+        <Style x:Key="textBackgroundChangeDelete" TargetType="Border">
+            <Setter Property="Background" Value="#FFECEC" />
+        </Style>
+
         <Style x:Key="lineText" TargetType="RichTextBox">
             <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="2" />
             <Setter Property="Foreground" Value="#555" />
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-        </Style>
-        <Style x:Key="lineNumConflict" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
-            <Setter Property="Background" Value="#A884F3" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
         </Style>
         <Style x:Key="lineTextConflict" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
-            <Setter Property="Background" Value="#CBC2F7" />
             <Setter Property="Foreground" Value="Black" />
         </Style>
+        <Style x:Key="lineTextChangeAdd" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
+            <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style x:Key="lineTextChangeDelete" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
+            <Setter Property="Foreground" Value="#999" />
+        </Style>
+
         <Style x:Key="textConflict" TargetType="Run">
             <Setter Property="Background" Value="#A884F3" />
+        </Style>
+        <Style x:Key="textChangeAdd" TargetType="Run">
+            <Setter Property="Background" Value="#66DD66" />
+        </Style>
+        <Style x:Key="textChangeDelete" TargetType="Run">
+            <Setter Property="Background" Value="#FFC2C2" />
         </Style>
     </UserControl.Resources>
 
@@ -43,18 +102,19 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="17" />
         </Grid.ColumnDefinitions>
-        
+
         <TextBlock Text="Your Version" Grid.Row="0" Grid.Column="0" Margin="0,0,0,5" />
         <TextBlock Text="Updated Version" Grid.Row="0" Grid.Column="1" />
 
-        <Border Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" BorderBrush="#999" Panel.ZIndex="1" BorderThickness="1" />
-        <ScrollViewer VerticalAlignment="Stretch" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Visible" Background="White">
+        <Border Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" BorderBrush="#999" Panel.ZIndex="1" BorderThickness="0,1,1,1"></Border>
+        <ScrollViewer Name="scrollViewer" VerticalAlignment="Stretch" Grid.ColumnSpan="3" Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Visible" Background="White">
             <Grid Visibility="Visible" VerticalAlignment="Stretch" Height="Auto" Name="grid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -66,12 +126,55 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Rectangle Grid.Row="0"  Grid.Column="0" Grid.RowSpan="2147000000" Fill="#777" Panel.ZIndex="999" Width="1" HorizontalAlignment="Right" />
-                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#777" Panel.ZIndex="999" Width="1" HorizontalAlignment="Left" />
-                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#777" Panel.ZIndex="999" Width="1" HorizontalAlignment="Right" />
+                <Rectangle Grid.Row="0"  Grid.Column="0" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Left" />
+                <Rectangle Grid.Row="0"  Grid.Column="0" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Right" />
+                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Left" />
+                <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Right" />
                 <Rectangle Grid.Row="0"  Grid.Column="0" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
                 <Rectangle Grid.Row="0"  Grid.Column="2" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
             </Grid>
         </ScrollViewer>
+
+        <WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" VerticalAlignment="Top">
+            <Button Content="Accept _my version" Name="acceptMe" Margin="0,0,10,0" Padding="1" Click="ClickAcceptMe" />
+            <Button Content="Accept _updated version" Name="acceptThem" Margin="0,0,10,0" Click="ClickAcceptThem" />
+            <Button Content="Manual edit..." Name="edit" Click="ClickEdit" />
+        </WrapPanel>
+        <WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Border Name="Border"
+                    Grid.Row="0"
+                    Background="{StaticResource LightBrush}"
+                    BorderBrush="#FF707070"
+                    BorderThickness="1"
+                    CornerRadius="2"
+                    Margin="0,0,10,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Content="_Previous Conflict"
+                            Name="nextConflict"
+                            IsEnabled="False"
+                            Click="SelectPreviousConflict"
+                            Template="{StaticResource UpArrowButton}" />
+                    <Button Content="_Next Conflict"
+                            Name="prevConflict"
+                            IsEnabled="False"
+                            Click="SelectNextConflict"
+                            Grid.Column="1"
+                            Template="{StaticResource DownArrowButton}" />
+                    <TextBlock Grid.Column="2"
+                               Name="conflictNumber"
+                               Text="Conflict 1/1"
+                               Margin="10,0"
+                               VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+            <Button Content="Next file" Name="nextFile" Margin="0,0,10,0" Click="ClickNextFile" />
+            <Button Content="Finish" Name="finish" Click="ClickFinish" />
+        </WrapPanel>
     </Grid>
 </UserControl>

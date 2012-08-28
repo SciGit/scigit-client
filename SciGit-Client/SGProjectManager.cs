@@ -42,7 +42,7 @@ namespace SciGit_Client
     public void MonitorProjects() {
       while (true) {
         List<Project> newProjects = SGRestClient.GetProjects();
-        if (!newProjects.Equals(projects)) {
+        if (newProjects != null && !newProjects.Equals(projects)) {
           lock (projects) {
             projects = newProjects;
           }

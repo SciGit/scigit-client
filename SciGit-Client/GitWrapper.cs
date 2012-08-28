@@ -60,5 +60,13 @@ namespace SciGit_Client
     public static GitReturn Push() {
       return ExecuteGitCommand("push origin master");
     }
+
+    public static GitReturn ListUnmergedFiles() {
+      return ExecuteGitCommand("ls-files -u");
+    }
+
+    public static GitReturn ShowObject(string hash) {
+      return ExecuteGitCommand("show " + hash);
+    }
   }
 }
