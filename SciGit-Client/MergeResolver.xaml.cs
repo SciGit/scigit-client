@@ -95,24 +95,26 @@ namespace SciGit_Client
       GitReturn ret = GitWrapper.ListUnmergedFiles();
 
       Dictionary<String, FileData> files = new Dictionary<string, FileData>();
-      string[] lines = ret.Output.Split(new string[]{"\n", "\r\n"}, StringSplitOptions.RemoveEmptyEntries);
+      string[] lines = SentenceFilter.SplitLines(ret.Output);
       foreach (string line in lines) {
         var match = Regex.Match(line, "^[0-9]+ ([a-z0-9]+) ([0-9]+)\t(.*)$");
-        string hash = match.Groups[1].Value;
-        int stage = int.Parse(match.Groups[2].Value);
-        string file = match.Groups[3].Value;
-        if (!files.ContainsKey(file)) {
-          files[file] = new FileData { filename = file };
-        }
+        if (match.Success) {
+          string hash = match.Groups[1].Value;
+          int stage = int.Parse(match.Groups[2].Value);
+          string file = match.Groups[3].Value;
+          if (!files.ContainsKey(file)) {
+            files[file] = new FileData { filename = file };
+          }
 
-        GitReturn r = GitWrapper.ShowObject(hash);
-        string contents = r.Output;
-        if (stage == 1) {
-          files[file].original = contents;
-        } else if (stage == 2) {
-          files[file].myVersion = contents;
-        } else {
-          files[file].newVersion = contents;
+          GitReturn r = GitWrapper.ShowObject(hash);
+          string contents = r.Output;
+          if (stage == 1) {
+            files[file].original = contents;
+          } else if (stage == 2) {
+            files[file].myVersion = contents;
+          } else {
+            files[file].newVersion = contents;
+          }
         }
       }
 

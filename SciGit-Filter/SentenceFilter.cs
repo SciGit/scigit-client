@@ -13,6 +13,10 @@ namespace SciGit_Filter
     public const string SentenceDelim = "%%%%%%%SNL%%%%%%%";
     public static bool MergeSentences = false;
 
+    public static string[] SplitLines(string str) {
+      return str.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.None);
+    }
+
     public static bool IsWord(string str, bool allowEnd = false) {
       if (str == null) return false;
       string patt = String.Format(@"^[""']?\w+[""',:;{0}]?$", allowEnd ? @"\.!?" : "");

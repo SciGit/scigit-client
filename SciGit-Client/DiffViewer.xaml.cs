@@ -24,6 +24,7 @@ namespace SciGit_Client
   public partial class DiffViewer : UserControl
   {
     List<LineBlock>[] content;
+    LineBlock[] origBlocks;
     List<RichTextBox>[] lineTexts;
     List<TextBlock>[] lineNums;
     List<Border>[] lineTextBackgrounds;
@@ -46,21 +47,35 @@ namespace SciGit_Client
 
       ProcessDiff(original, myVersion, newVersion);
       InitializeEditor();
+
+      // Select the first conflict, update the conflict indicators.
+      conflictHover = new int[conflictBlocks.Count];
+      conflictChoice = new int[conflictBlocks.Count];
+      for (int i = 0; i < conflictChoice.Length; i++) {
+        conflictChoice[i] = -1;
+      }
+      SelectConflict(0);
+      if (conflictBlocks.Count > 1) {
+        nextConflict.IsEnabled = prevConflict.IsEnabled = true;
+      }
     }
 
     public bool Finished() {
       return !conflictChoice.Contains(-1);
     }
 
+    private Style GetStyle(string name) {
+      return Application.Current.Resources[name] as Style;
+    }
+
     private void UpdateConflictBlock(int index) {
       int block = conflictBlocks[index];
-      Style normal = (Style)Resources["textBackgroundConflict"];
-      Style active = (Style)Resources["textBackgroundConflictActive"];
-      Style hover = (Style)Resources["textBackgroundConflictHover"];
-      Style accepted = (Style)Resources["textBackgroundConflictAccepted"];
-      Style refused = (Style)Resources["textBackgroundConflictRefused"];
-      Style numNormal = (Style)Resources["numBackgroundConflict"];
+      Style active = GetStyle("textBackgroundConflictActive");
+      Style hover = GetStyle("textBackgroundConflictHover");
+      Style refused = GetStyle("textBackgroundConflictRefused");
+      Style numNormal = GetStyle("numBackgroundConflict");
       for (int i = 0; i < 2; i++) {
+        Style normal = GetStyle("textBackground" + content[i][block].type.ToString());
         Border textBackground = lineTextBackgrounds[i][block];
         Border numBackground = lineNumBackgrounds[i][block];
         // background color
@@ -71,7 +86,7 @@ namespace SciGit_Client
           Style s;
           double opacity = 1;
           if (conflictChoice[index] == i) {
-            s = accepted;
+            s = normal;
           } else {
             s = refused;
             opacity = 0.3;
@@ -106,6 +121,10 @@ namespace SciGit_Client
       curConflict = index;
       UpdateConflictBlock(prevConflict);
       UpdateConflictBlock(curConflict);
+
+      acceptMe.IsEnabled = conflictChoice[index] != 0;
+      acceptThem.IsEnabled = conflictChoice[index] != 1;
+      revert.IsEnabled = content[0][newBlock].type == BlockType.Edited;
     }
 
     private void SelectPreviousConflict(object sender, RoutedEventArgs e) {
@@ -140,7 +159,24 @@ namespace SciGit_Client
     }
 
     private void ClickEdit(object sender, RoutedEventArgs e) {
-      
+      int block = conflictBlocks[curConflict];
+      LineBlock choice = conflictChoice[curConflict] != -1 ? content[conflictChoice[curConflict]][block] : null;
+      DiffEditor de = new DiffEditor(content[0][block], content[1][block], choice);
+      de.ShowDialog();
+      if (de.newBlock != null) {
+        ProcessBlockDiff(origBlocks[block], de.newBlock, false);
+        content[0][block] = de.newBlock;
+        conflictChoice[curConflict] = 0;
+        revert.IsEnabled = true;
+        ReloadEditor();
+      }
+    }
+
+    private void ClickRevert(object sender, RoutedEventArgs e) {
+      int block = conflictBlocks[curConflict];
+      content[0][block] = origBlocks[block];
+      revert.IsEnabled = false;
+      ReloadEditor();
     }
 
     private void ClickNextFile(object sender, RoutedEventArgs e) {
@@ -159,13 +195,40 @@ namespace SciGit_Client
       MessageBox.Show(e.GetPosition(Application.Current.MainWindow).ToString());
     }
 
+    private void ClearEditor() {
+      grid.RowDefinitions.Clear();
+      RowDefinition rd = new RowDefinition();
+      rd.Height = new GridLength(1, GridUnitType.Star);
+      grid.RowDefinitions.Add(rd);
+
+      List<UIElement> rects = new List<UIElement>();
+      foreach (UIElement child in grid.Children) {
+        if (child.GetType() == typeof(Rectangle)) {
+          rects.Add(child);
+        }
+      }
+      grid.Children.Clear();
+      foreach (var elem in rects) {
+        grid.Children.Add(elem);
+      }
+    }
+
+    private void ReloadEditor() {
+      ClearEditor();
+      InitializeEditor();
+      for (int i = 0; i < conflictBlocks.Count; i++) {
+        UpdateConflictBlock(i);
+      }
+      SelectConflict(curConflict);
+    }
+
     private void InitializeEditor() {
       // Obtain line counts.
       conflictBlocks = new List<int>();
       lineCount = new int[content[0].Count];
       for (int i = 0; i < content[0].Count; i++) {
         lineCount[i] = Math.Max(content[0][i].lines.Count, content[1][i].lines.Count);
-        if (content[0][i].type == BlockType.Conflict) {
+        if (content[1][i].type == BlockType.Conflict) {
           conflictBlocks.Add(i);
         }
       }
@@ -191,7 +254,7 @@ namespace SciGit_Client
         lineNums[i] = new List<TextBlock>();
         for (int j = 0; j < lines; j++) {
           TextBlock lineNum = new TextBlock();
-          lineNum.Style = (Style)Resources["lineNumber"];
+          lineNum.Style = GetStyle("lineNumber");
           Panel.SetZIndex(lineNum, 5);
           Grid.SetRow(lineNum, j);
           Grid.SetColumn(lineNum, 2 * i);
@@ -199,7 +262,7 @@ namespace SciGit_Client
           lineNums[i].Add(lineNum);
 
           RichTextBox text = new RichTextBox();
-          text.Style = (Style)Resources["lineText"];
+          text.Style = GetStyle("lineText");
           text.HorizontalAlignment = HorizontalAlignment.Stretch;
           Panel.SetZIndex(text, 5);
           Grid.SetRow(text, j);
@@ -231,10 +294,10 @@ namespace SciGit_Client
               }
               Run run = new Run(text);
               if (b.type != BlockType.Normal) {
-                if (lblock.type == BlockType.Conflict) {
-                  b.type = BlockType.Conflict;
+                if (lblock.type == BlockType.Conflict || lblock.type == BlockType.Edited) {
+                  b.type = lblock.type;
                 }
-                run.Style = (Style)Resources["text" + b.type.ToString()];
+                run.Style = GetStyle("text" + b.type.ToString());
               }
               p.Inlines.Add(run);
             }
@@ -258,20 +321,19 @@ namespace SciGit_Client
           lineTextBackgrounds[side].Add(textBorder);
 
           if (lblock.type != BlockType.Normal) {
-            numBorder.Style = (Style)Resources["numBackground" + lblock.type.ToString()];
-            textBorder.Style = (Style)Resources["textBackground" + lblock.type.ToString()];
+            numBorder.Style = GetStyle("numBackground" + lblock.type.ToString());
+            textBorder.Style = GetStyle("textBackground" + lblock.type.ToString());
             for (int line = 0; line < lineCount[g]; line++) {
               TextBlock num = lineNums[side][prevLine + line];
               RichTextBox text = lineTexts[side][prevLine + line];
-              num.Style = (Style)Resources["lineNum" + lblock.type.ToString()];
-              text.Style = (Style)Resources["lineText" + lblock.type.ToString()];
-              if (lblock.type == BlockType.Conflict) {
-                int cIndex = conflictBlocks.IndexOf(g);
+              num.Style = GetStyle("lineNum" + lblock.type.ToString());
+              text.Style = GetStyle("lineText" + lblock.type.ToString());
+              int cIndex = conflictBlocks.IndexOf(g);
+              if (cIndex != -1) {
                 int myG = g; // for lambda scoping
                 int mySide = side; // for lambda scoping
                 text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex); };
-                text.ContextMenu = new ContextMenu();
-                //text.PreviewMouseRightButtonUp += (o, e) => DisplayBlockContextMenu(myG, mySide, e);
+                // text.ContextMenu = new ContextMenu();
                 text.MouseEnter += (o, e) => HoverConflict(cIndex, mySide, true);
                 text.MouseLeave += (o, e) => HoverConflict(cIndex, mySide, false);
               }
@@ -280,17 +342,6 @@ namespace SciGit_Client
 
           prevLine += lineCount[g];
         }
-      }
-
-      // Select the first conflict, update the conflict indicators.
-      conflictHover = new int[conflictBlocks.Count];
-      conflictChoice = new int[conflictBlocks.Count];
-      for (int i = 0; i < conflictChoice.Length; i++) {
-        conflictChoice[i] = -1;
-      }
-      SelectConflict(0);
-      if (conflictBlocks.Count > 1) {
-        nextConflict.IsEnabled = prevConflict.IsEnabled = true;
       }
     }
 
@@ -303,7 +354,7 @@ namespace SciGit_Client
       return ret;
     }
 
-    private void ProcessBlockDiff(LineBlock oldLineBlock, LineBlock newLineBlock) {
+    private void ProcessBlockDiff(LineBlock oldLineBlock, LineBlock newLineBlock, bool modifyOld = true) {
       // Do block-by-block diffs inside LineBlocks.
       List<Block> oldBlocks = new List<Block>();
       List<Block> newBlocks = new List<Block>();
@@ -320,8 +371,10 @@ namespace SciGit_Client
       DiffResult diff = d.CreateLineDiffs(String.Join("\n", oldBlocks), String.Join("\n", newBlocks), false);
 
       foreach (DiffBlock dblock in diff.DiffBlocks) {
-        for (int i = 0; i < dblock.DeleteCountA && dblock.DeleteStartA + i < oldBlocks.Count; i++) {
-          oldBlocks[i + dblock.DeleteStartA].type = BlockType.ChangeDelete;
+        if (modifyOld) {
+          for (int i = 0; i < dblock.DeleteCountA && dblock.DeleteStartA + i < oldBlocks.Count; i++) {
+            oldBlocks[i + dblock.DeleteStartA].type = BlockType.ChangeDelete;
+          }
         }
         for (int i = 0; i < dblock.InsertCountB && dblock.InsertStartB + i < newBlocks.Count; i++) {
           newBlocks[i + dblock.InsertStartB].type = BlockType.ChangeAdd;
@@ -394,7 +447,7 @@ namespace SciGit_Client
               curOriginalLine = subBlock.DeleteStartA + subBlock.DeleteCountA;
               LineBlock oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
               LineBlock newBlock = new LineBlock(ArraySlice(diffs[side].PiecesNew, subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
-              ProcessBlockDiff(oldBlock, newBlock);
+              ProcessBlockDiff(oldBlock, newBlock, false);
               conflictBlock.Append(newBlock);
             }
             if (rangeEnd > curOriginalLine) {
@@ -414,6 +467,9 @@ namespace SciGit_Client
           lineBlocks.Add(new LineBlock(ArraySlice(origLines, nextOriginalLine, origLines.Length - nextOriginalLine)));
         }
       }
+
+      origBlocks = new LineBlock[content[0].Count];
+      content[0].CopyTo(origBlocks);
     }
   }
 
@@ -422,7 +478,8 @@ namespace SciGit_Client
     Normal,
     ChangeAdd,
     ChangeDelete,
-    Conflict
+    Conflict,
+    Edited
   }
 
   public class Block
@@ -450,6 +507,18 @@ namespace SciGit_Client
       }
     }
 
+    public override string ToString() {
+      string ret = "";
+      foreach (var block in blocks) {
+        string text = block.text;
+        if (text.EndsWith(SentenceFilter.SentenceDelim)) {
+          text = text.Substring(0, text.Length - SentenceFilter.SentenceDelim.Length);
+        }
+        ret += text;
+      }
+      return ret;
+    }
+
     public List<Block> blocks = new List<Block>();
   }
 
@@ -472,6 +541,10 @@ namespace SciGit_Client
       foreach (Line line in lb.lines) {
         lines.Add(line);
       }
+    }
+
+    public override string ToString() {
+      return String.Join("\n", lines);
     }
 
     public List<Line> lines = new List<Line>();

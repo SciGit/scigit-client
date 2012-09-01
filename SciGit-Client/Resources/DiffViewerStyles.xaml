@@ -1,0 +1,106 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="lineNumber" TargetType="TextBlock">
+        <Setter Property="Padding" Value="0,2,5,2" />
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="#777" />
+        <Setter Property="TextAlignment" Value="Right" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+    <Style x:Key="lineNumConflict" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style x:Key="lineNumChangeAdd" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+    </Style>
+    <Style x:Key="lineNumChangeDelete" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+    </Style>
+    <Style x:Key="lineNumEdited" TargetType="TextBlock" BasedOn="{StaticResource lineNumber}">
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style x:Key="numBackgroundNormal" TargetType="Border">
+        <Setter Property="BorderBrush" Value="#999" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style x:Key="numBackgroundConflict" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+        <Setter Property="Background" Value="#A884F3" />
+        <Setter Property="BorderBrush" Value="#7162B8" />
+    </Style>
+    <Style x:Key="numBackgroundChangeAdd" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+        <Setter Property="Background" Value="#88FF88" />
+        <Setter Property="BorderBrush" Value="#60C95B" />
+    </Style>
+    <Style x:Key="numBackgroundChangeDelete" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+        <Setter Property="Background" Value="#FFE1E1" />
+        <Setter Property="BorderBrush" Value="#E67D7D" />
+    </Style>
+    <Style x:Key="numBackgroundEdited" TargetType="Border" BasedOn="{StaticResource numBackgroundNormal}">
+        <Setter Property="Background" Value="#00C2D1" />
+        <Setter Property="BorderBrush" Value="#007F89" />
+    </Style>
+
+    <Style x:Key="textBackgroundConflict" TargetType="Border">
+        <Setter Property="Background" Value="#CBC2F7" />
+    </Style>
+    <Style x:Key="textBackgroundConflictHover" TargetType="Border">
+        <Setter Property="Background" Value="#DCD3F8" />
+    </Style>
+    <Style x:Key="textBackgroundConflictActive" TargetType="Border">
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="GreenYellow" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="textBackgroundConflictRefused" TargetType="Border">
+        <Setter Property="Background" Value="#EFE6FF" />
+    </Style>
+    <Style x:Key="textBackgroundChangeAdd" TargetType="Border">
+        <Setter Property="Background" Value="#E0FFDF" />
+    </Style>
+    <Style x:Key="textBackgroundChangeDelete" TargetType="Border">
+        <Setter Property="Background" Value="#FFECEC" />
+    </Style>
+    <Style x:Key="textBackgroundEdited" TargetType="Border">
+        <Setter Property="Background" Value="#7FDCE6" />
+    </Style>
+
+    <Style x:Key="lineText" TargetType="RichTextBox">
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="2" />
+        <Setter Property="Foreground" Value="#555" />
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+    <Style x:Key="lineTextConflict" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
+        <Setter Property="Foreground" Value="Black" />
+    </Style>
+    <Style x:Key="lineTextChangeAdd" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
+        <Setter Property="Foreground" Value="Black" />
+    </Style>
+    <Style x:Key="lineTextChangeDelete" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
+        <Setter Property="Foreground" Value="#999" />
+    </Style>
+    <Style x:Key="lineTextEdited" TargetType="RichTextBox" BasedOn="{StaticResource lineText}">
+        <Setter Property="Foreground" Value="Black" />
+    </Style>
+
+    <Style x:Key="textConflict" TargetType="Run">
+        <Setter Property="Background" Value="#A884F3" />
+    </Style>
+    <Style x:Key="textChangeAdd" TargetType="Run">
+        <Setter Property="Background" Value="#66DD66" />
+    </Style>
+    <Style x:Key="textChangeDelete" TargetType="Run">
+        <Setter Property="Background" Value="#FFC2C2" />
+    </Style>
+    <Style x:Key="textEdited" TargetType="Run">
+        <Setter Property="Background" Value="#00C2D1" />
+    </Style>
+</ResourceDictionary>

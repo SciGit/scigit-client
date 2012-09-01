@@ -84,6 +84,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DiffEditor.xaml.cs">
+      <DependentUpon>DiffEditor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MergeResolver.xaml.cs">
       <DependentUpon>MergeResolver.xaml</DependentUpon>
     </Compile>
@@ -118,11 +121,23 @@
     <Compile Include="DiffViewer.xaml.cs">
       <DependentUpon>DiffViewer.xaml</DependentUpon>
     </Compile>
+    <Page Include="DiffEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MergeResolver.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Resources\ArrowButton.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\DiffViewerStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\GlobalStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
