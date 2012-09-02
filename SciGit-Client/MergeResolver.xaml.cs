@@ -39,6 +39,14 @@ namespace SciGit_Client
 
       curProject = p;
       unmergedFiles = GetUnmergedFiles();
+
+      FileData test = new FileData();
+      test.filename = "test1";
+      test.original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n";
+      test.myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n";
+      test.newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n";
+      unmergedFiles.Add(test);
+
       if (unmergedFiles.Count == 0) {
         // TODO: show an error or something
         Close();
@@ -48,13 +56,6 @@ namespace SciGit_Client
       for (int i = 0; i < unmergedFiles.Count; i++) {
         diffViewers.Add(CreateDiffViewer(unmergedFiles[i]));
       }
-
-      FileData test = new FileData();
-      test.filename = "test1";
-      test.original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n";
-      test.myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n";
-      test.newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n";
-      diffViewers.Add(CreateDiffViewer(test));
 
       active = 0;
       diffViewers[active].Visibility = Visibility.Visible;
@@ -84,9 +85,13 @@ namespace SciGit_Client
 
       if (unmerged.Count > 0) {
         string msg = String.Join("\n", unmerged.Select(str => "- " + str));
-        MessageBox.Show("The following files are still unmerged:\n" + msg, "Unmerged Files");
+        MessageBox.Show("The following files are still unmerged:\n" + msg, "Unmerged Changes");
       } else {
-        // TODO: write the files
+        DiffPreview preview = new DiffPreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());
+        preview.ShowDialog();
+        if (preview.Saved) {
+          Close();
+        }
       }
     }
 

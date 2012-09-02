@@ -64,6 +64,26 @@ namespace SciGit_Client
       return !conflictChoice.Contains(-1);
     }
 
+    public string GetMergeResult() {
+      if (!Finished()) return null;
+
+      string result = "";
+      for (int i = 0; i < content[0].Count; i++) {
+        int side = 0;
+        int conflictIndex = conflictBlocks.BinarySearch(i);
+        if (conflictIndex >= 0) {
+          side = conflictChoice[conflictIndex];
+        } else if (content[1][i].type == BlockType.ChangeAdd) {
+          side = 1;
+        }
+        result += content[side][i].ToString();
+        if (content[side][i].lines.Count > 0 && i != content[0].Count - 1) {
+          result += "\n";
+        }
+      }
+      return result;
+    }
+
     private Style GetStyle(string name) {
       return Application.Current.Resources[name] as Style;
     }
@@ -328,8 +348,8 @@ namespace SciGit_Client
               RichTextBox text = lineTexts[side][prevLine + line];
               num.Style = GetStyle("lineNum" + lblock.type.ToString());
               text.Style = GetStyle("lineText" + lblock.type.ToString());
-              int cIndex = conflictBlocks.IndexOf(g);
-              if (cIndex != -1) {
+              int cIndex = conflictBlocks.BinarySearch(g);
+              if (cIndex >= 0) {
                 int myG = g; // for lambda scoping
                 int mySide = side; // for lambda scoping
                 text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex); };

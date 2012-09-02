@@ -80,7 +80,7 @@
                 </Grid>
             </Border>
             <Button Content="Next file" Name="nextFile" Margin="0,0,10,0" Click="ClickNextFile" />
-            <Button Content="Finish" Name="finish" Click="ClickFinish" />
+            <Button Content="Preview and finalize..." Name="finish" Click="ClickFinish" />
         </WrapPanel>
     </Grid>
 </UserControl>

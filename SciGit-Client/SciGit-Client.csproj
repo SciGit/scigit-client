@@ -87,6 +87,9 @@
     <Compile Include="DiffEditor.xaml.cs">
       <DependentUpon>DiffEditor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DiffPreview.xaml.cs">
+      <DependentUpon>DiffPreview.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MergeResolver.xaml.cs">
       <DependentUpon>MergeResolver.xaml</DependentUpon>
     </Compile>
@@ -122,6 +125,10 @@
       <DependentUpon>DiffViewer.xaml</DependentUpon>
     </Compile>
     <Page Include="DiffEditor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiffPreview.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
