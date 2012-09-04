@@ -20,14 +20,18 @@ namespace SciGit_Client
   public partial class DiffEditor : Window
   {
     public LineBlock newBlock;
+    string myStr, updatedStr, originalStr;
 
-    public DiffEditor(LineBlock a, LineBlock b, LineBlock c = null) {
+    public DiffEditor(LineBlock yourBlock, LineBlock updatedBlock, LineBlock originalBlock, LineBlock editBlock = null) {
       InitializeComponent();
 
-      RenderLineBlock(a, yourText);
-      RenderLineBlock(b, updatedText);
-      if (c != null) {
-        mergedText.Text = c.ToString();
+      RenderLineBlock(yourBlock, yourText);
+      myStr = yourBlock.ToString();
+      RenderLineBlock(updatedBlock, updatedText);
+      updatedStr = updatedBlock.ToString();
+      originalStr = originalBlock.ToString();
+      if (editBlock != null) {
+        mergedText.Text = editBlock.ToString();
       }
     }
 
@@ -50,6 +54,18 @@ namespace SciGit_Client
         }
         r.Document.Blocks.Add(p);
       }
+    }
+
+    private void ClickMine(object sender, RoutedEventArgs e) {
+      mergedText.Text = myStr;
+    }
+
+    private void ClickUpdated(object sender, RoutedEventArgs e) {
+      mergedText.Text = updatedStr;
+    }
+
+    private void ClickOriginal(object sender, RoutedEventArgs e) {
+      mergedText.Text = originalStr;
     }
 
     private void ClickSave(object sender, RoutedEventArgs e) {

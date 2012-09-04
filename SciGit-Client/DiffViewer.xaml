@@ -43,8 +43,8 @@
         </ScrollViewer>
 
         <WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" VerticalAlignment="Top">
-            <Button Content="Accept _my version" Name="acceptMe" Margin="0,0,10,0" Click="ClickAcceptMe" />
-            <Button Content="Accept _updated version" Name="acceptThem" Margin="0,0,10,0" Click="ClickAcceptThem" />
+            <ToggleButton Content="Accept _my version" Name="acceptMe" Margin="0,0,10,0" Click="ClickAcceptMe" />
+            <ToggleButton Content="Accept _updated version" Name="acceptThem" Margin="0,0,10,0" Click="ClickAcceptThem" />
             <Button Content="Manual _edit..." Name="edit" Margin="0,0,10,0"  Click="ClickEdit" />
             <Button Content="_Revert" Name="revert" Click="ClickRevert" IsEnabled="False" />
         </WrapPanel>

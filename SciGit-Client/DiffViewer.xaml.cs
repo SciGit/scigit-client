@@ -24,12 +24,13 @@ namespace SciGit_Client
   public partial class DiffViewer : UserControl
   {
     List<LineBlock>[] content;
-    LineBlock[] origBlocks;
+    LineBlock[] myBlocks;
     List<RichTextBox>[] lineTexts;
     List<TextBlock>[] lineNums;
     List<Border>[] lineTextBackgrounds;
     List<Border>[] lineNumBackgrounds;
     List<int> conflictBlocks;
+    List<LineBlock> conflictOrigBlocks;
     int[] conflictHover;
     int[] conflictChoice;
     int[] lineCount;
@@ -98,26 +99,31 @@ namespace SciGit_Client
         Style normal = GetStyle("textBackground" + content[i][block].type.ToString());
         Border textBackground = lineTextBackgrounds[i][block];
         Border numBackground = lineNumBackgrounds[i][block];
+        double opacity = 1;
+        int border = 0;
+
         // background color
         if (conflictHover[index] == i && conflictChoice[index] != i) {
           textBackground.Background = (hover.Setters[0] as Setter).Value as Brush;
         } else if (conflictChoice[index] != -1) {
-          int startLine = lineCount.Take(block).Sum();
           Style s;
-          double opacity = 1;
           if (conflictChoice[index] == i) {
             s = normal;
+            border = 3;
           } else {
             s = refused;
             opacity = 0.3;
           }
           textBackground.Background = (s.Setters[0] as Setter).Value as Brush;
-          for (int line = 0; line < lineCount[block]; line++) {
-            lineTexts[i][line + startLine].Opacity = opacity;
-          }
-
         } else {
           textBackground.Background = (normal.Setters[0] as Setter).Value as Brush;
+        }
+
+        textBackground.BorderThickness = new Thickness(border);
+        textBackground.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+        int startLine = lineCount.Take(block).Sum();
+        for (int line = 0; line < lineCount[block]; line++) {
+          lineTexts[i][line + startLine].Opacity = opacity;
         }
 
         // drop shadow
@@ -142,8 +148,8 @@ namespace SciGit_Client
       UpdateConflictBlock(prevConflict);
       UpdateConflictBlock(curConflict);
 
-      acceptMe.IsEnabled = conflictChoice[index] != 0;
-      acceptThem.IsEnabled = conflictChoice[index] != 1;
+      acceptMe.IsChecked = conflictChoice[index] == 0;
+      acceptThem.IsChecked = conflictChoice[index] == 1;
       revert.IsEnabled = content[0][newBlock].type == BlockType.Edited;
     }
 
@@ -164,37 +170,51 @@ namespace SciGit_Client
 
     private void ChooseConflict(int index, int side) {
       conflictChoice[index] = side;
-      acceptMe.IsEnabled = side != 0;
-      acceptThem.IsEnabled = side != 1;
+      acceptMe.IsChecked = side == 0;
+      acceptThem.IsChecked = side == 1;
+      UpdateConflictBlock(index);
     }
 
-    private void ClickAcceptMe(object sender, RoutedEventArgs e) {
-      ChooseConflict(curConflict, 0);
-      UpdateConflictBlock(curConflict);
-    }
-
-    private void ClickAcceptThem(object sender, RoutedEventArgs e) {
-      ChooseConflict(curConflict, 1);
-      UpdateConflictBlock(curConflict);
-    }
-
-    private void ClickEdit(object sender, RoutedEventArgs e) {
-      int block = conflictBlocks[curConflict];
-      LineBlock choice = conflictChoice[curConflict] != -1 ? content[conflictChoice[curConflict]][block] : null;
-      DiffEditor de = new DiffEditor(content[0][block], content[1][block], choice);
+    private void EditConflict(int index) {
+      int block = conflictBlocks[index];
+      LineBlock chosenBlock = conflictChoice[index] == -1 ? null : content[conflictChoice[index]][block];
+      DiffEditor de = new DiffEditor(myBlocks[block], content[1][block], conflictOrigBlocks[index], chosenBlock);
       de.ShowDialog();
       if (de.newBlock != null) {
-        ProcessBlockDiff(origBlocks[block], de.newBlock, false);
+        ProcessBlockDiff(conflictOrigBlocks[index], de.newBlock, false);
         content[0][block] = de.newBlock;
-        conflictChoice[curConflict] = 0;
+        conflictChoice[index] = 0;
         revert.IsEnabled = true;
         ReloadEditor();
       }
     }
 
+    private void ClickAccept(int index, int side) {
+      if (conflictChoice[curConflict] == side) {
+        ChooseConflict(curConflict, -1);
+      } else {
+        ChooseConflict(curConflict, side);
+        if (curConflict + 1 != conflictBlocks.Count) {
+          SelectNextConflict(null, null);
+        }
+      }
+    }
+
+    private void ClickAcceptMe(object sender, RoutedEventArgs e) {
+      ClickAccept(curConflict, 0);
+    }
+
+    private void ClickAcceptThem(object sender, RoutedEventArgs e) {
+      ClickAccept(curConflict, 1);
+    }
+
+    private void ClickEdit(object sender, RoutedEventArgs e) {
+      EditConflict(curConflict);
+    }
+
     private void ClickRevert(object sender, RoutedEventArgs e) {
       int block = conflictBlocks[curConflict];
-      content[0][block] = origBlocks[block];
+      content[0][block] = myBlocks[block];
       revert.IsEnabled = false;
       ReloadEditor();
     }
@@ -353,6 +373,7 @@ namespace SciGit_Client
                 int myG = g; // for lambda scoping
                 int mySide = side; // for lambda scoping
                 text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex); };
+                text.PreviewMouseDoubleClick += (o, e) => { EditConflict(cIndex); };
                 // text.ContextMenu = new ContextMenu();
                 text.MouseEnter += (o, e) => HoverConflict(cIndex, mySide, true);
                 text.MouseLeave += (o, e) => HoverConflict(cIndex, mySide, false);
@@ -422,6 +443,7 @@ namespace SciGit_Client
       for (int i = 0; i < 2; i++) {
         content[i] = new List<LineBlock>();
       }
+      conflictOrigBlocks = new List<LineBlock>();
 
       string[] origLines = diffs[0].PiecesOld;
       int nextOriginalLine = 0;
@@ -457,6 +479,7 @@ namespace SciGit_Client
           for (int side = 0; side < 2; side++) {
             int curOriginalLine = rangeStart;
             LineBlock conflictBlock = new LineBlock();
+            LineBlock origBlock = new LineBlock();
             conflictBlock.type = BlockType.Conflict;
             for (int k = i; k < j; k++) {
               DiffBlock subBlock = dblocks[k].Item1;
@@ -468,12 +491,16 @@ namespace SciGit_Client
               LineBlock oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
               LineBlock newBlock = new LineBlock(ArraySlice(diffs[side].PiecesNew, subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
               ProcessBlockDiff(oldBlock, newBlock, false);
+              origBlock.Append(oldBlock);
               conflictBlock.Append(newBlock);
             }
             if (rangeEnd > curOriginalLine) {
               conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, rangeEnd - curOriginalLine));
             }
             content[side].Add(conflictBlock);
+            if (side == 0) {
+              conflictOrigBlocks.Add(origBlock);
+            }
           }
         }
 
@@ -488,8 +515,8 @@ namespace SciGit_Client
         }
       }
 
-      origBlocks = new LineBlock[content[0].Count];
-      content[0].CopyTo(origBlocks);
+      myBlocks = new LineBlock[content[0].Count];
+      content[0].CopyTo(myBlocks);
     }
   }
 
