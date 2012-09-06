@@ -21,7 +21,7 @@ namespace SciGit_Client
       Tuple<String, String> status = (Tuple<String, String>)e.UserState;
       this.label1.Text = status.Item1;
       if (status.Item2.Length > 0) {
-        this.textBox1.Text += status.Item2 + "\r\n";
+        this.textBox1.Text += status.Item2.Replace("\n", "\r\n") + "\r\n";
       }
     }
 

@@ -51,6 +51,14 @@ namespace SciGit_Client
       SetActiveTextBlock(0);
     }
 
+    public List<string> GetFinalText() {
+      List<string> result = new List<string>();
+      foreach (var textBox in textBoxes) {
+        result.Add(textBox.Text);
+      }
+      return result;
+    }
+
     private void SetActiveTextBlock(int index) {
       if (index != activeTextBlock) {
         textBoxes[activeTextBlock].Visibility = System.Windows.Visibility.Hidden;

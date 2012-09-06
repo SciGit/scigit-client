@@ -29,23 +29,26 @@ namespace SciGit_Client
   /// </summary>
   public partial class MergeResolver : Window
   {
-    Project curProject;
+    Project project;
     List<FileData> unmergedFiles;
     List<DiffViewer> diffViewers;
     int active;
+    public bool Saved { get; private set; }
 
     public MergeResolver(Project p) {
       InitializeComponent();
 
-      curProject = p;
+      project = p;
       unmergedFiles = GetUnmergedFiles();
 
+      /*
       FileData test = new FileData();
       test.filename = "test1";
       test.original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n";
       test.myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n";
       test.newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n";
       unmergedFiles.Add(test);
+       */
 
       if (unmergedFiles.Count == 0) {
         // TODO: show an error or something
@@ -90,14 +93,21 @@ namespace SciGit_Client
         DiffPreview preview = new DiffPreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());
         preview.ShowDialog();
         if (preview.Saved) {
+          Saved = true;
+          List<string> mergeResults = preview.GetFinalText();
+          string dir = SGProjectManager.GetProjectDirectory(project);
+          for (int i = 0; i < unmergedFiles.Count; i++) {
+            File.WriteAllBytes(dir + "/" + unmergedFiles[i].filename,
+              Encoding.UTF8.GetBytes(mergeResults[i]));
+          }
           Close();
         }
       }
     }
 
     List<FileData> GetUnmergedFiles() {
-      Directory.SetCurrentDirectory(SGProjectManager.GetProjectDirectory(curProject));
-      GitReturn ret = GitWrapper.ListUnmergedFiles();
+      string dir = SGProjectManager.GetProjectDirectory(project);
+      GitReturn ret = GitWrapper.ListUnmergedFiles(dir);
 
       Dictionary<String, FileData> files = new Dictionary<string, FileData>();
       string[] lines = SentenceFilter.SplitLines(ret.Output);
@@ -106,19 +116,20 @@ namespace SciGit_Client
         if (match.Success) {
           string hash = match.Groups[1].Value;
           int stage = int.Parse(match.Groups[2].Value);
+          // TODO: take care of weird edge cases with quoted filename
           string file = match.Groups[3].Value;
           if (!files.ContainsKey(file)) {
             files[file] = new FileData { filename = file };
           }
 
-          GitReturn r = GitWrapper.ShowObject(hash);
+          GitReturn r = GitWrapper.ShowObject(dir, hash);
           string contents = r.Output;
           if (stage == 1) {
             files[file].original = contents;
           } else if (stage == 2) {
-            files[file].myVersion = contents;
-          } else {
             files[file].newVersion = contents;
+          } else {
+            files[file].myVersion = contents;
           }
         }
       }
@@ -144,7 +155,7 @@ namespace SciGit_Client
     }
 
     private void Window_Closed(object sender, EventArgs e) {
-      Environment.Exit(0);
+      // TODO: display confirmation message
     }
   }
 }

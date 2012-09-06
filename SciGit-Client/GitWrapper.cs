@@ -20,7 +20,7 @@ namespace SciGit_Client
   {
     public const string ServerHost = "scigit.sherk.me";
 
-    private static GitReturn ExecuteGitCommand(string args) {
+    private static GitReturn ExecuteGitCommand(string args, string dir = "") {
       ProcessStartInfo startInfo = new ProcessStartInfo();
       startInfo.FileName = "git.exe";
       startInfo.Arguments = args;
@@ -28,6 +28,7 @@ namespace SciGit_Client
       startInfo.RedirectStandardError = true;
       startInfo.RedirectStandardOutput = true;
       startInfo.UseShellExecute = false;
+      startInfo.WorkingDirectory = dir;
       Process process = new Process();
       process.StartInfo = startInfo;
       process.Start();
@@ -41,32 +42,44 @@ namespace SciGit_Client
       return '"' + s + '"';
     }
 
-    public static GitReturn Clone(Project p) {
-      return ExecuteGitCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)));
+    public static GitReturn Clone(string dir, Project p) {
+      return ExecuteGitCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)), dir);
     }
 
-    public static GitReturn Add(string args) {
-      return ExecuteGitCommand("add " + args);
+    public static GitReturn Add(string dir, string args) {
+      return ExecuteGitCommand("add " + args, dir);
     }
 
-    public static GitReturn Commit(string msg) {
-      return ExecuteGitCommand(String.Format("commit -a -m {0}", EscapeShellArg(msg)));
+    public static GitReturn Commit(string dir, string msg) {
+      return ExecuteGitCommand(String.Format("commit -a -m {0}", EscapeShellArg(msg)), dir);
     }
 
-    public static GitReturn Pull() {
-      return ExecuteGitCommand("pull");
+    public static GitReturn Diff(string dir, string options = "") {
+      return ExecuteGitCommand("diff " + options, dir);
     }
 
-    public static GitReturn Push() {
-      return ExecuteGitCommand("push origin master");
+    public static GitReturn Pull(string dir, string options = "") {
+      return ExecuteGitCommand("pull " + options, dir);
     }
 
-    public static GitReturn ListUnmergedFiles() {
-      return ExecuteGitCommand("ls-files -u");
+    public static GitReturn Push(string dir, string options = "") {
+      return ExecuteGitCommand("push origin master " + options, dir);
     }
 
-    public static GitReturn ShowObject(string hash) {
-      return ExecuteGitCommand("show " + hash);
+    public static GitReturn Rebase(string dir, string options) {
+      return ExecuteGitCommand("rebase " + options, dir);
+    }
+
+    public static GitReturn Reset(string dir, string options) {
+      return ExecuteGitCommand("reset " + options, dir);
+    }
+
+    public static GitReturn ListUnmergedFiles(string dir) {
+      return ExecuteGitCommand("ls-files -u", dir);
+    }
+
+    public static GitReturn ShowObject(string dir, string hash) {
+      return ExecuteGitCommand("show " + hash, dir);
     }
   }
 }

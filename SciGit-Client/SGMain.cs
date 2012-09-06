@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace SciGit_Client
 {
@@ -38,11 +39,12 @@ namespace SciGit_Client
 
     private EventHandler UpdateProject(Project p) {
       return (s, e) => {
+        var disp = Dispatcher.CurrentDispatcher;
         ProgressForm form = new ProgressForm();
         form.Show();
         BackgroundWorker bg = new BackgroundWorker();
         bg.WorkerReportsProgress = true;
-        bg.DoWork += (bw, _) => projectManager.UpdateProject(p, (BackgroundWorker)bw);
+        bg.DoWork += (bw, _) => projectManager.UpdateProject(p, form, disp, (BackgroundWorker)bw);
         bg.ProgressChanged += form.UpdateProgress;
         bg.RunWorkerCompleted += form.Completed;
         bg.RunWorkerAsync();
@@ -51,11 +53,12 @@ namespace SciGit_Client
 
     private EventHandler UploadProject(Project p) {
       return (s, e) => {
+        var disp = Dispatcher.CurrentDispatcher;
         ProgressForm form = new ProgressForm();
         form.Show();
         BackgroundWorker bg = new BackgroundWorker();
         bg.WorkerReportsProgress = true;
-        bg.DoWork += (bw, _) => projectManager.UploadProject(p, (BackgroundWorker)bw);
+        bg.DoWork += (bw, _) => projectManager.UploadProject(p, form, disp, (BackgroundWorker)bw);
         bg.ProgressChanged += form.UpdateProgress;
         bg.RunWorkerCompleted += form.Completed;
         bg.RunWorkerAsync();
@@ -63,28 +66,31 @@ namespace SciGit_Client
     }
 
     private void UpdateAll(object sender, EventArgs e) {
+      var disp = Dispatcher.CurrentDispatcher;
       ProgressForm form = new ProgressForm();
       form.Show();
       BackgroundWorker bg = new BackgroundWorker();
       bg.WorkerReportsProgress = true;
-      bg.DoWork += (bw, _) => projectManager.UpdateAllProjects((BackgroundWorker)bw);
+      bg.DoWork += (bw, _) => projectManager.UpdateAllProjects(form, disp, (BackgroundWorker)bw);
       bg.ProgressChanged += form.UpdateProgress;
       bg.RunWorkerCompleted += form.Completed;
       bg.RunWorkerAsync();
     }
 
     private void UploadAll(object sender, EventArgs e) {
+      var disp = Dispatcher.CurrentDispatcher;
       ProgressForm form = new ProgressForm();
       form.Show();
       BackgroundWorker bg = new BackgroundWorker();
       bg.WorkerReportsProgress = true;
-      bg.DoWork += (bw, _) => projectManager.UploadAllProjects((BackgroundWorker)bw);
+      bg.DoWork += (bw, _) => projectManager.UploadAllProjects(form, disp, (BackgroundWorker)bw);
       bg.ProgressChanged += form.UpdateProgress;
       bg.RunWorkerCompleted += form.Completed;
       bg.RunWorkerAsync();
     }
 
     private void ExitClick(object sender, EventArgs e) {
+      notifyIcon.Visible = false;
       Environment.Exit(0);
     }
 
