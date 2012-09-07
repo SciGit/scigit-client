@@ -29,6 +29,7 @@
       this.progressBar1 = new System.Windows.Forms.ProgressBar();
       this.textBox1 = new System.Windows.Forms.TextBox();
       this.details = new System.Windows.Forms.Button();
+      this.close = new System.Windows.Forms.Button();
       this.SuspendLayout();
       // 
       // label1
@@ -61,13 +62,24 @@
       // details
       // 
       this.details.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.details.Location = new System.Drawing.Point(298, 65);
+      this.details.Location = new System.Drawing.Point(217, 65);
       this.details.Name = "details";
       this.details.Size = new System.Drawing.Size(75, 23);
       this.details.TabIndex = 3;
       this.details.Text = "Details...";
       this.details.UseVisualStyleBackColor = true;
       this.details.Click += new System.EventHandler(this.details_Click);
+      // 
+      // close
+      // 
+      this.close.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.close.Location = new System.Drawing.Point(298, 66);
+      this.close.Name = "close";
+      this.close.Size = new System.Drawing.Size(75, 23);
+      this.close.TabIndex = 4;
+      this.close.Text = "Close";
+      this.close.UseVisualStyleBackColor = true;
+      this.close.Click += new System.EventHandler(this.close_Click);
       // 
       // ProgressForm
       // 
@@ -76,6 +88,7 @@
       this.AutoSize = true;
       this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.ClientSize = new System.Drawing.Size(385, 231);
+      this.Controls.Add(this.close);
       this.Controls.Add(this.details);
       this.Controls.Add(this.textBox1);
       this.Controls.Add(this.progressBar1);
@@ -98,5 +111,6 @@
     private System.Windows.Forms.ProgressBar progressBar1;
     private System.Windows.Forms.TextBox textBox1;
     private System.Windows.Forms.Button details;
+    private System.Windows.Forms.Button close;
   }
 }

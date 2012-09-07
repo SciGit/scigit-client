@@ -58,8 +58,12 @@ namespace SciGit_Client
       return ExecuteGitCommand("diff " + options, dir);
     }
 
-    public static GitReturn Pull(string dir, string options = "") {
-      return ExecuteGitCommand("pull " + options, dir);
+    public static GitReturn Fetch(string dir, string options = "") {
+      return ExecuteGitCommand("fetch " + options, dir);
+    }
+
+    public static GitReturn Log(string dir, string options = "") {
+      return ExecuteGitCommand("log " + options, dir);
     }
 
     public static GitReturn Push(string dir, string options = "") {

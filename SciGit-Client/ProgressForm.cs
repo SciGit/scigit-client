@@ -14,6 +14,7 @@ namespace SciGit_Client
     public ProgressForm() {
       InitializeComponent();
       this.textBox1.Visible = false;
+      this.close.Enabled = false;
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {
@@ -27,12 +28,15 @@ namespace SciGit_Client
 
     public void Completed(object sender, RunWorkerCompletedEventArgs e) {
       this.progressBar1.Value = 100;
-      this.label1.Text = "Finished.";
-      //Close();
+      this.close.Enabled = true;
     }
 
     private void details_Click(object sender, EventArgs e) {
       this.textBox1.Visible ^= true;
+    }
+
+    private void close_Click(object sender, EventArgs e) {
+      Close();
     }
   }
 }
