@@ -189,10 +189,11 @@ namespace SciGit_Client
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
-          UpdateProject(project, form, disp);
           if (worker != null) {
-            worker.ReportProgress(100 * done++ / projects.Count, Tuple.Create("Updating...", project.Name));
+            worker.ReportProgress(100 * done++ / projects.Count,
+              Tuple.Create("Updating " + project.Name + "...", ""));
           }
+          UpdateProject(project, form, disp);
         }
         worker.ReportProgress(100, Tuple.Create("Finished.", ""));
       }
@@ -202,10 +203,11 @@ namespace SciGit_Client
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
-          UploadProject(project, form, disp);
           if (worker != null) {
-            worker.ReportProgress(100 * done++ / projects.Count, Tuple.Create("Uploading...", project.Name));
+            worker.ReportProgress(100 * done++ / projects.Count,
+              Tuple.Create("Uploading " + project.Name + "...", ""));
           }
+          UploadProject(project, form, disp);
         }
         worker.ReportProgress(100, Tuple.Create("Finished.", ""));
       }
