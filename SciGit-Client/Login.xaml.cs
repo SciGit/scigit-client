@@ -16,11 +16,11 @@ using System.ComponentModel;
 namespace SciGit_Client
 {
   /// <summary>
-  /// Interaction logic for SGStart.xaml
+  /// Interaction logic for Login.xaml
   /// </summary>
-  public partial class SGStart : Window
+  public partial class Login : Window
   {
-    public SGStart() {
+    public Login() {
       System.Windows.Forms.Application.EnableVisualStyles();
       InitializeComponent();
       if (Properties.Settings.Default.RememberUser) {
@@ -38,7 +38,7 @@ namespace SciGit_Client
       login.Content = "Logging in...";
       BackgroundWorker bg = new BackgroundWorker();
       string email = emailValue.Text, password = passwordValue.Password;
-      bg.DoWork += (bw, _) => SGRestClient.Login(email, password, LoginCallback, Dispatcher);
+      bg.DoWork += (bw, _) => RestClient.Login(email, password, LoginCallback, Dispatcher);
       bg.RunWorkerAsync();
     }
 
@@ -50,7 +50,7 @@ namespace SciGit_Client
           Properties.Settings.Default.SavedPassword = passwordValue.Password;
           Properties.Settings.Default.Save();
         }
-        SGMain sgMain = new SGMain();
+        Main sgMain = new Main();
         sgMain.Show();
         sgMain.Hide();
         Hide();

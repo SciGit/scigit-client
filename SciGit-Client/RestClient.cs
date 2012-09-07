@@ -15,9 +15,9 @@ using System.Windows;
 
 namespace SciGit_Client
 {
-  class SGRestClient
+  class RestClient
   {
-    public const string serverHost = "scigit.sherk.me";
+    public const string serverHost = "hwang.scigit.sherk.me";
     private static string username = "";
     private static string authToken = "";
     private static int expiryTime = 0;
@@ -43,7 +43,7 @@ namespace SciGit_Client
         WebResponse response = request.GetResponse();
         Stream dataStream = response.GetResponseStream();
 
-        SGRestClient.username = username;
+        RestClient.username = username;
         XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
         XmlDocument doc = new XmlDocument();
         doc.Load(reader);

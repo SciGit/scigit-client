@@ -12,17 +12,17 @@ using System.Windows.Threading;
 
 namespace SciGit_Client
 {
-  public partial class SGMain : Form
+  public partial class Main : Form
   {
-    SGProjectManager projectManager;
+    ProjectMonitor projectManager;
 
-    public SGMain() {
+    public Main() {
       InitializeComponent();
       InitializeContextMenu();
 
       InitializeSSH();
 
-      projectManager = new SGProjectManager();
+      projectManager = new ProjectMonitor();
       projectManager.projectUpdatedCallbacks.Add(ProjectUpdated);
       projectManager.StartMonitoring();
       UpdateContextMenu();
@@ -34,7 +34,7 @@ namespace SciGit_Client
     }
 
     private void OpenDirectory(object sender, EventArgs e) {
-      Process.Start(SGProjectManager.GetProjectDirectory());
+      Process.Start(ProjectMonitor.GetProjectDirectory());
     }
 
     private EventHandler UpdateProject(Project p) {
@@ -181,7 +181,7 @@ namespace SciGit_Client
       }
 
       string key = File.ReadAllText(keyFile).Trim();
-      if (!SGRestClient.UploadPublicKey(key)) {
+      if (!RestClient.UploadPublicKey(key)) {
         FatalError("It appears that your public key is invalid. Please remove or regenerate it.");
       }
 

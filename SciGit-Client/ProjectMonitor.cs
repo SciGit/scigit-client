@@ -10,16 +10,23 @@ using System.Windows.Threading;
 
 namespace SciGit_Client
 {
-  class SGProjectManager
+  public struct Project
+  {
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public int OwnerId { get; set; }
+    public int CreatedTime { get; set; }
+  }
+
+  class ProjectMonitor
   {
     public List<Project> projects { get; private set; }
-    public delegate void ProjectUpdatedCallback();
     public delegate void ProgressCallback(int percent, string operation, string extra);
-    public List<ProjectUpdatedCallback> projectUpdatedCallbacks;
+    public List<Action> projectUpdatedCallbacks;
     private Thread monitorThread;
     private const int monitorDelay = 10 * 1000;
 
-    public SGProjectManager(List<Project> projects = null) {
+    public ProjectMonitor(List<Project> projects = null) {
       if (!Directory.Exists(GetProjectDirectory())) {
         CreateProjectDirectory();
       }
@@ -34,7 +41,7 @@ namespace SciGit_Client
       }
 
       monitorThread = new Thread(new ThreadStart(MonitorProjects));
-      projectUpdatedCallbacks = new List<ProjectUpdatedCallback>();
+      projectUpdatedCallbacks = new List<Action>();
     }
 
     public void StartMonitoring() {
@@ -43,8 +50,8 @@ namespace SciGit_Client
 
     public void MonitorProjects() {
       while (true) {
-        List<Project> newProjects = SGRestClient.GetProjects();
-        if (newProjects != null && !newProjects.Equals(projects)) {
+        List<Project> newProjects = RestClient.GetProjects();
+        if (newProjects != null && !newProjects.SequenceEqual(projects)) {
           lock (projects) {
             projects = newProjects;
           }
@@ -73,7 +80,7 @@ namespace SciGit_Client
     }
 
     public bool UpdateProject(Project p, Form form, Dispatcher disp, BackgroundWorker worker = null) {
-      string dir = SGProjectManager.GetProjectDirectory(p);
+      string dir = ProjectMonitor.GetProjectDirectory(p);
 
       GitReturn ret;
       // TODO: check if a previous merge is still in progress.
@@ -140,7 +147,7 @@ namespace SciGit_Client
     }
 
     public bool UploadProject(Project p, Form form, Dispatcher disp, BackgroundWorker worker = null) {
-      string dir = SGProjectManager.GetProjectDirectory(p);
+      string dir = ProjectMonitor.GetProjectDirectory(p);
 
       string commitMsg = "commit " + DateTime.Now;
       GitReturn ret;
@@ -218,12 +225,12 @@ namespace SciGit_Client
       // TODO: add special shell properties
     }
 
-    public static string GetProjectDirectory(Project p = null) {
-      string path = Environment.GetEnvironmentVariable("HOME") + Path.DirectorySeparatorChar + "SciGit";
-      if (p != null) {
-        path += Path.DirectorySeparatorChar + p.Name;
-      }
-      return path;
+    public static string GetProjectDirectory() {
+      return Environment.GetEnvironmentVariable("HOME") + Path.DirectorySeparatorChar + "SciGit";
+    }
+
+    public static string GetProjectDirectory(Project p) {
+      return GetProjectDirectory() + Path.DirectorySeparatorChar + p.Name;
     }
   }
 }

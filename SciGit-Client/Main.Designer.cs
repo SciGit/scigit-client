@@ -1,7 +1,7 @@
 ﻿using System.Windows.Forms;
 namespace SciGit_Client
 {
-    partial class SGMain
+    partial class Main
     {
         /// <summary>
         /// Required designer variable.
@@ -30,7 +30,7 @@ namespace SciGit_Client
         private void InitializeComponent()
         {
       this.components = new System.ComponentModel.Container();
-      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SGMain));
+      System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
       this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
       this.SuspendLayout();
       // 

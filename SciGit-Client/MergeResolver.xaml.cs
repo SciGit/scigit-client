@@ -95,7 +95,7 @@ namespace SciGit_Client
         if (preview.Saved) {
           Saved = true;
           List<string> mergeResults = preview.GetFinalText();
-          string dir = SGProjectManager.GetProjectDirectory(project);
+          string dir = ProjectMonitor.GetProjectDirectory(project);
           for (int i = 0; i < unmergedFiles.Count; i++) {
             File.WriteAllBytes(dir + "/" + unmergedFiles[i].filename,
               Encoding.UTF8.GetBytes(mergeResults[i]));
@@ -106,7 +106,7 @@ namespace SciGit_Client
     }
 
     List<FileData> GetUnmergedFiles() {
-      string dir = SGProjectManager.GetProjectDirectory(project);
+      string dir = ProjectMonitor.GetProjectDirectory(project);
       GitReturn ret = GitWrapper.ListUnmergedFiles(dir);
 
       Dictionary<String, FileData> files = new Dictionary<string, FileData>();
