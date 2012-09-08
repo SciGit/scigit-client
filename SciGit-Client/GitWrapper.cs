@@ -18,7 +18,7 @@ namespace SciGit_Client
 
   class GitWrapper
   {
-    public const string ServerHost = "scigit.sherk.me";
+    public const string ServerHost = "hwang.scigit.sherk.me";
 
     private static GitReturn ExecuteGitCommand(string args, string dir = "") {
       ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -46,8 +46,8 @@ namespace SciGit_Client
       return ExecuteGitCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)), dir);
     }
 
-    public static GitReturn Add(string dir, string args) {
-      return ExecuteGitCommand("add " + args, dir);
+    public static GitReturn AddAll(string dir) {
+      return ExecuteGitCommand("add .", dir);
     }
 
     public static GitReturn Commit(string dir, string msg) {
@@ -62,20 +62,24 @@ namespace SciGit_Client
       return ExecuteGitCommand("fetch " + options, dir);
     }
 
-    public static GitReturn Log(string dir, string options = "") {
-      return ExecuteGitCommand("log " + options, dir);
+    public static GitReturn GetLastCommit(string dir, string obj = "") {
+      return ExecuteGitCommand("log --pretty=%H -n 1" + obj, dir);
     }
 
     public static GitReturn Push(string dir, string options = "") {
       return ExecuteGitCommand("push origin master " + options, dir);
     }
 
-    public static GitReturn Rebase(string dir, string options) {
+    public static GitReturn Rebase(string dir, string options = "") {
       return ExecuteGitCommand("rebase " + options, dir);
     }
 
-    public static GitReturn Reset(string dir, string options) {
+    public static GitReturn Reset(string dir, string options = "") {
       return ExecuteGitCommand("reset " + options, dir);
+    }
+
+    public static GitReturn Status(string dir, string options = "") {
+      return ExecuteGitCommand("status --porcelain " + options, dir);
     }
 
     public static GitReturn ListUnmergedFiles(string dir) {

@@ -84,6 +84,7 @@ namespace SciGit_Client
           p.OwnerId = Int32.Parse(xmlNode.SelectSingleNode("owner_id").InnerText);
           p.Name = xmlNode.SelectSingleNode("name").InnerText;
           p.CreatedTime = Int32.Parse(xmlNode.SelectSingleNode("created_ts").InnerText);
+          p.LastCommitHash = xmlNode.SelectSingleNode("last_commit_hash").InnerText;
           projects.Add(p);
         }
         return projects;

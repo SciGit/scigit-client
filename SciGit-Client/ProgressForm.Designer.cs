@@ -72,6 +72,7 @@
       // 
       // close
       // 
+      this.close.DialogResult = System.Windows.Forms.DialogResult.Cancel;
       this.close.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.close.Location = new System.Drawing.Point(298, 66);
       this.close.Name = "close";
@@ -83,11 +84,13 @@
       // 
       // ProgressForm
       // 
+      this.AcceptButton = this.close;
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.AutoSize = true;
       this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
       this.ClientSize = new System.Drawing.Size(385, 231);
+      this.ControlBox = false;
       this.Controls.Add(this.close);
       this.Controls.Add(this.details);
       this.Controls.Add(this.textBox1);
