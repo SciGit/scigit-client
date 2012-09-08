@@ -6,9 +6,9 @@ using System.Diagnostics;
 
 namespace SciGit_Client
 {
-  class GitReturn
+  class ProcessReturn
   {
-    public GitReturn(int ret, string str) {
+    public ProcessReturn(int ret, string str) {
       ReturnValue = ret;
       Output = str;
     }
@@ -20,9 +20,9 @@ namespace SciGit_Client
   {
     public const string ServerHost = "hwang.scigit.sherk.me";
 
-    private static GitReturn ExecuteGitCommand(string args, string dir = "") {
+    private static ProcessReturn ExecuteCommand(string args, string dir = "", string exe = "git.exe") {
       ProcessStartInfo startInfo = new ProcessStartInfo();
-      startInfo.FileName = "git.exe";
+      startInfo.FileName = exe;
       startInfo.Arguments = args;
       startInfo.CreateNoWindow = true;
       startInfo.RedirectStandardError = true;
@@ -34,7 +34,7 @@ namespace SciGit_Client
       process.Start();
       string shellOutput = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
       process.WaitForExit();
-      return new GitReturn(process.ExitCode, shellOutput);
+      return new ProcessReturn(process.ExitCode, shellOutput);
     }
 
     private static string EscapeShellArg(string s) {
@@ -42,52 +42,64 @@ namespace SciGit_Client
       return '"' + s + '"';
     }
 
-    public static GitReturn Clone(string dir, Project p) {
-      return ExecuteGitCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)), dir);
+    public static ProcessReturn Clone(string dir, Project p) {
+      return ExecuteCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)), dir);
     }
 
-    public static GitReturn AddAll(string dir) {
-      return ExecuteGitCommand("add .", dir);
+    public static ProcessReturn AddAll(string dir) {
+      return ExecuteCommand("add .", dir);
     }
 
-    public static GitReturn Commit(string dir, string msg) {
-      return ExecuteGitCommand(String.Format("commit -a -m {0}", EscapeShellArg(msg)), dir);
+    public static ProcessReturn Commit(string dir, string msg) {
+      return ExecuteCommand(String.Format("commit -a -m {0}", EscapeShellArg(msg)), dir);
     }
 
-    public static GitReturn Diff(string dir, string options = "") {
-      return ExecuteGitCommand("diff " + options, dir);
+    public static ProcessReturn Diff(string dir, string options = "") {
+      return ExecuteCommand("diff " + options, dir);
     }
 
-    public static GitReturn Fetch(string dir, string options = "") {
-      return ExecuteGitCommand("fetch " + options, dir);
+    public static ProcessReturn Fetch(string dir, string options = "") {
+      return ExecuteCommand("fetch " + options, dir);
     }
 
-    public static GitReturn GetLastCommit(string dir, string obj = "") {
-      return ExecuteGitCommand("log --pretty=%H -n 1" + obj, dir);
+    public static ProcessReturn GetLastCommit(string dir, string obj = "") {
+      return ExecuteCommand("log --pretty=%H -n 1" + obj, dir);
     }
 
-    public static GitReturn Push(string dir, string options = "") {
-      return ExecuteGitCommand("push origin master " + options, dir);
+    public static ProcessReturn Push(string dir, string options = "") {
+      return ExecuteCommand("push origin master " + options, dir);
     }
 
-    public static GitReturn Rebase(string dir, string options = "") {
-      return ExecuteGitCommand("rebase " + options, dir);
+    public static ProcessReturn Rebase(string dir, string options = "") {
+      return ExecuteCommand("rebase " + options, dir);
     }
 
-    public static GitReturn Reset(string dir, string options = "") {
-      return ExecuteGitCommand("reset " + options, dir);
+    public static ProcessReturn Reset(string dir, string options = "") {
+      return ExecuteCommand("reset " + options, dir);
     }
 
-    public static GitReturn Status(string dir, string options = "") {
-      return ExecuteGitCommand("status --porcelain " + options, dir);
+    public static ProcessReturn Status(string dir, string options = "") {
+      return ExecuteCommand("status --porcelain " + options, dir);
     }
 
-    public static GitReturn ListUnmergedFiles(string dir) {
-      return ExecuteGitCommand("ls-files -u", dir);
+    public static ProcessReturn ListUnmergedFiles(string dir) {
+      return ExecuteCommand("ls-files -u", dir);
     }
 
-    public static GitReturn ShowObject(string dir, string hash) {
-      return ExecuteGitCommand("show " + hash, dir);
+    public static ProcessReturn ShowObject(string dir, string hash) {
+      return ExecuteCommand("show " + hash, dir);
+    }
+
+    public static ProcessReturn GenerateSSHKey(string keyFile) {
+      return ExecuteCommand(String.Format("-t rsa -f '{0}' -P ''", keyFile), "", "ssh-keygen.exe");
+    }
+
+    public static ProcessReturn RemoveHostSSHKey(string hostName) {
+      return ExecuteCommand("-R " + hostName, "", "ssh-keygen.exe");
+    }
+
+    public static ProcessReturn GetHostSSHKey(string hostName) {
+      return ExecuteCommand("-t rsa " + hostName, "", "ssh-keyscan.exe");
     }
   }
 }

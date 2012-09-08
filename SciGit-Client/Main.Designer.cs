@@ -39,15 +39,16 @@ namespace SciGit_Client
       this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
       this.notifyIcon.Text = "SciGit";
       this.notifyIcon.Visible = true;
-      this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OpenDirectory);
+      this.notifyIcon.Click += new System.EventHandler(this.OpenContextMenu);
+      this.notifyIcon.DoubleClick += new System.EventHandler(this.OpenDirectoryHandler);
       // 
-      // SGMain
+      // Main
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(284, 262);
       this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-      this.Name = "SGMain";
+      this.Name = "Main";
       this.Opacity = 0D;
       this.ShowIcon = false;
       this.ShowInTaskbar = false;

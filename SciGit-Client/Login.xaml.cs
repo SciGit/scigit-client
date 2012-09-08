@@ -50,10 +50,10 @@ namespace SciGit_Client
           Properties.Settings.Default.SavedPassword = passwordValue.Password;
           Properties.Settings.Default.Save();
         }
+        Hide();
         Main sgMain = new Main();
         sgMain.Show();
         sgMain.Hide();
-        Hide();
       } else {
         MessageBox.Show("Invalid username or password.", "Error");
         login.IsEnabled = true;

@@ -107,7 +107,7 @@ namespace SciGit_Client
 
     List<FileData> GetUnmergedFiles() {
       string dir = ProjectMonitor.GetProjectDirectory(project);
-      GitReturn ret = GitWrapper.ListUnmergedFiles(dir);
+      ProcessReturn ret = GitWrapper.ListUnmergedFiles(dir);
 
       Dictionary<String, FileData> files = new Dictionary<string, FileData>();
       string[] lines = SentenceFilter.SplitLines(ret.Output);
@@ -122,7 +122,7 @@ namespace SciGit_Client
             files[file] = new FileData { filename = file };
           }
 
-          GitReturn r = GitWrapper.ShowObject(dir, hash);
+          ProcessReturn r = GitWrapper.ShowObject(dir, hash);
           string contents = r.Output;
           if (stage == 1) {
             files[file].original = contents;

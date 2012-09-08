@@ -111,7 +111,7 @@ namespace SciGit_Client
       string dir = ProjectMonitor.GetProjectDirectory(p);
 
       try {
-        GitReturn ret;
+        ProcessReturn ret;
         // TODO: check if a previous merge is still in progress.
 
         if (worker != null) worker.ReportProgress(20, Tuple.Create("Fetching updates...", ""));
@@ -182,7 +182,7 @@ namespace SciGit_Client
 
     public bool UploadProject(Project p, Form form, Dispatcher disp, BackgroundWorker worker = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
-      GitReturn ret = GitWrapper.Status(dir);
+      ProcessReturn ret = GitWrapper.Status(dir);
       if (ret.Output.Trim() == "") {
         if (worker != null) worker.ReportProgress(20, Tuple.Create("No changes.", ""));
         return true;
@@ -268,7 +268,7 @@ namespace SciGit_Client
 
     public bool HasUpdate(Project p) {
       string dir = GetProjectDirectory(p);
-      GitReturn ret = GitWrapper.GetLastCommit(dir);
+      ProcessReturn ret = GitWrapper.GetLastCommit(dir);
       string lastHash = "";
       if (ret.ReturnValue == 0) {
         lastHash = ret.Output.Trim();
