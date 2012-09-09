@@ -69,7 +69,6 @@ namespace SciGit_Client
 
     private void ClickFinish(object sender, RoutedEventArgs e) {
       Saved = true;
-      // TODO: write the files
       Close();
     }
 
