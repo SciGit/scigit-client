@@ -39,8 +39,7 @@ namespace SciGit_Client
       this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
       this.notifyIcon.Text = "SciGit";
       this.notifyIcon.Visible = true;
-      this.notifyIcon.Click += new System.EventHandler(this.OpenContextMenu);
-      this.notifyIcon.DoubleClick += new System.EventHandler(this.OpenDirectoryHandler);
+      this.notifyIcon.Click += new System.EventHandler(this.NotifyClick);
       // 
       // Main
       // 

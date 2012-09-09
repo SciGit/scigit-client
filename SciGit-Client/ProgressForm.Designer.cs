@@ -59,6 +59,7 @@
       this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
       this.textBox1.Size = new System.Drawing.Size(361, 82);
       this.textBox1.TabIndex = 2;
+      this.textBox1.Visible = false;
       // 
       // details
       // 
@@ -74,6 +75,7 @@
       // close
       // 
       this.close.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+      this.close.Enabled = false;
       this.close.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
       this.close.Location = new System.Drawing.Point(298, 66);
       this.close.Name = "close";

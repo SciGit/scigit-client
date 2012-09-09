@@ -6,15 +6,23 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace SciGit_Client
 {
   public partial class ProgressForm : Form
   {
-    public ProgressForm() {
+    public delegate void BackgroundAction(Form form, Dispatcher disp, BackgroundWorker bw);
+
+    public ProgressForm(Dispatcher disp, BackgroundAction action) {
       InitializeComponent();
-      this.textBox1.Visible = false;
-      this.close.Enabled = false;
+
+      BackgroundWorker bg = new BackgroundWorker();
+      bg.WorkerReportsProgress = true;
+      bg.DoWork += (bw, _) => action(this, disp, (BackgroundWorker)bw);
+      bg.ProgressChanged += UpdateProgress;
+      bg.RunWorkerCompleted += Completed;
+      bg.RunWorkerAsync();
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {

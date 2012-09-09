@@ -21,7 +21,7 @@ namespace SciGit_Client
 
   class ProjectMonitor
   {
-    List<Project> projects;
+    List<Project> projects, updatedProjects;
     public delegate void ProjectCallback(Project p);
     public delegate void ProgressCallback(int percent, string operation, string extra);
     public List<Action> updateCallbacks;
@@ -42,6 +42,7 @@ namespace SciGit_Client
       } else {
         this.projects = new List<Project>();
       }
+      updatedProjects = new List<Project>();
 
       monitorThread = new Thread(new ThreadStart(MonitorProjects));
       updateCallbacks = new List<Action>();
@@ -61,6 +62,12 @@ namespace SciGit_Client
       }
     }
 
+    public List<Project> GetUpdatedProjects() {
+      lock (updatedProjects) {
+        return new List<Project>(updatedProjects);
+      }
+    }
+
     private void DispatchCallbacks(List<ProjectCallback> callbacks, Project p) {
       foreach (var callback in callbacks) {
         callback(p);
@@ -73,19 +80,28 @@ namespace SciGit_Client
         if (newProjects != null && !newProjects.SequenceEqual(projects)) {
           Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
           Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
+
+          List<Project> newUpdatedProjects = new List<Project>();
           foreach (var project in newProjects) {
             if (InitializeProject(project)) {
               DispatchCallbacks(projectAddedCallbacks, project);
             } else if (HasUpdate(project)) {
+              newUpdatedProjects.Add(project);
               DispatchCallbacks(projectUpdatedCallbacks, project);
             }
           }
-          foreach (var project in projects) {
-            if (!newProjectDict.ContainsKey(project.Id)) {
-              DispatchCallbacks(projectRemovedCallbacks, project);
+
+          lock (updatedProjects) {
+            updatedProjects = newUpdatedProjects;
+          }
+
+          foreach (var project in oldProjectDict) {
+            if (!newProjectDict.ContainsKey(project.Value.Id)) {
+              DispatchCallbacks(projectRemovedCallbacks, project.Value);
               // TODO: delete removed projects?
             }
           }
+
           lock (projects) {
             projects = newProjects;
           }
@@ -172,6 +188,11 @@ namespace SciGit_Client
         if (worker != null) worker.ReportProgress(100, Tuple.Create(message, ret.Output));
         if (tempCommit) {
           GitWrapper.Reset(dir, "HEAD^");
+        }
+        if (success) {
+          lock (updatedProjects) {
+            updatedProjects = updatedProjects.Where(up => up.Id != p.Id).ToList();
+          }
         }
         return success;
       } catch (Exception e) {

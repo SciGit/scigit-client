@@ -10,6 +10,8 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Threading;
 using System.Reflection;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace SciGit_Client
 {
@@ -22,7 +24,7 @@ namespace SciGit_Client
 
   public partial class Main : Form
   {
-    ProjectMonitor projectManager;
+    ProjectMonitor projectMonitor;
     Queue<BalloonTip> balloonTips;
     const int balloonTipTimeout = 3000;
 
@@ -35,11 +37,11 @@ namespace SciGit_Client
       notifyIcon.BalloonTipClosed += BalloonTipClosed;
       notifyIcon.BalloonTipClicked += BalloonTipClicked;
 
-      projectManager = new ProjectMonitor();
-      projectManager.updateCallbacks.Add(UpdateContextMenu);
-      projectManager.projectAddedCallbacks.Add(ProjectAdded);
-      projectManager.projectUpdatedCallbacks.Add(ProjectUpdated);
-      projectManager.StartMonitoring();
+      projectMonitor = new ProjectMonitor();
+      projectMonitor.updateCallbacks.Add(UpdateContextMenu);
+      projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
+      projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
+      projectMonitor.StartMonitoring();
     }
 
     private void FatalError(string err) {
@@ -51,60 +53,63 @@ namespace SciGit_Client
       Process.Start(ProjectMonitor.GetProjectDirectory());
     }
 
+    private void ManageProjectsHandler(object sender, EventArgs e) {
+      Process.Start("http://" + RestClient.serverHost + "/projects");
+    }
+
+    private void NotifyClick(object sender, EventArgs e) {
+      MouseEventArgs me = (MouseEventArgs)e;
+      if (me.Button == System.Windows.Forms.MouseButtons.Left) {
+        OpenDirectoryHandler(sender, e);
+      }
+    }
+
     private EventHandler CreateOpenDirectoryHandler(Project p) {
       return (s, e) => Process.Start(ProjectMonitor.GetProjectDirectory(p));
     }
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        var disp = Dispatcher.CurrentDispatcher;
-        ProgressForm form = new ProgressForm();
-        form.Show();
-        BackgroundWorker bg = new BackgroundWorker();
-        bg.WorkerReportsProgress = true;
-        bg.DoWork += (bw, _) => projectManager.UpdateProject(p, form, disp, (BackgroundWorker)bw);
-        bg.ProgressChanged += form.UpdateProgress;
-        bg.RunWorkerCompleted += form.Completed;
-        bg.RunWorkerAsync();
+        ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+          (form, disp, bw) => {
+            projectMonitor.UpdateProject(p, form, disp, bw);
+            UpdateContextMenu();
+          }
+         );
+        progressForm.Show();
       };
     }
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        var disp = Dispatcher.CurrentDispatcher;
-        ProgressForm form = new ProgressForm();
-        form.Show();
-        BackgroundWorker bg = new BackgroundWorker();
-        bg.WorkerReportsProgress = true;
-        bg.DoWork += (bw, _) => projectManager.UploadProject(p, form, disp, (BackgroundWorker)bw);
-        bg.ProgressChanged += form.UpdateProgress;
-        bg.RunWorkerCompleted += form.Completed;
-        bg.RunWorkerAsync();
+        ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+          (form, disp, bw) => {
+            projectMonitor.UploadProject(p, form, disp, bw);
+            UpdateContextMenu();
+          }
+         );
+        progressForm.Show();
       };
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
-      var disp = Dispatcher.CurrentDispatcher;
-      ProgressForm form = new ProgressForm();
-      form.Show();
-      BackgroundWorker bg = new BackgroundWorker();
-      bg.WorkerReportsProgress = true;
-      bg.DoWork += (bw, _) => projectManager.UpdateAllProjects(form, disp, (BackgroundWorker)bw);
-      bg.ProgressChanged += form.UpdateProgress;
-      bg.RunWorkerCompleted += form.Completed;
-      bg.RunWorkerAsync();
+      ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+        (form, disp, bw) => {
+          projectMonitor.UpdateAllProjects(form, disp, bw);
+          UpdateContextMenu();
+        }
+       );
+      progressForm.Show();
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
-      var disp = Dispatcher.CurrentDispatcher;
-      ProgressForm form = new ProgressForm();
-      form.Show();
-      BackgroundWorker bg = new BackgroundWorker();
-      bg.WorkerReportsProgress = true;
-      bg.DoWork += (bw, _) => projectManager.UploadAllProjects(form, disp, (BackgroundWorker)bw);
-      bg.ProgressChanged += form.UpdateProgress;
-      bg.RunWorkerCompleted += form.Completed;
-      bg.RunWorkerAsync();
+      ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+        (form, disp, bw) => {
+          projectMonitor.UploadAllProjects(form, disp, bw);
+          UpdateContextMenu();
+        }
+       );
+      progressForm.Show();
     }
 
     private void ExitClick(object sender, EventArgs e) {
@@ -159,61 +164,61 @@ namespace SciGit_Client
     // Use our own
     private void InitializeContextMenu() {
       notifyIcon.ContextMenu = new ContextMenu();
-      var menuItem = new MenuItem("Open SciGit Projects...", OpenDirectoryHandler);
+      var menuItem = new MenuItem("Open SciGit projects...", OpenDirectoryHandler);
       menuItem.DefaultItem = true;
       notifyIcon.ContextMenu.MenuItems.Add(menuItem);
+      notifyIcon.ContextMenu.MenuItems.Add("Manage SciGit projects...", ManageProjectsHandler);
       notifyIcon.ContextMenu.MenuItems.Add("-");
-      notifyIcon.ContextMenu.MenuItems.Add("Update Project");
-      notifyIcon.ContextMenu.MenuItems.Add("Upload Project");
+      notifyIcon.ContextMenu.MenuItems.Add("Update Project").Enabled = false;
+      notifyIcon.ContextMenu.MenuItems.Add("Upload Project").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
-      notifyIcon.ContextMenu.MenuItems.Add("Update All", CreateUpdateAllHandler);
-      notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler);
+      notifyIcon.ContextMenu.MenuItems.Add("Update All", CreateUpdateAllHandler).Enabled = false;
+      notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Exit", ExitClick);
-      notifyIcon.ContextMenu.MenuItems[2].Enabled =
-        notifyIcon.ContextMenu.MenuItems[3].Enabled =
-          notifyIcon.ContextMenu.MenuItems[5].Enabled =
-            notifyIcon.ContextMenu.MenuItems[6].Enabled = false;
     }
 
     private void UpdateContextMenu() {
-      List<Project> projects = projectManager.GetProjects();
-      var update = notifyIcon.ContextMenu.MenuItems[2];
-      var upload = notifyIcon.ContextMenu.MenuItems[3];
-      HashSet<string> current = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
-      HashSet<string> updated = new HashSet<string>(from p in projects select p.Name);
+      List<Project> projects = projectMonitor.GetProjects();
+      List<Project> updatedProjects = projectMonitor.GetUpdatedProjects();
+      var update = notifyIcon.ContextMenu.MenuItems[3];
+      var upload = notifyIcon.ContextMenu.MenuItems[4];      
+      HashSet<string> curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
+      HashSet<string> newNames = new HashSet<string>(from p in projects select p.Name);
+      HashSet<string> updNames = new HashSet<string>(from p in updatedProjects select p.Name);
 
       for (int i = update.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = update.MenuItems[i];
-        if (!updated.Contains(item.Text)) {
+        item.Checked = updNames.Contains(item.Text);
+        if (!newNames.Contains(item.Text)) {
           update.MenuItems.Remove(item);
         }
       }
 
       for (int i = upload.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = upload.MenuItems[i];
-        if (!updated.Contains(item.Text)) {
+        if (!newNames.Contains(item.Text)) {
           upload.MenuItems.Remove(item);
         }
       }
 
       foreach (var project in projects) {
-        if (!current.Contains(project.Name)) {
+        if (!curNames.Contains(project.Name)) {
           var curProject = project; // closure issues
-          update.MenuItems.Add(new MenuItem(project.Name, CreateUpdateProjectHandler(curProject)));
-          upload.MenuItems.Add(new MenuItem(project.Name, CreateUploadProjectHandler(curProject)));
+          MenuItem item = new MenuItem(project.Name, CreateUpdateProjectHandler(curProject));
+          item.Checked = updNames.Contains(project.Name);
+          item.RadioCheck = true;
+          update.MenuItems.Add(item);
+          item = new MenuItem(project.Name, CreateUploadProjectHandler(curProject));
+          upload.MenuItems.Add(item);
         }
       }
 
-      var updateAll = notifyIcon.ContextMenu.MenuItems[5];
-      var uploadAll = notifyIcon.ContextMenu.MenuItems[6];
-      update.Enabled = upload.Enabled = updateAll.Enabled = uploadAll.Enabled = projects.Count > 0;
-    }
+      var updateAll = notifyIcon.ContextMenu.MenuItems[6];
+      updateAll.Text = "Update All" + (updNames.Count > 0 ? String.Format(" ({0})", updNames.Count) : "");
 
-    private void OpenContextMenu(object sender, EventArgs e) {
-      // Hack from StackOverflow: use reflection to get the internal context menu function
-      MethodInfo mi = typeof(NotifyIcon).GetMethod("ShowContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
-      mi.Invoke(notifyIcon, null);
+      var uploadAll = notifyIcon.ContextMenu.MenuItems[7];
+      update.Enabled = upload.Enabled = updateAll.Enabled = uploadAll.Enabled = projects.Count > 0;
     }
 
     private void InitializeSSH() {
