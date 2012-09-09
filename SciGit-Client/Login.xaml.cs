@@ -21,7 +21,6 @@ namespace SciGit_Client
   public partial class Login : Window
   {
     public Login() {
-      System.Windows.Forms.Application.EnableVisualStyles();
       InitializeComponent();
       if (Properties.Settings.Default.RememberUser) {
         rememberMe.IsChecked = true;
