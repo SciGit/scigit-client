@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO.Pipes;
 
 namespace SciGit_Client
 {
@@ -28,6 +29,7 @@ namespace SciGit_Client
     Queue<BalloonTip> balloonTips;
     const int balloonTipTimeout = 3000;
     Dispatcher dispatcher;
+    NamedPipeServerStream pipeServer;
 
     public Main() {
       InitializeComponent();
@@ -52,22 +54,41 @@ namespace SciGit_Client
       Environment.Exit(1);
     }
 
+    private void HandleCommand(string verb, string filename) {
+      Project p = projectMonitor.GetProjectFromFilename(ref filename);
+      if (p.Id == 0) {
+        MessageBox.Show("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
+      } else if (verb == "--versions") {
+        dispatcher.Invoke(new Action(() => OpenFileHistory(p, filename)));
+      } else if (verb == "--update") {
+        dispatcher.Invoke(CreateUpdateProjectHandler(p), new object[] { null, null });
+      } else if (verb == "--upload") {
+        dispatcher.Invoke(CreateUploadProjectHandler(p), new object[] { null, null });
+      }
+    }
+
     private void OnProjectMonitorLoaded() {
       string[] args = Environment.GetCommandLineArgs();
       if (args.Length == 3) {
-        string verb = args[1];
-        string filename = args[2];
-        Project p = projectMonitor.GetProjectFromFilename(ref filename);
-        if (p.Id == 0) {
-          MessageBox.Show("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
-        } else if (verb == "--versions") {
-          dispatcher.Invoke(new Action(() => OpenFileHistory(p, filename)));
-        } else if (verb == "--update") {
-          dispatcher.Invoke(CreateUpdateProjectHandler(p), new object[] { null, null });
-        } else if (verb == "--upload") {
-          dispatcher.Invoke(CreateUploadProjectHandler(p), new object[] { null, null });
-        }
+        HandleCommand(args[1], args[2]);
       }
+
+      pipeServer = new NamedPipeServerStream("sciGitPipe", PipeDirection.In, 2);
+      Thread t = new Thread(new ThreadStart(() => {
+        while (true) {
+          pipeServer.WaitForConnection();
+          try {
+            StreamString ss = new StreamString(pipeServer);
+            string verb = ss.ReadString();
+            string filename = ss.ReadString();
+            HandleCommand(verb, filename);
+          } catch (Exception) {
+            // TODO: log errors somewhere
+          }
+          pipeServer.Disconnect();
+        }
+      }));
+      t.Start();
     }
 
     private void OpenFileHistory(Project p, string filename) {

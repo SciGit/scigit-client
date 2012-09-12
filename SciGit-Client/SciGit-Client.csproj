@@ -129,6 +129,7 @@
     <Compile Include="DiffViewer.xaml.cs">
       <DependentUpon>DiffViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="StreamString.cs" />
     <Page Include="DiffEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
