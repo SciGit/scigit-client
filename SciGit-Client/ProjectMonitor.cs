@@ -24,7 +24,7 @@ namespace SciGit_Client
     List<Project> projects, updatedProjects;
     public delegate void ProjectCallback(Project p);
     public delegate void ProgressCallback(int percent, string operation, string extra);
-    public List<Action> updateCallbacks;
+    public List<Action> updateCallbacks, loadedCallbacks;
     public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks, projectUpdatedCallbacks;
     private Thread monitorThread;
     private const int monitorDelay = 10 * 1000;
@@ -46,6 +46,7 @@ namespace SciGit_Client
 
       monitorThread = new Thread(new ThreadStart(MonitorProjects));
       updateCallbacks = new List<Action>();
+      loadedCallbacks = new List<Action>();
       projectUpdatedCallbacks = new List<ProjectCallback>();
       projectAddedCallbacks = new List<ProjectCallback>();
       projectRemovedCallbacks = new List<ProjectCallback>();
@@ -68,6 +69,28 @@ namespace SciGit_Client
       }
     }
 
+    public Project GetProjectFromFilename(ref string filename) {
+      string dir = GetProjectDirectory() + Path.DirectorySeparatorChar;
+      if (filename.StartsWith(dir)) {
+        filename = filename.Substring(dir.Length);
+        int slash = filename.IndexOf(Path.DirectorySeparatorChar);
+        string projectName;
+        if (slash != -1) {
+          projectName = filename.Substring(0, slash);
+          filename = filename.Substring(slash + 1);
+        } else {
+          projectName = filename;
+          filename = "";
+        }
+
+        lock (projects) {
+          return projects.Find(p => String.Compare(p.Name, projectName, true) == 0);
+        }
+      }
+
+      return new Project();
+    }
+
     private void DispatchCallbacks(List<ProjectCallback> callbacks, Project p) {
       foreach (var callback in callbacks) {
         callback(p);
@@ -75,6 +98,7 @@ namespace SciGit_Client
     }
 
     private void MonitorProjects() {
+      bool loaded = false;
       while (true) {
         List<Project> newProjects = RestClient.GetProjects();
         if (newProjects != null && !newProjects.SequenceEqual(projects)) {
@@ -108,13 +132,18 @@ namespace SciGit_Client
           updateCallbacks.ForEach(c => c.Invoke());
         }
 
+        if (newProjects != null && !loaded) {
+          loaded = true;
+          loadedCallbacks.ForEach(c => c.Invoke());
+        }
+
         Thread.Sleep(monitorDelay);
       }
     }
 
     private bool InitializeProject(Project p) {
       string dir = GetProjectDirectory();
-      if (Directory.Exists(dir + "/" + p.Name)) return false;
+      if (Directory.Exists(dir + Path.DirectorySeparatorChar + p.Name)) return false;
       GitWrapper.Clone(dir, p);
       return true;      
     }

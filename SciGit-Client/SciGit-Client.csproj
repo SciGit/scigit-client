@@ -93,6 +93,9 @@
     <Compile Include="DiffPreview.xaml.cs">
       <DependentUpon>DiffPreview.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FileHistory.xaml.cs">
+      <DependentUpon>FileHistory.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MergeResolver.xaml.cs">
       <DependentUpon>MergeResolver.xaml</DependentUpon>
     </Compile>
@@ -131,6 +134,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DiffPreview.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FileHistory.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

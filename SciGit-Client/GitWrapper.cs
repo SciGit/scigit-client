@@ -62,6 +62,10 @@ namespace SciGit_Client
       return ExecuteCommand("fetch " + options, dir);
     }
 
+    public static ProcessReturn Log(string dir, string options = "") {
+      return ExecuteCommand("log " + options, dir);
+    }
+
     public static ProcessReturn GetLastCommit(string dir, string obj = "") {
       return ExecuteCommand("log --pretty=%H -n 1" + obj, dir);
     }

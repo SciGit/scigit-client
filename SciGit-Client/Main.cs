@@ -27,26 +27,57 @@ namespace SciGit_Client
     ProjectMonitor projectMonitor;
     Queue<BalloonTip> balloonTips;
     const int balloonTipTimeout = 3000;
+    Dispatcher dispatcher;
 
     public Main() {
       InitializeComponent();
       InitializeContextMenu();
       InitializeSSH();
-
+      
       balloonTips = new Queue<BalloonTip>();
       notifyIcon.BalloonTipClosed += BalloonTipClosed;
       notifyIcon.BalloonTipClicked += BalloonTipClicked;
 
+      dispatcher = Dispatcher.CurrentDispatcher;
       projectMonitor = new ProjectMonitor();
       projectMonitor.updateCallbacks.Add(UpdateContextMenu);
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
       projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
+      projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
       projectMonitor.StartMonitoring();
     }
 
     private void FatalError(string err) {
       MessageBox.Show(err, "Error");
       Environment.Exit(1);
+    }
+
+    private void OnProjectMonitorLoaded() {
+      string[] args = Environment.GetCommandLineArgs();
+      if (args.Length == 3) {
+        string verb = args[1];
+        string filename = args[2];
+        Project p = projectMonitor.GetProjectFromFilename(ref filename);
+        if (p.Id == 0) {
+          MessageBox.Show("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
+        } else if (verb == "--versions") {
+          dispatcher.Invoke(new Action(() => OpenFileHistory(p, filename)));
+        } else if (verb == "--update") {
+          dispatcher.Invoke(CreateUpdateProjectHandler(p), new object[] { null, null });
+        } else if (verb == "--upload") {
+          dispatcher.Invoke(CreateUploadProjectHandler(p), new object[] { null, null });
+        }
+      }
+    }
+
+    private void OpenFileHistory(Project p, string filename) {
+      string dir = ProjectMonitor.GetProjectDirectory(p);
+      if (!File.Exists(dir + Path.DirectorySeparatorChar + filename)) {
+        MessageBox.Show("File does not exist.", "Error");
+      } else {
+        FileHistory fh = new FileHistory(p, filename);
+        fh.Show();
+      }
     }
 
     private void OpenDirectoryHandler(object sender, EventArgs e) {
@@ -70,7 +101,7 @@ namespace SciGit_Client
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+        ProgressForm progressForm = new ProgressForm(dispatcher,
           (form, disp, bw) => {
             projectMonitor.UpdateProject(p, form, disp, bw);
             UpdateContextMenu();
@@ -82,7 +113,7 @@ namespace SciGit_Client
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+        ProgressForm progressForm = new ProgressForm(dispatcher,
           (form, disp, bw) => {
             projectMonitor.UploadProject(p, form, disp, bw);
             UpdateContextMenu();
@@ -93,7 +124,7 @@ namespace SciGit_Client
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
-      ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+      ProgressForm progressForm = new ProgressForm(dispatcher,
         (form, disp, bw) => {
           projectMonitor.UpdateAllProjects(form, disp, bw);
           UpdateContextMenu();
@@ -103,7 +134,7 @@ namespace SciGit_Client
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
-      ProgressForm progressForm = new ProgressForm(Dispatcher.CurrentDispatcher,
+      ProgressForm progressForm = new ProgressForm(dispatcher,
         (form, disp, bw) => {
           projectMonitor.UploadAllProjects(form, disp, bw);
           UpdateContextMenu();
