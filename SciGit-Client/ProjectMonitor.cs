@@ -200,9 +200,6 @@ namespace SciGit_Client
           if (resp != DialogResult.No && (mr == null || !mr.Saved)) {
             // Cancel the process here.
             GitWrapper.Rebase(dir, "--abort");
-            if (tempCommit) {
-              GitWrapper.Reset(dir, "HEAD^");
-            }
             message = "Canceled.";
             success = false;
           } else {

@@ -155,9 +155,11 @@ namespace SciGit_Client
     }
 
     private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e) {
-      var res = MessageBox.Show(this, "This will cancel the merging process. Are you sure?", "Confirm cancel", MessageBoxButton.YesNo);
-      if (res == MessageBoxResult.No) {
-        e.Cancel = true;
+      if (!Saved) {
+        var res = MessageBox.Show(this, "This will cancel the merging process. Are you sure?", "Confirm cancel", MessageBoxButton.YesNo);
+        if (res == MessageBoxResult.No) {
+          e.Cancel = true;
+        }
       }
     }
   }

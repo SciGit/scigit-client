@@ -77,6 +77,12 @@ namespace SciGit_Client
         } else if (content[1][i].type == BlockType.ChangeAdd) {
           side = 1;
         }
+
+        if (content[side][i].type == BlockType.ChangeDelete) {
+          // Both sides must have been deletions; it was an empty block.
+          continue;
+        }
+
         result += content[side][i].ToString();
         if (content[side][i].lines.Count > 0 && i != content[0].Count - 1) {
           result += "\n";
@@ -501,6 +507,19 @@ namespace SciGit_Client
             if (side == 0) {
               conflictOrigBlocks.Add(origBlock);
             }
+          }
+
+          int last = content[0].Count - 1;
+          if (content[0][last].ToString() == content[1][last].ToString()) {
+            // Not actually a conflict if they're both the same change.
+            if (content[0][last].lines.Count == 0) {
+              // If both deleted, show the original.
+              content[0][last] = content[1][last] = conflictOrigBlocks.Last();
+              conflictOrigBlocks.Last().type = BlockType.ChangeDelete;
+            } else {
+              content[0][last].type = content[1][last].type = BlockType.ChangeAdd;
+            }
+            conflictOrigBlocks.RemoveAt(conflictOrigBlocks.Count - 1);
           }
         }
 

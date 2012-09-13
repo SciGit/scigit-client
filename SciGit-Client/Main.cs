@@ -228,6 +228,7 @@ namespace SciGit_Client
       notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Exit", ExitClick);
+      // TODO: show a loading indicator
     }
 
     private void UpdateContextMenu() {
