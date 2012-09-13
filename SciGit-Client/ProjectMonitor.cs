@@ -236,7 +236,7 @@ namespace SciGit_Client
       }
 
       try {
-        string commitMsg = "commit " + DateTime.Now;
+        string commitMsg = null;
         while (true) {
           if (worker != null) worker.ReportProgress(20, Tuple.Create("Checking for updates...", ""));
           if (!UpdateProject(p, form, disp)) {
@@ -246,7 +246,18 @@ namespace SciGit_Client
 
           ret = GitWrapper.AddAll(dir);
           if (worker != null) worker.ReportProgress(50, Tuple.Create("Committing...", ret.Output));
-          // TODO: prompt for commit message
+          if (commitMsg == null) {
+            CommitForm commitForm = null;
+            disp.Invoke(new Action(() => {
+              commitForm = new CommitForm(p);
+              commitForm.ShowDialog();
+            }));
+            commitMsg = commitForm.savedMessage;
+            if (commitMsg == null) {
+              if (worker != null) worker.ReportProgress(100, Tuple.Create("Canceled.", ""));
+              return false;
+            }
+          }
           ret = GitWrapper.Commit(dir, commitMsg);
           if (ret.ReturnValue == 0) {
             if (worker != null) worker.ReportProgress(70, Tuple.Create("Pushing...", ret.Output));
