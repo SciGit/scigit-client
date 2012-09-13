@@ -47,11 +47,11 @@ namespace SciGit_Client
     }
 
     public static ProcessReturn AddAll(string dir) {
-      return ExecuteCommand("add .", dir);
+      return ExecuteCommand("add -A", dir);
     }
 
-    public static ProcessReturn Commit(string dir, string msg) {
-      return ExecuteCommand(String.Format("commit -a -m {0}", EscapeShellArg(msg)), dir);
+    public static ProcessReturn Commit(string dir, string msg, string options = "") {
+      return ExecuteCommand(String.Format("commit -a -m {0} {1}", EscapeShellArg(msg), options), dir);
     }
 
     public static ProcessReturn Diff(string dir, string options = "") {
@@ -67,7 +67,7 @@ namespace SciGit_Client
     }
 
     public static ProcessReturn GetLastCommit(string dir, string obj = "") {
-      return ExecuteCommand("log --pretty=%H -n 1" + obj, dir);
+      return ExecuteCommand("log --pretty=%H -n 1 " + obj, dir);
     }
 
     public static ProcessReturn Push(string dir, string options = "") {
@@ -83,11 +83,11 @@ namespace SciGit_Client
     }
 
     public static ProcessReturn Status(string dir, string options = "") {
-      return ExecuteCommand("status --porcelain " + options, dir);
+      return ExecuteCommand("status --porcelain -z " + options, dir);
     }
 
     public static ProcessReturn ListUnmergedFiles(string dir) {
-      return ExecuteCommand("ls-files -u", dir);
+      return ExecuteCommand("ls-files -u -z", dir);
     }
 
     public static ProcessReturn ShowObject(string dir, string hash) {

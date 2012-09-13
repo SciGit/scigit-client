@@ -105,7 +105,7 @@ namespace SciGit_Client
       ProcessReturn ret = GitWrapper.ListUnmergedFiles(dir);
 
       Dictionary<String, FileData> files = new Dictionary<string, FileData>();
-      string[] lines = SentenceFilter.SplitLines(ret.Output);
+      string[] lines = ret.Output.Split(new char[] {'\0'}, StringSplitOptions.RemoveEmptyEntries);
       foreach (string line in lines) {
         var match = Regex.Match(line, "^[0-9]+ ([a-z0-9]+) ([0-9]+)\t(.*)$");
         if (match.Success) {

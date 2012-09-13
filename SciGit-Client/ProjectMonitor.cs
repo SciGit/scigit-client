@@ -229,6 +229,7 @@ namespace SciGit_Client
 
     public bool UploadProject(Project p, Form form, Dispatcher disp, BackgroundWorker worker = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
+      GitWrapper.AddAll(dir);
       ProcessReturn ret = GitWrapper.Status(dir);
       if (ret.Output.Trim() == "") {
         if (worker != null) worker.ReportProgress(20, Tuple.Create("No changes.", ""));
@@ -246,20 +247,21 @@ namespace SciGit_Client
 
           ret = GitWrapper.AddAll(dir);
           if (worker != null) worker.ReportProgress(50, Tuple.Create("Committing...", ret.Output));
-          if (commitMsg == null) {
-            CommitForm commitForm = null;
-            disp.Invoke(new Action(() => {
-              commitForm = new CommitForm(p);
-              commitForm.ShowDialog();
-            }));
-            commitMsg = commitForm.savedMessage;
+          ret = GitWrapper.Status(dir);
+          if (ret.Output.Trim() != "") {
             if (commitMsg == null) {
-              if (worker != null) worker.ReportProgress(100, Tuple.Create("Canceled.", ""));
-              return false;
+              CommitForm commitForm = null;
+              disp.Invoke(new Action(() => {
+                commitForm = new CommitForm(p);
+                commitForm.ShowDialog();
+              }));
+              commitMsg = commitForm.savedMessage;
+              if (commitMsg == null) {
+                if (worker != null) worker.ReportProgress(100, Tuple.Create("Canceled.", ""));
+                return false;
+              }
             }
-          }
-          ret = GitWrapper.Commit(dir, commitMsg);
-          if (ret.ReturnValue == 0) {
+            ret = GitWrapper.Commit(dir, commitMsg);
             if (worker != null) worker.ReportProgress(70, Tuple.Create("Pushing...", ret.Output));
             ret = GitWrapper.Push(dir);
             if (ret.ReturnValue == 0) {
