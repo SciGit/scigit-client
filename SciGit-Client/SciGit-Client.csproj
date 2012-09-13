@@ -87,6 +87,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CommitForm.xaml.cs">
+      <DependentUpon>CommitForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DiffEditor.xaml.cs">
       <DependentUpon>DiffEditor.xaml</DependentUpon>
     </Compile>
@@ -130,6 +133,10 @@
       <DependentUpon>DiffViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="StreamString.cs" />
+    <Page Include="CommitForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="DiffEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

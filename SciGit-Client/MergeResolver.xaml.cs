@@ -50,11 +50,6 @@ namespace SciGit_Client
       unmergedFiles.Add(test);
        */
 
-      if (unmergedFiles.Count == 0) {
-        // TODO: show an error or something
-        Close();
-      }
-
       diffViewers = new List<DiffViewer>();
       for (int i = 0; i < unmergedFiles.Count; i++) {
         diffViewers.Add(CreateDiffViewer(unmergedFiles[i]));
@@ -116,8 +111,13 @@ namespace SciGit_Client
         if (match.Success) {
           string hash = match.Groups[1].Value;
           int stage = int.Parse(match.Groups[2].Value);
-          // TODO: take care of weird edge cases with quoted filename
           string file = match.Groups[3].Value;
+          // This shouldn't happen on Windows, but just in case.
+          if (file[0] == '"' && file.Length > 2) {
+            file = file.Substring(1, file.Length - 2);
+            file = file.Replace("\\\"", "\"");
+          }
+
           if (!files.ContainsKey(file)) {
             files[file] = new FileData { filename = file };
           }

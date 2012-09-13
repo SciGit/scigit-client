@@ -279,10 +279,6 @@ namespace SciGit_Client
         }
       }
 
-      if (conflictBlocks.Count == 0) {
-        // TODO: this file shouldn't be here.
-      }
-
       int lines = lineCount.Sum();
       for (int i = 0; i < lines; i++) {
         RowDefinition rd = new RowDefinition();

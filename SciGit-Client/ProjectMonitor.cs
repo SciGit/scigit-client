@@ -325,7 +325,6 @@ namespace SciGit_Client
 
     private static void CreateProjectDirectory() {
       Directory.CreateDirectory(GetProjectDirectory());
-      // TODO: add special shell properties
     }
 
     public static string GetProjectDirectory() {
