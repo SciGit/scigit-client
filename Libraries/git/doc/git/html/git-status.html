@@ -592,7 +592,7 @@ git-status(1) Manual Page
 <div class="paragraph"><p>Displays paths that have differences between the index file and the
 current HEAD commit, paths that have differences between the working
 tree and the index file, and paths in the working tree that are not
-tracked by git (and are not ignored by <a href="gitignore.html">gitignore(5)</a>). The first
+tracked by git (and are not ignored by ). The first
 are what you <em>would</em> commit by running <tt>git commit</tt>; the second and
 third are what you <em>could</em> commit by running <em>git add</em> before running
 <tt>git commit</tt>.</p></div>
@@ -663,7 +663,7 @@ default is <em>normal</em>, i.e. show untracked files and directories.</p></div>
 <em>all</em>    - Also shows individual files in untracked directories.
 </p>
 <div class="paragraph"><p>The default can be changed using the status.showUntrackedFiles
-configuration variable documented in <a href="git-config.html">git-config(1)</a>.</p></div>
+configuration variable documented in .</p></div>
 </li>
 </ul></div>
 </dd>
@@ -677,7 +677,7 @@ configuration variable documented in <a href="git-config.html">git-config(1)</a>
         Using "none" will consider the submodule modified when it either contains
         untracked or modified files or its HEAD differs from the commit recorded
         in the superproject and can be used to override any settings of the
-        <em>ignore</em> option in <a href="git-config.html">git-config(1)</a> or <a href="gitmodules.html">gitmodules(5)</a>. When
+        <em>ignore</em> option in  or . When
         "untracked" is used submodules are not considered dirty when they only
         contain untracked content (but they are still scanned for modified
         content). Using "dirty" ignores all changes to the work tree of submodules,
@@ -704,6 +704,20 @@ configuration variable documented in <a href="git-config.html">git-config(1)</a>
         the <tt>--porcelain</tt> output format if no other format is given.
 </p>
 </dd>
+<dt class="hdlist1">
+--column[=&lt;options&gt;]
+</dt>
+<dt class="hdlist1">
+--no-column
+</dt>
+<dd>
+<p>
+        Display untracked files in columns. See configuration variable
+        column.status for option syntax.<tt>--column</tt> and <tt>--no-column</tt>
+        without options are equivalent to <em>always</em> and <em>never</em>
+        respectively.
+</p>
+</dd>
 </dl></div>
 </div>
 <h2 id="_output">OUTPUT</h2>
@@ -723,7 +737,7 @@ the status.relativePaths config option below.</p></div>
 <div class="content">
 <pre><tt>XY PATH1 -&gt; PATH2</tt></pre>
 </div></div>
-<div class="paragraph"><p>where <tt>PATH1</tt> is the path in the <tt>HEAD</tt>, and the ` -&gt; PATH2` part is
+<div class="paragraph"><p>where <tt>PATH1</tt> is the path in the <tt>HEAD</tt>, and the " <tt>-&gt; PATH2</tt>" part is
 shown only when <tt>PATH1</tt> corresponds to a different path in the
 index/worktree (i.e. the file is renamed). The <em>XY</em> is a two-letter
 status code.</p></div>
@@ -832,7 +846,7 @@ order is reversed (e.g <em>from -&gt; to</em> becomes <em>to from</em>). Second,
 and the terminating newline (but a space still separates the status
 field from the first filename).  Third, filenames containing special
 characters are not specially formatted; no quoting or
-backslash-escaping is performed. Fourth, there is no branch line.</p></div>
+backslash-escaping is performed.</p></div>
 </div>
 <h2 id="_configuration">CONFIGURATION</h2>
 <div class="sectionbody">
@@ -846,21 +860,21 @@ directory.</p></div>
 <div class="paragraph"><p>If <tt>status.submodulesummary</tt> is set to a non zero number or true (identical
 to -1 or an unlimited number), the submodule summary will be enabled for
 the long format and a summary of commits for modified submodules will be
-shown (see --summary-limit option of <a href="git-submodule.html">git-submodule(1)</a>).</p></div>
+shown (see --summary-limit option of ).</p></div>
 </div>
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><a href="gitignore.html">gitignore(5)</a></p></div>
+<div class="paragraph"><p></p></div>
 </div>
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+<div class="paragraph"><p>Part of the  suite</p></div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2011-11-15 13:45:02 PDT
+Last updated 2012-05-10 11:44:38 PDT
 </div>
 </div>
 </body>

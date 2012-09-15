@@ -277,7 +277,7 @@ namespace SciGit_Client
     private void InitializeSSH() {
       // TODO: check Git/SSH installations
 
-      string homeDir = Environment.GetEnvironmentVariable("HOME");
+      string homeDir = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
       string keyFile = homeDir + @"\.ssh\id_rsa.pub";
       if (!File.Exists(keyFile)) {
         GitWrapper.GenerateSSHKey(keyFile);

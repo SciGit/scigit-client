@@ -585,6 +585,7 @@ git-branch(1) Manual Page
 <div class="verseblock">
 <div class="verseblock-content"><em>git branch</em> [--color[=&lt;when&gt;] | --no-color] [-r | -a]
         [--list] [-v [--abbrev=&lt;length&gt; | --no-abbrev]]
+        [--column[=&lt;options&gt;] | --no-column]
         [(--merged | --no-merged | --contains) [&lt;commit&gt;]] [&lt;pattern&gt;&#8230;]
 <em>git branch</em> [--set-upstream | --track | --no-track] [-l] [-f] &lt;branchname&gt; [&lt;start-point&gt;]
 <em>git branch</em> (-m | -M) [&lt;oldbranch&gt;] &lt;newbranch&gt;
@@ -631,7 +632,7 @@ has a reflog then the reflog will also be deleted.</p></div>
 <div class="paragraph"><p>Use <tt>-r</tt> together with <tt>-d</tt> to delete remote-tracking branches. Note, that it
 only makes sense to delete remote-tracking branches if they no longer exist
 in the remote repository or if <em>git fetch</em> was configured not to fetch
-them again. See also the <em>prune</em> subcommand of <a href="git-remote.html">git-remote(1)</a> for a
+them again. See also the <em>prune</em> subcommand of  for a
 way to clean up all obsolete remote-tracking branches.</p></div>
 </div>
 <h2 id="_options">OPTIONS</h2>
@@ -725,6 +726,20 @@ way to clean up all obsolete remote-tracking branches.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
+--column[=&lt;options&gt;]
+</dt>
+<dt class="hdlist1">
+--no-column
+</dt>
+<dd>
+<p>
+        Display branch listing in columns. See configuration variable
+        column.branch for option syntax.<tt>--column</tt> and <tt>--no-column</tt>
+        without options are equivalent to <em>always</em> and <em>never</em> respectively.
+</p>
+<div class="paragraph"><p>This option is only applicable in non-verbose mode.</p></div>
+</dd>
+<dt class="hdlist1">
 -r
 </dt>
 <dt class="hdlist1">
@@ -767,6 +782,18 @@ way to clean up all obsolete remote-tracking branches.</p></div>
         show sha1 and commit subject line for each head, along with
         relationship to upstream branch (if any). If given twice, print
         the name of the upstream branch, as well.
+</p>
+</dd>
+<dt class="hdlist1">
+-q
+</dt>
+<dt class="hdlist1">
+--quiet
+</dt>
+<dd>
+<p>
+        Be more quiet when creating or deleting a branch, suppressing
+        non-error messages.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -871,7 +898,7 @@ start-point is either a local or remote-tracking branch.</p></div>
 <p>
         The name of the branch to create or delete.
         The new branch name must pass all checks defined by
-        <a href="git-check-ref-format.html">git-check-ref-format(1)</a>.  Some of these checks
+        .  Some of these checks
         may restrict the characters allowed in a branch name.
 </p>
 </dd>
@@ -943,7 +970,7 @@ $ git branch -D test                                    <b>&lt;2&gt;</b></tt></p
 <p>
 Delete the remote-tracking branches "todo", "html" and "man". The next
 <em>fetch</em> or <em>pull</em> will create them again unless you configure them not to.
-See <a href="git-fetch.html">git-fetch(1)</a>.
+See .
 </p>
 </li>
 <li>
@@ -987,21 +1014,21 @@ but different purposes:</p></div>
 </div>
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
-<div class="paragraph"><p><a href="git-check-ref-format.html">git-check-ref-format(1)</a>,
-<a href="git-fetch.html">git-fetch(1)</a>,
-<a href="git-remote.html">git-remote(1)</a>,
+<div class="paragraph"><p>,
+,
+,
 <a href="user-manual.html#what-is-a-branch">&#8220;Understanding history: What is
 a branch?&#8221;</a> in the Git User&#8217;s Manual.</p></div>
 </div>
 <h2 id="_git">GIT</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Part of the <a href="git.html">git(1)</a> suite</p></div>
+<div class="paragraph"><p>Part of the  suite</p></div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2012-03-08 16:13:06 PDT
+Last updated 2012-05-03 16:06:58 PDT
 </div>
 </div>
 </body>

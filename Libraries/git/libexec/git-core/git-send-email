@@ -988,7 +988,7 @@ sub send_message {
 	@recipients = unique_email_list(@recipients,@cc,@bcclist);
 	@recipients = (map { extract_valid_address($_) } @recipients);
 	my $date = format_2822_time($time++);
-	my $gitversion = '1.7.10.msysgit.1';
+	my $gitversion = '1.7.11.msysgit.1';
 	if ($gitversion =~ m/..GIT_VERSION../) {
 	    $gitversion = Git::version();
 	}
