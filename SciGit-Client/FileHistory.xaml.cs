@@ -27,14 +27,14 @@ namespace SciGit_Client
       InitializeComponent();
 
       project = p;
-      this.filename.Text = "File: " + p.Name + Path.DirectorySeparatorChar + filename;
+      this.filename.Text = "File: " + Path.Combine(p.Name, filename);
       string gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');
 
       string dir = ProjectMonitor.GetProjectDirectory(p);
       ProcessReturn ret = GitWrapper.Log(dir, String.Format("--pretty=\"%H %ae %at %s\" -- \"{0}\"", filename));
       string[] commits = SentenceFilter.SplitLines(ret.Output.Trim());
 
-      fullpath = dir + Path.DirectorySeparatorChar + filename;
+      fullpath = Path.Combine(dir, filename);
       string curText = File.ReadAllText(fullpath);
       int timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
       fileHistory.Items.Add(CreateListViewItem("Current Version", "", timestamp, curText));

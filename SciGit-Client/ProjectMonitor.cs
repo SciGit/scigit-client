@@ -143,7 +143,7 @@ namespace SciGit_Client
 
     private bool InitializeProject(Project p) {
       string dir = GetProjectDirectory();
-      if (Directory.Exists(dir + Path.DirectorySeparatorChar + p.Name)) return false;
+      if (Directory.Exists(Path.Combine(dir, p.Name))) return false;
       GitWrapper.Clone(dir, p);
       return true;      
     }

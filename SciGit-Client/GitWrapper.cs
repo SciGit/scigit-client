@@ -28,8 +28,7 @@ namespace SciGit_Client
 
     private static ProcessReturn ExecuteCommand(string args, string dir = "", string exe = "git.exe") {
       string appPath = Path.GetDirectoryName(Application.ExecutablePath);
-      exe = appPath + Path.DirectorySeparatorChar + "Libraries" + Path.DirectorySeparatorChar +
-            "git" + Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar + exe;
+      exe = Path.Combine(appPath, "Libraries", "git", "bin", exe);
 
       ProcessStartInfo startInfo = new ProcessStartInfo();
       startInfo.FileName = exe;

@@ -93,7 +93,7 @@ namespace SciGit_Client
 
     private void OpenFileHistory(Project p, string filename) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
-      if (!File.Exists(dir + Path.DirectorySeparatorChar + filename)) {
+      if (!File.Exists(Path.Combine(dir, filename))) {
         MessageBox.Show("File does not exist.", "Error");
       } else {
         FileHistory fh = new FileHistory(p, filename);
