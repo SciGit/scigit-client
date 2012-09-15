@@ -20,7 +20,7 @@ namespace SciGit_Client
 
   class GitWrapper
   {
-    public const string ServerHost = "hwang.scigit.sherk.me";
+    public const string ServerHost = "stage.scigit.sherk.me";
 
     private static ProcessReturn ExecuteCommand(string args, string dir = "", string exe = "git.exe") {
       string appPath = Path.GetDirectoryName(Application.ExecutablePath);

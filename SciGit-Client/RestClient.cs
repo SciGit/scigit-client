@@ -18,6 +18,7 @@ namespace SciGit_Client
   class RestClient
   {
     public const string serverHost = "stage.scigit.sherk.me";
+    public static int timeout = 20000;
     private static string username = "";
     private static string authToken = "";
     private static int expiryTime = 0;
@@ -31,7 +32,7 @@ namespace SciGit_Client
       WebRequest request = WebRequest.Create(uri);
       request.Method = "POST";
       request.Credentials = CredentialCache.DefaultCredentials;
-      request.Timeout = 3000;
+      request.Timeout = timeout;
 
       ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
       //allows for validation of SSL certificates
@@ -66,7 +67,7 @@ namespace SciGit_Client
       uri += "?username=" + username;
       uri += "&auth_token=" + authToken;
       WebRequest request = WebRequest.Create(uri);
-      request.Timeout = 3000;
+      request.Timeout = timeout;
 
       try {
         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -100,7 +101,7 @@ namespace SciGit_Client
       uri += "&auth_token=" + authToken;
       WebRequest request = WebRequest.Create(uri);
       request.Method = "PUT";
-      request.Timeout = 3000;
+      request.Timeout = timeout;
       Stream reqStream = request.GetRequestStream();
       byte[] postData = Encoding.UTF8.GetBytes("name=" + Environment.MachineName + "&public_key=" + Uri.EscapeDataString(key));
       reqStream.Write(postData, 0, postData.Length);
