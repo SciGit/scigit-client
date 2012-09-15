@@ -19,7 +19,7 @@ namespace SciGit_Client
   {
     public const string serverHost = "stage.scigit.sherk.me";
     public static int timeout = 20000;
-    private static string username = "";
+    public static string username = "";
     private static string authToken = "";
     private static int expiryTime = 0;
 

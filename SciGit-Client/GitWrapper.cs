@@ -22,6 +22,10 @@ namespace SciGit_Client
   {
     public const string ServerHost = "stage.scigit.sherk.me";
 
+    public static string GetAppDataPath() {
+      return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SciGit");
+    }
+
     private static ProcessReturn ExecuteCommand(string args, string dir = "", string exe = "git.exe") {
       string appPath = Path.GetDirectoryName(Application.ExecutablePath);
       exe = appPath + Path.DirectorySeparatorChar + "Libraries" + Path.DirectorySeparatorChar +
@@ -34,6 +38,7 @@ namespace SciGit_Client
       startInfo.RedirectStandardError = true;
       startInfo.RedirectStandardOutput = true;
       startInfo.UseShellExecute = false;
+      startInfo.EnvironmentVariables["HOME"] = Path.Combine(GitWrapper.GetAppDataPath(), RestClient.username);
       startInfo.WorkingDirectory = dir;
       Process process = new Process();
       process.StartInfo = startInfo;

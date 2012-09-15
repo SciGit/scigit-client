@@ -277,10 +277,13 @@ namespace SciGit_Client
     private void InitializeSSH() {
       // TODO: check Git/SSH installations
 
-      string appPath = Path.GetDirectoryName(Application.ExecutablePath);
-      string sshDir = appPath + Path.DirectorySeparatorChar + "Libraries" + Path.DirectorySeparatorChar +
-            "git" + Path.DirectorySeparatorChar + ".ssh";
-      string keyFile = sshDir + Path.DirectorySeparatorChar + "id_rsa";
+      string appPath = Path.Combine(GitWrapper.GetAppDataPath(), RestClient.username);
+      Directory.CreateDirectory(appPath);
+
+      string sshDir = Path.Combine(appPath, ".ssh");
+      Directory.CreateDirectory(sshDir);
+
+      string keyFile = Path.Combine(sshDir, "id_rsa");
       if (!File.Exists(keyFile + ".pub")) {
         GitWrapper.GenerateSSHKey(keyFile);
       }
@@ -291,7 +294,7 @@ namespace SciGit_Client
       }
 
       // Add scigit server to known_hosts
-      string knownHostsFile = sshDir + Path.DirectorySeparatorChar + "known_hosts";
+      string knownHostsFile = Path.Combine(sshDir, "known_hosts");
       GitWrapper.RemoveHostSSHKey(GitWrapper.ServerHost);
       string hostKey = GitWrapper.GetHostSSHKey(GitWrapper.ServerHost).Output;
       var knownHostsHandle = File.Open(knownHostsFile, FileMode.Append);

@@ -341,11 +341,11 @@ namespace SciGit_Client
     }
 
     public static string GetProjectDirectory() {
-      return Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") + Path.DirectorySeparatorChar + "SciGit";
+      return Path.Combine(Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%"), "SciGit");
     }
 
     public static string GetProjectDirectory(Project p) {
-      return GetProjectDirectory() + Path.DirectorySeparatorChar + p.Name;
+      return Path.Combine(GetProjectDirectory(), p.Name);
     }
   }
 }
