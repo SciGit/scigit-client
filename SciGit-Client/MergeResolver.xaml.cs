@@ -112,12 +112,6 @@ namespace SciGit_Client
           string hash = match.Groups[1].Value;
           int stage = int.Parse(match.Groups[2].Value);
           string file = match.Groups[3].Value;
-          // This shouldn't happen on Windows, but just in case.
-          if (file[0] == '"' && file.Length > 2) {
-            file = file.Substring(1, file.Length - 2);
-            file = file.Replace("\\\"", "\"");
-          }
-
           if (!files.ContainsKey(file)) {
             files[file] = new FileData { filename = file };
           }
