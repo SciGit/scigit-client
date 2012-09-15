@@ -27,12 +27,15 @@ namespace SciGit_Client
 
     public static void Login(string username, string password, LoginResponseCallback callback, Dispatcher disp) {
       string uri = "https://" + serverHost + "/api/auth/login";
-      uri += "?username=" + username;
-      uri += "&password=" + password;
       WebRequest request = WebRequest.Create(uri);
       request.Method = "POST";
       request.Credentials = CredentialCache.DefaultCredentials;
       request.Timeout = timeout;
+      request.ContentType = "application/x-www-form-urlencoded";
+      WriteData(request, new Dictionary<String, String>(){
+        { "username", username },
+        { "password", password }
+      });
 
       ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
       //allows for validation of SSL certificates
@@ -64,8 +67,10 @@ namespace SciGit_Client
       if (username == "") return null;
 
       string uri = "http://" + serverHost + "/api/projects";
-      uri += "?username=" + username;
-      uri += "&auth_token=" + authToken;
+      uri += "?" + GetQueryString(new Dictionary<String, String>(){
+        { "username", username },
+        { "auth_token", authToken }
+      });
       WebRequest request = WebRequest.Create(uri);
       request.Timeout = timeout;
 
@@ -90,34 +95,50 @@ namespace SciGit_Client
         }
         return projects;
       } catch (Exception e) {
-        Debug.Write(e);
+        Debug.WriteLine(e);
         return null;
       }
     }
 
     public static bool UploadPublicKey(string key) {
       string uri = "http://" + serverHost + "/api/users/public_keys";
-      uri += "?username=" + username;
-      uri += "&auth_token=" + authToken;
       WebRequest request = WebRequest.Create(uri);
       request.Method = "PUT";
       request.Timeout = timeout;
-      Stream reqStream = request.GetRequestStream();
-      byte[] postData = Encoding.UTF8.GetBytes("name=" + Environment.MachineName + "&public_key=" + Uri.EscapeDataString(key));
-      reqStream.Write(postData, 0, postData.Length);
+      WriteData(request, new Dictionary<String, String>(){
+        { "username", username },
+        { "auth_token", authToken },
+        { "name", Environment.MachineName },
+        { "public_key", key }
+      });
 
       try {
         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
         Stream dataStream = response.GetResponseStream();
         return true;
-      } catch (WebException e) {
+      }
+      catch (WebException e) {
         HttpWebResponse response = (HttpWebResponse)e.Response;
         if (response.StatusCode == HttpStatusCode.Conflict) {
           return true; // just a duplicate key
         }
+        Debug.WriteLine(e);
+      }
+      catch (Exception e) {
+        Debug.WriteLine(e);
       }
 
       return false;
+    }
+
+    private static string GetQueryString(Dictionary<String, String> data) {
+      return String.Join("&", data.Select(pair => pair.Key + "=" + Uri.EscapeDataString(pair.Value)));
+    }
+
+    private static void WriteData(WebRequest request, Dictionary<String, String> data) {
+      Stream reqStream = request.GetRequestStream();
+      byte[] encodedData = Encoding.UTF8.GetBytes(GetQueryString(data));
+      reqStream.Write(encodedData, 0, encodedData.Length);
     }
   }
 }
