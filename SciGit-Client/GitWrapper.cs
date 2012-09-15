@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace SciGit_Client
 {
@@ -21,6 +23,10 @@ namespace SciGit_Client
     public const string ServerHost = "hwang.scigit.sherk.me";
 
     private static ProcessReturn ExecuteCommand(string args, string dir = "", string exe = "git.exe") {
+      string appPath = Path.GetDirectoryName(Application.ExecutablePath);
+      exe = appPath + Path.DirectorySeparatorChar + "Libraries" + Path.DirectorySeparatorChar +
+            "git" + Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar + exe;
+
       ProcessStartInfo startInfo = new ProcessStartInfo();
       startInfo.FileName = exe;
       startInfo.Arguments = args;

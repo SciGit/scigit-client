@@ -304,16 +304,16 @@ __git_ps1 ()
 	fi
 }
 
-# __gitcomp_1 requires 2 arguments
 __gitcomp_1 ()
 {
-	local c IFS=' '$'\t'$'\n'
+	local c IFS=$' \t\n'
 	for c in $1; do
-		case "$c$2" in
-		--*=*) printf %s$'\n' "$c$2" ;;
-		*.)    printf %s$'\n' "$c$2" ;;
-		*)     printf %s$'\n' "$c$2 " ;;
+		c="$c$2"
+		case $c in
+		--*=*|*.) ;;
+		*) c="$c " ;;
 		esac
+		printf '%s\n' "$c"
 	done
 }
 
@@ -683,9 +683,7 @@ __git_complete_revlist_file ()
 		*)   pfx="$ref:$pfx" ;;
 		esac
 
-		local IFS=$'\n'
-		COMPREPLY=($(compgen -P "$pfx" \
-			-W "$(git --git-dir="$(__gitdir)" ls-tree "$ls" \
+		__gitcomp_nl "$(git --git-dir="$(__gitdir)" ls-tree "$ls" \
 				| sed '/^100... blob /{
 				           s,^.*	,,
 				           s,$, ,
@@ -699,7 +697,7 @@ __git_complete_revlist_file ()
 				           s,$,/,
 				       }
 				       s/^.*	//')" \
-			-- "$cur_"))
+			"$pfx" "$cur_" ""
 		;;
 	*...*)
 		pfx="${cur_%...*}..."
@@ -855,6 +853,8 @@ __git_list_porcelain_commands ()
 		checkout-index)   : plumbing;;
 		commit-tree)      : plumbing;;
 		count-objects)    : infrequent;;
+		credential-cache) : credentials helper;;
+		credential-store) : credentials helper;;
 		cvsexportcommit)  : export;;
 		cvsimport)        : import;;
 		cvsserver)        : daemon;;
@@ -1665,7 +1665,7 @@ _git_notes ()
 		__gitcomp '--ref'
 		;;
 	,*)
-		case "${words[cword-1]}" in
+		case "$prev" in
 		--ref)
 			__gitcomp_nl "$(__git_refs)"
 			;;
@@ -1691,7 +1691,7 @@ _git_notes ()
 	prune,*)
 		;;
 	*)
-		case "${words[cword-1]}" in
+		case "$prev" in
 		-m|-F)
 			;;
 		*)
@@ -2606,32 +2606,18 @@ _git_whatchanged ()
 	_git_log
 }
 
-_git ()
+__git_main ()
 {
 	local i c=1 command __git_dir
 
-	if [[ -n ${ZSH_VERSION-} ]]; then
-		emulate -L bash
-		setopt KSH_TYPESET
-
-		# workaround zsh's bug that leaves 'words' as a special
-		# variable in versions < 4.3.12
-		typeset -h words
-
-		# workaround zsh's bug that quotes spaces in the COMPREPLY
-		# array if IFS doesn't contain spaces.
-		typeset -h IFS
-	fi
-
-	local cur words cword prev
-	_get_comp_words_by_ref -n =: cur words cword prev
 	while [ $c -lt $cword ]; do
 		i="${words[c]}"
 		case "$i" in
 		--git-dir=*) __git_dir="${i#--git-dir=}" ;;
 		--bare)      __git_dir="." ;;
-		--version|-p|--paginate) ;;
 		--help) command="help"; break ;;
+		-c) c=$((++c)) ;;
+		-*) ;;
 		*) command="$i"; break ;;
 		esac
 		((c++))
@@ -2646,9 +2632,12 @@ _git ()
 			--bare
 			--version
 			--exec-path
+			--exec-path=
 			--html-path
+			--info-path
 			--work-tree=
 			--namespace=
+			--no-replace-objects
 			--help
 			"
 			;;
@@ -2668,24 +2657,8 @@ _git ()
 	fi
 }
 
-_gitk ()
+__gitk_main ()
 {
-	if [[ -n ${ZSH_VERSION-} ]]; then
-		emulate -L bash
-		setopt KSH_TYPESET
-
-		# workaround zsh's bug that leaves 'words' as a special
-		# variable in versions < 4.3.12
-		typeset -h words
-
-		# workaround zsh's bug that quotes spaces in the COMPREPLY
-		# array if IFS doesn't contain spaces.
-		typeset -h IFS
-	fi
-
-	local cur words cword prev
-	_get_comp_words_by_ref -n =: cur words cword prev
-
 	__git_has_doubledash && return
 
 	local g="$(__gitdir)"
@@ -2706,16 +2679,55 @@ _gitk ()
 	__git_complete_revlist
 }
 
-complete -o bashdefault -o default -o nospace -F _git git 2>/dev/null \
-	|| complete -o default -o nospace -F _git git
-complete -o bashdefault -o default -o nospace -F _gitk gitk 2>/dev/null \
-	|| complete -o default -o nospace -F _gitk gitk
+__git_func_wrap ()
+{
+	if [[ -n ${ZSH_VERSION-} ]]; then
+		emulate -L bash
+		setopt KSH_TYPESET
+
+		# workaround zsh's bug that leaves 'words' as a special
+		# variable in versions < 4.3.12
+		typeset -h words
+
+		# workaround zsh's bug that quotes spaces in the COMPREPLY
+		# array if IFS doesn't contain spaces.
+		typeset -h IFS
+	fi
+	local cur words cword prev
+	_get_comp_words_by_ref -n =: cur words cword prev
+	$1
+}
+
+# Setup completion for certain functions defined above by setting common
+# variables and workarounds.
+# This is NOT a public function; use at your own risk.
+__git_complete ()
+{
+	local wrapper="__git_wrap${2}"
+	eval "$wrapper () { __git_func_wrap $2 ; }"
+	complete -o bashdefault -o default -o nospace -F $wrapper $1 2>/dev/null \
+		|| complete -o default -o nospace -F $wrapper $1
+}
+
+# wrapper for backwards compatibility
+_git ()
+{
+	__git_wrap__git_main
+}
+
+# wrapper for backwards compatibility
+_gitk ()
+{
+	__git_wrap__gitk_main
+}
+
+__git_complete git __git_main
+__git_complete gitk __gitk_main
 
 # The following are necessary only for Cygwin, and only are needed
 # when the user has tab-completed the executable name and consequently
 # included the '.exe' suffix.
 #
 if [ Cygwin = "$(uname -o 2>/dev/null)" ]; then
-complete -o bashdefault -o default -o nospace -F _git git.exe 2>/dev/null \
-	|| complete -o default -o nospace -F _git git.exe
+__git_complete git.exe __git_main
 fi

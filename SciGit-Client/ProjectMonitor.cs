@@ -341,7 +341,7 @@ namespace SciGit_Client
     }
 
     public static string GetProjectDirectory() {
-      return Environment.GetEnvironmentVariable("HOME") + Path.DirectorySeparatorChar + "SciGit";
+      return Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") + Path.DirectorySeparatorChar + "SciGit";
     }
 
     public static string GetProjectDirectory(Project p) {

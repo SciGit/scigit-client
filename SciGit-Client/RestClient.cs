@@ -17,7 +17,7 @@ namespace SciGit_Client
 {
   class RestClient
   {
-    public const string serverHost = "hwang.scigit.sherk.me";
+    public const string serverHost = "stage.scigit.sherk.me";
     private static string username = "";
     private static string authToken = "";
     private static int expiryTime = 0;
