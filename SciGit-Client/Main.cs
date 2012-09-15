@@ -288,6 +288,9 @@ namespace SciGit_Client
         GitWrapper.GenerateSSHKey(keyFile);
       }
 
+      GitWrapper.GlobalConfig("user.name", RestClient.username);
+      GitWrapper.GlobalConfig("user.email", RestClient.username);
+
       string key = File.ReadAllText(keyFile + ".pub").Trim();
       if (!RestClient.UploadPublicKey(key)) {
         FatalError("It appears that your public key is invalid. Please remove or regenerate it.");

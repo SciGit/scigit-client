@@ -104,6 +104,10 @@ namespace SciGit_Client
       return ExecuteCommand("show " + hash, dir);
     }
 
+    public static ProcessReturn GlobalConfig(string key, string value) {
+      return ExecuteCommand(String.Format("config --global {0} {1}", key, EscapeShellArg(value)));
+    }
+
     public static ProcessReturn GenerateSSHKey(string keyFile) {
       return ExecuteCommand(String.Format("-t rsa -f '{0}' -P ''", keyFile), "", "ssh-keygen.exe");
     }
