@@ -54,7 +54,7 @@ namespace SciGit_Client
         authToken = authTokenNode.InnerText;
         expiryTime = Int32.Parse(expiryTsNode.InnerText);
         disp.Invoke(callback, true);
-      } catch (WebException e) {
+      } catch (Exception e) {
         Debug.WriteLine(e);
         disp.Invoke(callback, false);
       }
@@ -89,7 +89,7 @@ namespace SciGit_Client
           projects.Add(p);
         }
         return projects;
-      } catch (WebException e) {
+      } catch (Exception e) {
         Debug.Write(e);
         return null;
       }
