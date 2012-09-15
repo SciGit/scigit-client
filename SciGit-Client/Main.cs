@@ -292,6 +292,10 @@ namespace SciGit_Client
       string knownHostsFile = homeDir + @"\.ssh\known_hosts";
       GitWrapper.RemoveHostSSHKey(GitWrapper.ServerHost);
       string hostKey = GitWrapper.GetHostSSHKey(GitWrapper.ServerHost).Output;
+      if (hostKey.Contains('\n')) {
+        hostKey = hostKey.Substring(0, hostKey.IndexOf('\n'));
+      }
+      hostKey += "\n";
       var knownHostsHandle = File.Open(knownHostsFile, FileMode.Append);
       knownHostsHandle.Write(Encoding.ASCII.GetBytes(hostKey), 0, hostKey.Length);
       knownHostsHandle.Close();
