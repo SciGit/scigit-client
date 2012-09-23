@@ -84,8 +84,17 @@ namespace SciGit_Client
       return ExecuteCommand("push origin master " + options, dir);
     }
 
+    public static ProcessReturn Merge(string dir, string options = "") {
+      return ExecuteCommand("merge " + options, dir);
+    }
+
     public static ProcessReturn Rebase(string dir, string options = "") {
       return ExecuteCommand("rebase " + options, dir);
+    }
+
+    public static bool RebaseInProgress(string dir) {
+      return Directory.Exists(Path.Combine(dir, "rebase-merge")) ||
+             Directory.Exists(Path.Combine(dir, "rebase-apply"));
     }
 
     public static ProcessReturn Reset(string dir, string options = "") {

@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Threading;
 using System.ComponentModel;
-using System.Windows.Forms;
+using System.Windows;
 using System.Windows.Threading;
 
 namespace SciGit_Client
@@ -148,21 +148,23 @@ namespace SciGit_Client
       return true;      
     }
 
-    private void ShowError(Form form, Dispatcher disp, string err) {
-      disp.Invoke(new Action(() => MessageBox.Show(form, err, "Error")));
+    private void ShowError(Window window, Dispatcher disp, string err) {
+      disp.Invoke(new Action(() => MessageBox.Show(window, err, "Error")));
     }
 
-    public bool UpdateProject(Project p, Form form, Dispatcher disp, BackgroundWorker worker = null) {
+    public bool UpdateProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
 
       try {
         ProcessReturn ret;
-        // TODO: check if a previous merge is still in progress.
+        if (GitWrapper.RebaseInProgress(dir)) {
+          GitWrapper.Rebase(dir, "--abort");
+        }
 
         if (worker != null) worker.ReportProgress(20, Tuple.Create("Fetching updates...", ""));
         ret = GitWrapper.Fetch(dir);
         if (ret.ReturnValue != 0) {
-          ShowError(form, disp, "Error trying to retrieve updates: " + ret.Output);
+          ShowError(window, disp, "Error trying to retrieve updates: " + ret.Output);
           if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", ret.Output));
           return false;
         }
@@ -174,13 +176,21 @@ namespace SciGit_Client
           return true;
         }
 
+        // TODO: Reset commits until we get to something in common with FETCH_HEAD.
+
         // Make a temporary commit to facilitate merging.
         ret = GitWrapper.AddAll(dir);
         ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
         bool tempCommit = ret.ReturnValue == 0;
 
         if (worker != null) worker.ReportProgress(50, Tuple.Create("Merging...", ""));
-        ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
+        ret = GitWrapper.GetLastCommit(dir);
+        if (ret.ReturnValue != 0) {
+          // Empty repository; just merge.
+          ret = GitWrapper.Merge(dir, "FETCH_HEAD");
+        } else {
+          ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
+        }
         string message = "Finished.";
         bool success = true;
         if (ret.ReturnValue != 0) {
@@ -188,16 +198,16 @@ namespace SciGit_Client
           string dialogMsg = "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
             "You can also resolve them manually using your text editor.\r\n" +
             "Please save any open files before continuing.";
-          DialogResult resp = DialogResult.Abort;
-          disp.Invoke(new Action(() => resp = MessageBox.Show(form, dialogMsg, "Merge Conflict", MessageBoxButtons.YesNoCancel)));
+          MessageBoxResult resp = MessageBoxResult.Cancel;
+          disp.Invoke(new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
           MergeResolver mr = null;
-          if (resp == DialogResult.Yes) {
+          if (resp == MessageBoxResult.Yes) {
             disp.Invoke(new Action(() => {
               mr = new MergeResolver(p);
               mr.ShowDialog();
             }));
           }
-          if (resp != DialogResult.No && (mr == null || !mr.Saved)) {
+          if (resp != MessageBoxResult.No && (mr == null || !mr.Saved)) {
             // Cancel the process here.
             GitWrapper.Rebase(dir, "--abort");
             message = "Canceled.";
@@ -227,7 +237,7 @@ namespace SciGit_Client
       }
     }
 
-    public bool UploadProject(Project p, Form form, Dispatcher disp, BackgroundWorker worker = null) {
+    public bool UploadProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
       GitWrapper.AddAll(dir);
       ProcessReturn ret = GitWrapper.Status(dir);
@@ -240,7 +250,7 @@ namespace SciGit_Client
         string commitMsg = null;
         while (true) {
           if (worker != null) worker.ReportProgress(20, Tuple.Create("Checking for updates...", ""));
-          if (!UpdateProject(p, form, disp)) {
+          if (!UpdateProject(p, window, disp)) {
             if (worker != null) worker.ReportProgress(100, Tuple.Create("Canceled.", ""));
             return false;
           }
@@ -268,17 +278,17 @@ namespace SciGit_Client
               break;
             } else if (ret.Output.Contains("non-fast-forward")) {
               GitWrapper.Reset(dir, "HEAD^");
-              DialogResult resp = DialogResult.Abort;
+              MessageBoxResult resp = MessageBoxResult.Cancel;
               disp.Invoke(new Action(() =>
-                resp = MessageBox.Show(form, "Additional updates must be merged in. Continue?",
-                                       "Additional updates", MessageBoxButtons.OKCancel)));
-              if (resp == DialogResult.Cancel) {
+                resp = MessageBox.Show(window, "Additional updates must be merged in. Continue?",
+                    "Additional updates", MessageBoxButton.OKCancel)));
+              if (resp == MessageBoxResult.Cancel) {
                 if (worker != null) worker.ReportProgress(100, Tuple.Create("Canceled.", ""));
                 return false;
               }
             } else {
               GitWrapper.Reset(dir, "HEAD^");
-              ShowError(form, disp, "Error pushing: " + ret.Output);
+              ShowError(window, disp, "Error pushing: " + ret.Output);
               if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", ""));
               return false;
             }
@@ -296,7 +306,7 @@ namespace SciGit_Client
       }
     }
 
-    public void UpdateAllProjects(Form form, Dispatcher disp, BackgroundWorker worker = null) {
+    public void UpdateAllProjects(Window window, Dispatcher disp, BackgroundWorker worker = null) {
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
@@ -305,14 +315,14 @@ namespace SciGit_Client
               Tuple.Create("Updating " + project.Name + "...", ""));
           }
           if (HasUpdate(project)) {
-            UpdateProject(project, form, disp);
+            UpdateProject(project, window, disp);
           }
         }
         worker.ReportProgress(100, Tuple.Create("Finished.", ""));
       }
     }
 
-    public void UploadAllProjects(Form form, Dispatcher disp, BackgroundWorker worker = null) {
+    public void UploadAllProjects(Window window, Dispatcher disp, BackgroundWorker worker = null) {
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
@@ -320,7 +330,7 @@ namespace SciGit_Client
             worker.ReportProgress(100 * done++ / projects.Count,
               Tuple.Create("Uploading " + project.Name + "...", ""));
           }
-          UploadProject(project, form, disp);
+          UploadProject(project, window, disp);
         }
         worker.ReportProgress(100, Tuple.Create("Finished.", ""));
       }
