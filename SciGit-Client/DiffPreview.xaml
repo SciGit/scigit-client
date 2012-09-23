@@ -30,8 +30,8 @@
 
         <TextBlock Text="Make any final changes below." Grid.Row="1" Grid.Column="0" Margin="0,0,0,10" />
         <WrapPanel Grid.Row="3" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Name="finish" Content="Finish" Margin="0,0,10,0" Click="ClickFinish" />
-            <Button Name="cancel" Content="Cancel" Click="ClickCancel" />
+            <Button Name="finish" Content="Finish" Margin="0,0,10,0" Click="ClickFinish" IsDefault="True" />
+            <Button Name="cancel" Content="Cancel" Click="ClickCancel" IsCancel="True" />
         </WrapPanel>
     </Grid>
 </Window>

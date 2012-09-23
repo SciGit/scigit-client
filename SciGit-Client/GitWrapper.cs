@@ -10,12 +10,15 @@ namespace SciGit_Client
 {
   class ProcessReturn
   {
-    public ProcessReturn(int ret, string str) {
+    public ProcessReturn(int ret, string stdout, string stderr) {
       ReturnValue = ret;
-      Output = str;
+      Stdout = stdout;
+      Stderr = stderr;
     }
     public int ReturnValue { get; set; }
-    public string Output { get; set; }
+    public string Stdout { get; set; }
+    public string Stderr { get; set; }
+    public string Output { get { return Stdout + Stderr; } }
   }
 
   class GitWrapper
@@ -42,9 +45,8 @@ namespace SciGit_Client
       Process process = new Process();
       process.StartInfo = startInfo;
       process.Start();
-      string shellOutput = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
       process.WaitForExit();
-      return new ProcessReturn(process.ExitCode, shellOutput);
+      return new ProcessReturn(process.ExitCode, process.StandardOutput.ReadToEnd(), process.StandardError.ReadToEnd());
     }
 
     private static string EscapeShellArg(string s) {
@@ -88,13 +90,17 @@ namespace SciGit_Client
       return ExecuteCommand("merge " + options, dir);
     }
 
+    public static ProcessReturn MergeBase(string dir, string obj1, string obj2, string options = "") {
+      return ExecuteCommand("merge-base " + obj1 + " " + obj2 + " " + options, dir);
+    }
+
     public static ProcessReturn Rebase(string dir, string options = "") {
       return ExecuteCommand("rebase " + options, dir);
     }
 
     public static bool RebaseInProgress(string dir) {
-      return Directory.Exists(Path.Combine(dir, "rebase-merge")) ||
-             Directory.Exists(Path.Combine(dir, "rebase-apply"));
+      return Directory.Exists(Path.Combine(dir, ".git", "rebase-merge")) ||
+             Directory.Exists(Path.Combine(dir, ".git", "rebase-apply"));
     }
 
     public static ProcessReturn Reset(string dir, string options = "") {

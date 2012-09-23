@@ -149,7 +149,8 @@ namespace SciGit_Client
     }
 
     private void ShowError(Window window, Dispatcher disp, string err) {
-      disp.Invoke(new Action(() => MessageBox.Show(window, err, "Error")));
+      disp.Invoke(new Action(() => MessageBox.Show(window, err, "Error",
+        MessageBoxButton.OK, MessageBoxImage.Error)));
     }
 
     public bool UpdateProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
@@ -164,19 +165,15 @@ namespace SciGit_Client
         if (worker != null) worker.ReportProgress(20, Tuple.Create("Fetching updates...", ""));
         ret = GitWrapper.Fetch(dir);
         if (ret.ReturnValue != 0) {
-          ShowError(window, disp, "Error trying to retrieve updates: " + ret.Output);
-          if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", ret.Output));
-          return false;
+          throw new Exception("fetch: " + ret.Output);
         }
 
-        ret = GitWrapper.GetLastCommit(dir, "FETCH_HEAD");
+        // Reset commits until we get to something in common with FETCH_HEAD.
+        ret = GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD");
         if (ret.ReturnValue != 0) {
-          // Empty respository.
-          if (worker != null) worker.ReportProgress(100, Tuple.Create("No changes.", ret.Output));
-          return true;
+          throw new Exception("merge-base: "  + ret.Output);
         }
-
-        // TODO: Reset commits until we get to something in common with FETCH_HEAD.
+        GitWrapper.Reset(dir, ret.Stdout.Trim());
 
         // Make a temporary commit to facilitate merging.
         ret = GitWrapper.AddAll(dir);
@@ -184,38 +181,38 @@ namespace SciGit_Client
         bool tempCommit = ret.ReturnValue == 0;
 
         if (worker != null) worker.ReportProgress(50, Tuple.Create("Merging...", ""));
-        ret = GitWrapper.GetLastCommit(dir);
-        if (ret.ReturnValue != 0) {
-          // Empty repository; just merge.
-          ret = GitWrapper.Merge(dir, "FETCH_HEAD");
-        } else {
-          ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
-        }
+        ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
+
         string message = "Finished.";
         bool success = true;
         if (ret.ReturnValue != 0) {
-          // TODO: any other error conditions? currently assuming it's a merge conflict.
-          string dialogMsg = "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
-            "You can also resolve them manually using your text editor.\r\n" +
-            "Please save any open files before continuing.";
-          MessageBoxResult resp = MessageBoxResult.Cancel;
-          disp.Invoke(new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
-          MergeResolver mr = null;
-          if (resp == MessageBoxResult.Yes) {
-            disp.Invoke(new Action(() => {
-              mr = new MergeResolver(p);
-              mr.ShowDialog();
-            }));
-          }
-          if (resp != MessageBoxResult.No && (mr == null || !mr.Saved)) {
-            // Cancel the process here.
-            GitWrapper.Rebase(dir, "--abort");
-            message = "Canceled.";
-            success = false;
+          if (ret.Output.Contains("CONFLICT")) {
+            string dialogMsg = "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
+              "You can also resolve them manually using your text editor.\r\n" +
+              "Please save any open files before continuing.";
+            MessageBoxResult resp = MessageBoxResult.Cancel;
+            disp.Invoke(new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
+            MergeResolver mr = null;
+            if (resp == MessageBoxResult.Yes) {
+              disp.Invoke(new Action(() => {
+                mr = new MergeResolver(p);
+                mr.ShowDialog();
+              }));
+            }
+            if (resp != MessageBoxResult.No && (mr == null || !mr.Saved)) {
+              // Cancel the process here.
+              GitWrapper.Rebase(dir, "--abort");
+              message = "Canceled.";
+              success = false;
+            } else {
+              GitWrapper.AddAll(dir);
+              ret = GitWrapper.Rebase(dir, "--continue");
+              if (ret.ReturnValue != 0) {
+                throw new Exception("rebase: " + ret.Output);
+              }
+            }
           } else {
-            GitWrapper.AddAll(dir);
-            GitWrapper.Rebase(dir, "--continue");
-            // TODO: any possible errors?
+            throw new Exception("rebase: " + ret.Output);
           }
         } else if (ret.Output.Contains("up to date")) {
           message = "No changes.";
@@ -232,6 +229,7 @@ namespace SciGit_Client
         }
         return success;
       } catch (Exception e) {
+        ShowError(window, disp, e.Message);
         if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", e.Message));
         return false;
       }
@@ -239,12 +237,6 @@ namespace SciGit_Client
 
     public bool UploadProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
-      GitWrapper.AddAll(dir);
-      ProcessReturn ret = GitWrapper.Status(dir);
-      if (ret.Output.Trim() == "") {
-        if (worker != null) worker.ReportProgress(20, Tuple.Create("No changes.", ""));
-        return true;
-      }
 
       try {
         string commitMsg = null;
@@ -255,10 +247,10 @@ namespace SciGit_Client
             return false;
           }
 
-          ret = GitWrapper.AddAll(dir);
-          if (worker != null) worker.ReportProgress(50, Tuple.Create("Committing...", ret.Output));
+          ProcessReturn ret = GitWrapper.AddAll(dir);
+          if (worker != null) worker.ReportProgress(50, Tuple.Create("Committing...", ret.Stdout));
           ret = GitWrapper.Status(dir);
-          if (ret.Output.Trim() != "") {
+          if (ret.Stdout.Trim() != "") {
             if (commitMsg == null) {
               CommitForm commitForm = null;
               disp.Invoke(new Action(() => {
@@ -272,7 +264,7 @@ namespace SciGit_Client
               }
             }
             ret = GitWrapper.Commit(dir, commitMsg);
-            if (worker != null) worker.ReportProgress(70, Tuple.Create("Pushing...", ret.Output));
+            if (worker != null) worker.ReportProgress(70, Tuple.Create("Pushing...", ret.Stdout));
             ret = GitWrapper.Push(dir);
             if (ret.ReturnValue == 0) {
               break;
@@ -288,12 +280,10 @@ namespace SciGit_Client
               }
             } else {
               GitWrapper.Reset(dir, "HEAD^");
-              ShowError(window, disp, "Error pushing: " + ret.Output);
-              if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", ""));
-              return false;
+              throw new Exception("push: " + ret.Output);
             }
           } else {
-            if (worker != null) worker.ReportProgress(100, Tuple.Create("No changes.", ret.Output));
+            if (worker != null) worker.ReportProgress(100, Tuple.Create("No changes to upload.", ret.Output));
             return true;
           }
         }
@@ -301,6 +291,7 @@ namespace SciGit_Client
         if (worker != null) worker.ReportProgress(100, Tuple.Create("Finished.", ""));
         return true;
       } catch (Exception e) {
+        ShowError(window, disp, e.Message);
         if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", e.Message));
         return false;
       }
@@ -341,7 +332,7 @@ namespace SciGit_Client
       ProcessReturn ret = GitWrapper.GetLastCommit(dir);
       string lastHash = "";
       if (ret.ReturnValue == 0) {
-        lastHash = ret.Output.Trim();
+        lastHash = ret.Stdout.Trim();
       }
       return lastHash != p.LastCommitHash;
     }

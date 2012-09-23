@@ -26,8 +26,8 @@
                  Background="#FFF1F1F1" BorderThickness="1" BorderBrush="#999" VerticalScrollBarVisibility="Visible" IsTabStop="False" />
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="upload" Content="Upload" Click="ClickUpload" Margin="0,0,10,0" />
-            <Button Name="cancel" Content="Cancel" Click="ClickCancel" />
+            <Button Name="upload" Content="Upload" Click="ClickUpload" Margin="0,0,10,0" IsDefault="True" />
+            <Button Name="cancel" Content="Cancel" Click="ClickCancel" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

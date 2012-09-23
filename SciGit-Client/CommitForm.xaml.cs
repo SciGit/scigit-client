@@ -30,7 +30,7 @@ namespace SciGit_Client
 
     private void GetChanges() {
       string dir = ProjectMonitor.GetProjectDirectory(project);
-      string status = GitWrapper.Status(dir, "-uno").Output;
+      string status = GitWrapper.Status(dir, "-uno").Stdout;
       string changeText = "";
       bool isFilename = false;
       foreach (var line in status.Split(new char[] {'\0'}, StringSplitOptions.RemoveEmptyEntries)) {
