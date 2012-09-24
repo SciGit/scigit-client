@@ -13,6 +13,7 @@ using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Windows.Threading;
 using System.Windows.Media.Animation;
+using System.Threading;
 
 namespace SciGit_Client
 {
@@ -21,21 +22,28 @@ namespace SciGit_Client
   /// </summary>
   public partial class ProgressForm : Window
   {
-    bool closeClicked = false;
     public delegate void BackgroundAction(Window wind, Dispatcher disp, BackgroundWorker bw);
 
     public ProgressForm(Dispatcher disp, BackgroundAction action) {
       InitializeComponent();
 
-      BackgroundWorker bg = new BackgroundWorker();
-      bg.WorkerReportsProgress = true;
-      bg.DoWork += (bw, _) => action(this, disp, (BackgroundWorker)bw);
-      bg.ProgressChanged += UpdateProgress;
-      bg.RunWorkerCompleted += Completed;
-      bg.RunWorkerAsync();
-
       textBox.Visibility = System.Windows.Visibility.Collapsed;
       TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
+      
+      BackgroundWorker bg = new BackgroundWorker();
+      bg.WorkerReportsProgress = true;
+      bg.DoWork += (bw, _) => {
+        Mutex mutex = new Mutex(false, "SciGitOperationMutex");
+        mutex.WaitOne();
+        action(this, disp, (BackgroundWorker)bw);
+        mutex.ReleaseMutex();
+      };
+      bg.ProgressChanged += UpdateProgress;
+      bg.RunWorkerCompleted += Completed;
+
+
+      status.Text = "Waiting for other operations to finish...";
+      bg.RunWorkerAsync();
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {
@@ -62,13 +70,12 @@ namespace SciGit_Client
     }
 
     private void close_Click(object sender, EventArgs e) {
-      closeClicked = true;
       Close();
     }
 
     protected override void OnClosing(CancelEventArgs e) {
       base.OnClosing(e);
-      if (!closeClicked) {
+      if (!close.IsEnabled) {
         e.Cancel = true;
       }
     }
