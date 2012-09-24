@@ -30,9 +30,15 @@ namespace SciGit_Client
     const int balloonTipTimeout = 3000;
     Dispatcher dispatcher;
     NamedPipeServerStream pipeServer;
+    Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
 
     public Main() {
       InitializeComponent();
+      ComponentResourceManager resources = new ComponentResourceManager(typeof(Main));
+      notifyIconBase = notifyIcon.Icon;
+      notifyIconLoading = (Icon)resources.GetObject("notifyIconLoading.Icon");
+      notifyIconUpdate = (Icon)resources.GetObject("notifyIconUpdate.Icon");
+
       InitializeContextMenu();
       InitializeSSH();
       
@@ -226,9 +232,15 @@ namespace SciGit_Client
       notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Update All", CreateUpdateAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
+      notifyIcon.ContextMenu.MenuItems.Add("Loading...").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Exit", ExitClick);
-      // TODO: show a loading indicator
+
+      // Just show the loading indicator for now
+      notifyIcon.Icon = notifyIconLoading;
+      for (int i = 3; i <= 7; i++) {
+        notifyIcon.ContextMenu.MenuItems[i].Visible = false;
+      }
     }
 
     private void UpdateContextMenu() {
@@ -272,6 +284,13 @@ namespace SciGit_Client
 
       var uploadAll = notifyIcon.ContextMenu.MenuItems[7];
       update.Enabled = upload.Enabled = updateAll.Enabled = uploadAll.Enabled = projects.Count > 0;
+
+      // Hide the loading indicator and show others
+      notifyIcon.Icon = updNames.Count > 0 ? notifyIconUpdate : notifyIconBase;
+      for (int i = 3; i <= 7; i++) {
+        notifyIcon.ContextMenu.MenuItems[i].Visible = true;
+      }
+      notifyIcon.ContextMenu.MenuItems[8].Visible = false;
     }
 
     private void InitializeSSH() {
