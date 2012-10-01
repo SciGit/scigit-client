@@ -41,9 +41,9 @@ namespace SciGit_Client
           if (text.EndsWith(SentenceFilter.SentenceDelim)) {
             text = text.Substring(0, text.Length - SentenceFilter.SentenceDelim.Length);
           }
-          var run = new Run(text);
-          run.Style = GetStyle("text" + block.type);
-          p.Inlines.Add(run);
+          p.Inlines.Add(new Run(text) {
+            Style = GetStyle("text" + block.type)
+          });
         }
         r.Document.Blocks.Add(p);
       }

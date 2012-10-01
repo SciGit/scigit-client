@@ -20,20 +20,20 @@ namespace SciGit_Client
     #endregion
 
     public const string serverHost = "stage.scigit.sherk.me";
-    public static int timeout = 20000;
-    public static string username = "";
-    private static string authToken = "";
-    private static int expiryTime;
+    public static int Timeout = 20000;
+    public static string Username = "";
+    private static string AuthToken = "";
+    private static int ExpiryTime;
 
     public static void Login(string username, string password, LoginResponseCallback callback, Dispatcher disp) {
-      string uri = "https://" + serverHost + "/api/auth/login";
+      const string uri = "https://" + serverHost + "/api/auth/login";
       WebRequest request = WebRequest.Create(uri);
       request.Method = "POST";
       request.Credentials = CredentialCache.DefaultCredentials;
-      request.Timeout = timeout;
+      request.Timeout = Timeout;
       request.ContentType = "application/x-www-form-urlencoded";
       WriteData(request, new Dictionary<String, String> {
-        { "username", username },
+        { "Username", username },
         { "password", password }
       });
 
@@ -45,15 +45,15 @@ namespace SciGit_Client
         WebResponse response = request.GetResponse();
         Stream dataStream = response.GetResponseStream();
 
-        RestClient.username = username;
+        Username = username;
         XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
         var doc = new XmlDocument();
         doc.Load(reader);
         XmlNode authTokenNode = doc.SelectSingleNode("//auth_token");
         XmlNode expiryTsNode = doc.SelectSingleNode("//expiry_ts");
 
-        authToken = authTokenNode.InnerText;
-        expiryTime = Int32.Parse(expiryTsNode.InnerText);
+        AuthToken = authTokenNode.InnerText;
+        ExpiryTime = Int32.Parse(expiryTsNode.InnerText);
         disp.Invoke(callback, true);
       } catch (Exception e) {
         Debug.WriteLine(e);
@@ -62,15 +62,14 @@ namespace SciGit_Client
     }
 
     public static List<Project> GetProjects() {
-      if (username == "") return null;
+      if (Username == "") return null;
 
-      string uri = "http://" + serverHost + "/api/projects";
-      uri += "?" + GetQueryString(new Dictionary<String, String> {
-        { "username", username },
-        { "auth_token", authToken }
-      });
-      WebRequest request = WebRequest.Create(uri);
-      request.Timeout = timeout;
+      const string uri = "http://" + serverHost + "/api/projects";
+      WebRequest request = WebRequest.Create(uri + "?" + GetQueryString(new Dictionary<String, String> {
+        { "Username", Username },
+        { "auth_token", AuthToken }
+      }));
+      request.Timeout = Timeout;
 
       try {
         var response = (HttpWebResponse)request.GetResponse();
@@ -83,12 +82,13 @@ namespace SciGit_Client
         XmlNodeList projectNodes = doc.SelectNodes("//item");
         var projects = new List<Project>();
         foreach (XmlNode xmlNode in projectNodes) {
-          var p = new Project();
-          p.Id = Int32.Parse(xmlNode.SelectSingleNode("id").InnerText);
-          p.OwnerId = Int32.Parse(xmlNode.SelectSingleNode("owner_id").InnerText);
-          p.Name = xmlNode.SelectSingleNode("name").InnerText;
-          p.CreatedTime = Int32.Parse(xmlNode.SelectSingleNode("created_ts").InnerText);
-          p.LastCommitHash = xmlNode.SelectSingleNode("last_commit_hash").InnerText;
+          var p = new Project {
+            Id = Int32.Parse(xmlNode.SelectSingleNode("id").InnerText),
+            OwnerId = Int32.Parse(xmlNode.SelectSingleNode("owner_id").InnerText),
+            Name = xmlNode.SelectSingleNode("name").InnerText,
+            CreatedTime = Int32.Parse(xmlNode.SelectSingleNode("created_ts").InnerText),
+            LastCommitHash = xmlNode.SelectSingleNode("last_commit_hash").InnerText
+          };
           projects.Add(p);
         }
         return projects;
@@ -99,13 +99,13 @@ namespace SciGit_Client
     }
 
     public static bool UploadPublicKey(string key) {
-      string uri = "http://" + serverHost + "/api/users/public_keys";
+      const string uri = "http://" + serverHost + "/api/users/public_keys";
       WebRequest request = WebRequest.Create(uri);
       request.Method = "PUT";
-      request.Timeout = timeout;
+      request.Timeout = Timeout;
       WriteData(request, new Dictionary<String, String> {
-        { "username", username },
-        { "auth_token", authToken },
+        { "Username", Username },
+        { "auth_token", AuthToken },
         { "name", Environment.MachineName },
         { "public_key", key }
       });

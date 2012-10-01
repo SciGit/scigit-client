@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
@@ -138,16 +137,15 @@ namespace SciGit_Client
     }
 
     private void SelectConflict(int index) {
-      int oldBlock = conflictBlocks[curConflict];
       int newBlock = conflictBlocks[index];
       int line = lineCount.Take(newBlock).Sum();
       Point p = lineNums[0][line].TransformToAncestor(grid).Transform(new Point(0, 0));
       scrollViewer.ScrollToVerticalOffset(p.Y);
 
       conflictNumber.Text = "Conflict " + (index + 1) + "/" + conflictBlocks.Count;
-      int prevConflict = curConflict;
+      int lastConflict = curConflict;
       curConflict = index;
-      UpdateConflictBlock(prevConflict);
+      UpdateConflictBlock(lastConflict);
       UpdateConflictBlock(curConflict);
 
       acceptMe.IsChecked = conflictChoice[index] == 0;
@@ -192,12 +190,12 @@ namespace SciGit_Client
     }
 
     private void ClickAccept(int index, int side) {
-      if (conflictChoice[curConflict] == side) {
-        ChooseConflict(curConflict, -1);
+      if (conflictChoice[index] == side) {
+        ChooseConflict(index, -1);
       } else {
-        ChooseConflict(curConflict, side);
-        if (curConflict + 1 != conflictBlocks.Count) {
-          SelectNextConflict(null, null);
+        ChooseConflict(index, side);
+        if (index + 1 != conflictBlocks.Count) {
+          SelectConflict(index + 1);
         }
       }
     }
@@ -235,8 +233,7 @@ namespace SciGit_Client
 
     private void ClearEditor() {
       grid.RowDefinitions.Clear();
-      var rd = new RowDefinition();
-      rd.Height = new GridLength(1, GridUnitType.Star);
+      var rd = new RowDefinition {Height = new GridLength(1, GridUnitType.Star)};
       grid.RowDefinitions.Add(rd);
 
       var rects = new List<UIElement>();
@@ -273,8 +270,7 @@ namespace SciGit_Client
 
       int lines = lineCount.Sum();
       for (int i = 0; i < lines; i++) {
-        var rd = new RowDefinition();
-        rd.Height = GridLength.Auto;
+        var rd = new RowDefinition {Height = GridLength.Auto};
         grid.RowDefinitions.Insert(0, rd);
       }
 
@@ -287,17 +283,17 @@ namespace SciGit_Client
         lineTexts[i] = new List<RichTextBox>();
         lineNums[i] = new List<TextBlock>();
         for (int j = 0; j < lines; j++) {
-          var lineNum = new TextBlock();
-          lineNum.Style = GetStyle("lineNumber");
+          var lineNum = new TextBlock {Style = GetStyle("lineNumber")};
           Panel.SetZIndex(lineNum, 5);
           Grid.SetRow(lineNum, j);
           Grid.SetColumn(lineNum, 2 * i);
           grid.Children.Add(lineNum);
           lineNums[i].Add(lineNum);
 
-          var text = new RichTextBox();
-          text.Style = GetStyle("lineText");
-          text.HorizontalAlignment = HorizontalAlignment.Stretch;
+          var text = new RichTextBox {
+            Style = GetStyle("lineText"),
+            HorizontalAlignment = HorizontalAlignment.Stretch
+          };
           Panel.SetZIndex(text, 5);
           Grid.SetRow(text, j);
           Grid.SetColumn(text, 1 + 2 * i);
@@ -364,10 +360,9 @@ namespace SciGit_Client
               text.Style = GetStyle("lineText" + lblock.type);
               int cIndex = conflictBlocks.BinarySearch(g);
               if (cIndex >= 0) {
-                int myG = g; // for lambda scoping
                 int mySide = side; // for lambda scoping
                 text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex); };
-                text.PreviewMouseDoubleClick += (o, e) => { EditConflict(cIndex); };
+                text.PreviewMouseDoubleClick += (o, e) => EditConflict(cIndex);
                 // text.ContextMenu = new ContextMenu();
                 text.MouseEnter += (o, e) => HoverConflict(cIndex, mySide, true);
                 text.MouseLeave += (o, e) => HoverConflict(cIndex, mySide, false);
@@ -429,9 +424,7 @@ namespace SciGit_Client
           dblocks.Add(new Tuple<DiffBlock, int>(block, side));
         }
       }
-      dblocks.Sort(delegate(Tuple<DiffBlock, int> a, Tuple<DiffBlock, int> b) {
-        return a.Item1.DeleteStartA.CompareTo(b.Item1.DeleteStartA);
-      });
+      dblocks.Sort((a, b) => a.Item1.DeleteStartA.CompareTo(b.Item1.DeleteStartA));
 
       content = new List<LineBlock>[2];
       for (int i = 0; i < 2; i++) {
@@ -559,7 +552,7 @@ namespace SciGit_Client
       strLine = SentenceFilter.Clean(strLine);
       string[] strBlocks = strLine.Split('\n');
       foreach (var str in strBlocks) {
-        blocks.Add(new Block(str, BlockType.Normal));
+        blocks.Add(new Block(str));
       }
     }
 

@@ -37,7 +37,6 @@ namespace SciGit_Client
       bg.ProgressChanged += UpdateProgress;
       bg.RunWorkerCompleted += Completed;
 
-
       status.Text = "Waiting for other operations to finish...";
       bg.RunWorkerAsync();
     }

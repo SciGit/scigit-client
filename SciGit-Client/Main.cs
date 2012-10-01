@@ -78,19 +78,19 @@ namespace SciGit_Client
 
       pipeServer = new NamedPipeServerStream("sciGitPipe", PipeDirection.In, 2);
       var t = new Thread(() => {
-                              while (true) {
-                                pipeServer.WaitForConnection();
-                                try {
-                                  var ss = new StreamString(pipeServer);
-                                  string verb = ss.ReadString();
-                                  string filename = ss.ReadString();
-                                  HandleCommand(verb, filename);
-                                } catch (Exception) {
-                                  // TODO: log errors somewhere
-                                }
-                                pipeServer.Disconnect();
-                              }
-                            });
+        while (true) {
+          pipeServer.WaitForConnection();
+          try {
+            var ss = new StreamString(pipeServer);
+            string verb = ss.ReadString();
+            string filename = ss.ReadString();
+            HandleCommand(verb, filename);
+          } catch (Exception) {
+            // TODO: log errors somewhere
+          }
+          pipeServer.Disconnect();
+        }
+      });
       t.Start();
     }
 
@@ -267,9 +267,10 @@ namespace SciGit_Client
       foreach (var project in projects) {
         if (!curNames.Contains(project.Name)) {
           var curProject = project; // closure issues
-          var item = new MenuItem(project.Name, CreateUpdateProjectHandler(curProject));
-          item.Checked = updNames.Contains(project.Name);
-          item.RadioCheck = true;
+          var item = new MenuItem(project.Name, CreateUpdateProjectHandler(curProject)) {
+            Checked = updNames.Contains(project.Name),
+            RadioCheck = true
+          };
           update.MenuItems.Add(item);
           item = new MenuItem(project.Name, CreateUploadProjectHandler(curProject));
           upload.MenuItems.Add(item);
@@ -293,7 +294,7 @@ namespace SciGit_Client
     private void InitializeSSH() {
       // TODO: check Git/SSH installations
 
-      string appPath = Path.Combine(GitWrapper.GetAppDataPath(), RestClient.username);
+      string appPath = Path.Combine(GitWrapper.GetAppDataPath(), RestClient.Username);
       Directory.CreateDirectory(appPath);
 
       string sshDir = Path.Combine(appPath, ".ssh");
@@ -304,8 +305,8 @@ namespace SciGit_Client
         GitWrapper.GenerateSSHKey(keyFile);
       }
 
-      GitWrapper.GlobalConfig("user.name", RestClient.username);
-      GitWrapper.GlobalConfig("user.email", RestClient.username);
+      GitWrapper.GlobalConfig("user.name", RestClient.Username);
+      GitWrapper.GlobalConfig("user.email", RestClient.Username);
 
       string key = File.ReadAllText(keyFile + ".pub").Trim();
       if (!RestClient.UploadPublicKey(key)) {

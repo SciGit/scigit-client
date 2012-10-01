@@ -17,9 +17,7 @@ namespace SciGit_Client
     }
 
     public string ReadString() {
-      int len = 0;
-
-      len = ioStream.ReadByte() * 256;
+      int len = ioStream.ReadByte() * 256;
       len += ioStream.ReadByte();
       var inBuffer = new byte[len];
       ioStream.Read(inBuffer, 0, len);

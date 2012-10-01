@@ -30,17 +30,17 @@ namespace SciGit_Client
       string appPath = Path.GetDirectoryName(Application.ExecutablePath);
       exe = Path.Combine(appPath, "Libraries", "git", "bin", exe);
 
-      var startInfo = new ProcessStartInfo();
-      startInfo.FileName = exe;
-      startInfo.Arguments = args;
-      startInfo.CreateNoWindow = true;
-      startInfo.RedirectStandardError = true;
-      startInfo.RedirectStandardOutput = true;
-      startInfo.UseShellExecute = false;
+      var startInfo = new ProcessStartInfo {
+        FileName = exe,
+        Arguments = args,
+        CreateNoWindow = true,
+        RedirectStandardError = true,
+        RedirectStandardOutput = true,
+        UseShellExecute = false,
+        WorkingDirectory = dir
+      };
       startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.username);
-      startInfo.WorkingDirectory = dir;
-      var process = new Process();
-      process.StartInfo = startInfo;
+      var process = new Process {StartInfo = startInfo};
       process.Start();
       process.WaitForExit();
       return new ProcessReturn(process.ExitCode, process.StandardOutput.ReadToEnd(), process.StandardError.ReadToEnd());

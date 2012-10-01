@@ -20,8 +20,7 @@ namespace SciGit_Client
         FileData f = files[i];
         string text = fileContents[i];
 
-        var textBox = new TextBox();
-        textBox.Text = text;
+        var textBox = new TextBox {Text = text};
         if (i > 0) {
           textBox.Visibility = Visibility.Hidden;
         }
@@ -29,8 +28,7 @@ namespace SciGit_Client
         grid.Children.Add(textBox);
         textBoxes.Add(textBox);
 
-        var cbItem = new ComboBoxItem();
-        cbItem.Content = f.filename;
+        var cbItem = new ComboBoxItem {Content = f.filename};
         int cur = fileDropdown.Items.Count;
         cbItem.Selected += (e, o) => SetActiveTextBlock(cur);
         fileDropdown.Items.Add(cbItem);

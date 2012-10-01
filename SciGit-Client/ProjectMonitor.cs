@@ -165,13 +165,12 @@ namespace SciGit_Client
       string dir = GetProjectDirectory(p);
 
       try {
-        ProcessReturn ret;
         if (GitWrapper.RebaseInProgress(dir)) {
           GitWrapper.Rebase(dir, "--abort");
         }
 
         if (worker != null) worker.ReportProgress(20, Tuple.Create("Fetching updates...", ""));
-        ret = GitWrapper.Fetch(dir);
+        ProcessReturn ret = GitWrapper.Fetch(dir);
         if (ret.ReturnValue != 0) {
           throw new Exception("fetch: " + ret.Output);
         }
@@ -195,7 +194,8 @@ namespace SciGit_Client
         bool success = true;
         if (ret.ReturnValue != 0) {
           if (ret.Output.Contains("CONFLICT")) {
-            string dialogMsg = "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
+            const string dialogMsg =
+              "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
               "You can also resolve them manually using your text editor.\r\n" +
               "Please save any open files before continuing.";
             MessageBoxResult resp = MessageBoxResult.Cancel;

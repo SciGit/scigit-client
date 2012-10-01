@@ -127,15 +127,15 @@ namespace SciGit_Client
     }
 
     private DiffViewer CreateDiffViewer(FileData f) {
-      var dv = new DiffViewer(f.original, f.myVersion, f.newVersion);
-      dv.NextFileCallback = SelectNextFile;
-      dv.FinishCallback = Finish;
+      var dv = new DiffViewer(f.original, f.myVersion, f.newVersion) {
+        NextFileCallback = SelectNextFile,
+        FinishCallback = Finish,
+        Visibility = Visibility.Hidden
+      };
       Grid.SetRow(dv, 1);
-      dv.Visibility = Visibility.Hidden;
       grid.Children.Add(dv);
 
-      var cbItem = new ComboBoxItem();
-      cbItem.Content = f.filename;
+      var cbItem = new ComboBoxItem {Content = f.filename};
       int cur = fileDropdown.Items.Count;
       cbItem.Selected += (e, o) => SetActiveDiffViewer(cur);
       fileDropdown.Items.Add(cbItem);

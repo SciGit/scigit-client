@@ -1,4 +1,4 @@
-﻿<Window x:Class="SciGit_Client.Login" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:SciGit_Client" Title="Login to SciGit" Height="336" Width="540" WindowStyle="SingleBorderWindow" ResizeMode="NoResize" Icon="/SciGit-Client;component/Images/icon_32.png">
+﻿<Window x:Class="SciGit_Client.Login" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Login to SciGit" Height="336" Width="540" WindowStyle="SingleBorderWindow" ResizeMode="NoResize" Icon="/SciGit-Client;component/Images/icon_32.png">
 	<Grid Name="grid1">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="247*" />

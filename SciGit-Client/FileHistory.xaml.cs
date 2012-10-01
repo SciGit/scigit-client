@@ -13,12 +13,10 @@ namespace SciGit_Client
   {
     DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
     string fullpath;
-    Project project;
 
     public FileHistory(Project p, string filename) {
       InitializeComponent();
 
-      project = p;
       this.filename.Text = "File: " + Path.Combine(p.Name, filename);
       string gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');
 
@@ -43,17 +41,15 @@ namespace SciGit_Client
 
     private ListViewItem CreateListViewItem(string message, string author, int time, string text) {
       var item = new ListViewItem();
-      var sp = new StackPanel();
-      sp.Orientation = Orientation.Vertical;
-      var tb = new TextBlock();
-      tb.Text = message;
-      tb.FontSize = 12;
-      tb.FontWeight = FontWeights.Bold;
+      var sp = new StackPanel {Orientation = Orientation.Vertical};
+      var tb = new TextBlock {Text = message, FontSize = 12, FontWeight = FontWeights.Bold};
       sp.Children.Add(tb);
       DateTime date = epoch.AddSeconds(time);
-      tb = new TextBlock();
-      tb.Text = (author == "" ? "" : "by " + author + " ") + "on " + date.ToLocalTime().ToString("MMM d, yyyy h:mmtt");
-      tb.FontSize = 10;
+      tb = new TextBlock {
+        Text = (author == "" ? "" : "by " + author + " ") + "on " +
+          date.ToLocalTime().ToString("MMM d, yyyy h:mmtt"),
+        FontSize = 10
+      };
       sp.Children.Add(tb);
       sp.Margin = new Thickness(2, 5, 5, 5);
       item.Content = sp;

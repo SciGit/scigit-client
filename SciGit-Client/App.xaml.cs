@@ -10,11 +10,9 @@ namespace SciGit_Client
     /// </summary>
     public partial class App : Application
     {
-      static Mutex mutex;
-
       public App() {
         bool owned;
-        mutex = new Mutex(true, "SciGitApplicationMutex", out owned);
+        var mutex = new Mutex(true, "SciGitApplicationMutex", out owned);
         string[] args = Environment.GetCommandLineArgs();
         if (!owned) {
           if (args.Length == 3) {
