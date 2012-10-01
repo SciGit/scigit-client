@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using SciGit_Filter;
 
 namespace SciGit_Client
@@ -19,8 +10,10 @@ namespace SciGit_Client
   /// </summary>
   public partial class DiffEditor : Window
   {
+    string myStr;
     public LineBlock newBlock;
-    string myStr, updatedStr, originalStr;
+    string originalStr;
+    string updatedStr;
 
     public DiffEditor(LineBlock yourBlock, LineBlock updatedBlock, LineBlock originalBlock, LineBlock editBlock = null) {
       InitializeComponent();
@@ -42,14 +35,14 @@ namespace SciGit_Client
     private void RenderLineBlock(LineBlock lineBlock, RichTextBox r) {
       r.Document.Blocks.Clear();
       foreach (Line line in lineBlock.lines) {
-        Paragraph p = new Paragraph();
+        var p = new Paragraph();
         foreach (Block block in line.blocks) {
           string text = block.text;
           if (text.EndsWith(SentenceFilter.SentenceDelim)) {
             text = text.Substring(0, text.Length - SentenceFilter.SentenceDelim.Length);
           }
-          Run run = new Run(text);
-          run.Style = GetStyle("text" + block.type.ToString());
+          var run = new Run(text);
+          run.Style = GetStyle("text" + block.type);
           p.Inlines.Add(run);
         }
         r.Document.Blocks.Add(p);

@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.ComponentModel;
+using System.Windows;
+using System.Windows.Navigation;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {
@@ -22,10 +13,10 @@ namespace SciGit_Client
   {
     public Login() {
       InitializeComponent();
-      if (Properties.Settings.Default.RememberUser) {
+      if (Settings.Default.RememberUser) {
         rememberMe.IsChecked = true;
-        emailValue.Text = Properties.Settings.Default.SavedUsername;
-        passwordValue.Password = Properties.Settings.Default.SavedPassword;
+        emailValue.Text = Settings.Default.SavedUsername;
+        passwordValue.Password = Settings.Default.SavedPassword;
       }
 
       // MergeResolver mr = new MergeResolver(new Project { Id = 1, Name = "project1" });
@@ -35,7 +26,7 @@ namespace SciGit_Client
     private void login_Click(object sender, RoutedEventArgs e) {
       login.IsEnabled = false;
       login.Content = "Logging in...";
-      BackgroundWorker bg = new BackgroundWorker();
+      var bg = new BackgroundWorker();
       string email = emailValue.Text, password = passwordValue.Password;
       bg.DoWork += (bw, _) => RestClient.Login(email, password, LoginCallback, Dispatcher);
       bg.RunWorkerAsync();
@@ -44,13 +35,13 @@ namespace SciGit_Client
     private void LoginCallback(bool success) {
       if (success) {
         if (rememberMe.IsChecked ?? false) {
-          Properties.Settings.Default.RememberUser = true;
-          Properties.Settings.Default.SavedUsername = emailValue.Text;
-          Properties.Settings.Default.SavedPassword = passwordValue.Password;
-          Properties.Settings.Default.Save();
+          Settings.Default.RememberUser = true;
+          Settings.Default.SavedUsername = emailValue.Text;
+          Settings.Default.SavedPassword = passwordValue.Password;
+          Settings.Default.Save();
         }
         Hide();
-        Main sgMain = new Main();
+        var sgMain = new Main();
         sgMain.Show();
         sgMain.Hide();
       } else {
@@ -60,7 +51,7 @@ namespace SciGit_Client
       }
     }
 
-    private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e) {
+    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e) {
       Process.Start(e.Uri.AbsoluteUri);
     }
   }

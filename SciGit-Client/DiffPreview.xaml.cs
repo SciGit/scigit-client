@@ -1,15 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace SciGit_Client
 {
@@ -18,9 +9,8 @@ namespace SciGit_Client
   /// </summary>
   public partial class DiffPreview : Window
   {
-    List<TextBox> textBoxes;
     int activeTextBlock;
-    public bool Saved { get; private set; }
+    List<TextBox> textBoxes;
 
     public DiffPreview(List<FileData> files, List<string> fileContents) {
       InitializeComponent();
@@ -33,7 +23,7 @@ namespace SciGit_Client
         var textBox = new TextBox();
         textBox.Text = text;
         if (i > 0) {
-          textBox.Visibility = System.Windows.Visibility.Hidden;
+          textBox.Visibility = Visibility.Hidden;
         }
         Grid.SetRow(textBox, 2);
         grid.Children.Add(textBox);
@@ -51,8 +41,10 @@ namespace SciGit_Client
       SetActiveTextBlock(0);
     }
 
+    public bool Saved { get; private set; }
+
     public List<string> GetFinalText() {
-      List<string> result = new List<string>();
+      var result = new List<string>();
       foreach (var textBox in textBoxes) {
         result.Add(textBox.Text);
       }
@@ -61,8 +53,8 @@ namespace SciGit_Client
 
     private void SetActiveTextBlock(int index) {
       if (index != activeTextBlock) {
-        textBoxes[activeTextBlock].Visibility = System.Windows.Visibility.Hidden;
-        textBoxes[index].Visibility = System.Windows.Visibility.Visible;
+        textBoxes[activeTextBlock].Visibility = Visibility.Hidden;
+        textBoxes[index].Visibility = Visibility.Visible;
         activeTextBlock = index;
       }
     }

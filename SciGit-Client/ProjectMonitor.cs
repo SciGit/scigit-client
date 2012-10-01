@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Threading;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -21,13 +20,22 @@ namespace SciGit_Client
 
   class ProjectMonitor
   {
-    List<Project> projects, updatedProjects;
-    public delegate void ProjectCallback(Project p);
+    #region Delegates
+
     public delegate void ProgressCallback(int percent, string operation, string extra);
-    public List<Action> updateCallbacks, loadedCallbacks;
-    public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks, projectUpdatedCallbacks;
-    private Thread monitorThread;
+
+    public delegate void ProjectCallback(Project p);
+
+    #endregion
+
     private const int monitorDelay = 10 * 1000;
+
+    public List<Action> loadedCallbacks;
+    private Thread monitorThread;
+    public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks, projectUpdatedCallbacks;
+    List<Project> projects;
+    public List<Action> updateCallbacks;
+    List<Project> updatedProjects;
 
     public ProjectMonitor(List<Project> projects = null) {
       if (!Directory.Exists(GetProjectDirectory())) {
@@ -44,7 +52,7 @@ namespace SciGit_Client
       }
       updatedProjects = new List<Project>();
 
-      monitorThread = new Thread(new ThreadStart(MonitorProjects));
+      monitorThread = new Thread(MonitorProjects);
       updateCallbacks = new List<Action>();
       loadedCallbacks = new List<Action>();
       projectUpdatedCallbacks = new List<ProjectCallback>();
@@ -105,7 +113,7 @@ namespace SciGit_Client
           Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
           Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
 
-          List<Project> newUpdatedProjects = new List<Project>();
+          var newUpdatedProjects = new List<Project>();
           foreach (var project in newProjects) {
             if (InitializeProject(project)) {
               DispatchCallbacks(projectAddedCallbacks, project);
@@ -154,7 +162,7 @@ namespace SciGit_Client
     }
 
     public bool UpdateProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
-      string dir = ProjectMonitor.GetProjectDirectory(p);
+      string dir = GetProjectDirectory(p);
 
       try {
         ProcessReturn ret;
@@ -236,7 +244,7 @@ namespace SciGit_Client
     }
 
     public bool UploadProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
-      string dir = ProjectMonitor.GetProjectDirectory(p);
+      string dir = GetProjectDirectory(p);
 
       try {
         string commitMsg = null;

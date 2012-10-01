@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
-using SciGit_Filter;
 using DiffPlex;
 using DiffPlex.Model;
-using System.Windows.Media.Effects;
+using SciGit_Filter;
 
 namespace SciGit_Client
 {
@@ -23,21 +19,18 @@ namespace SciGit_Client
   /// </summary>
   public partial class DiffViewer : UserControl
   {
+    List<int> conflictBlocks;
+    int[] conflictChoice;
+    int[] conflictHover;
+    List<LineBlock> conflictOrigBlocks;
     List<LineBlock>[] content;
-    LineBlock[] myBlocks;
-    List<RichTextBox>[] lineTexts;
+    int curConflict;
+    int[] lineCount;
+    List<Border>[] lineNumBackgrounds;
     List<TextBlock>[] lineNums;
     List<Border>[] lineTextBackgrounds;
-    List<Border>[] lineNumBackgrounds;
-    List<int> conflictBlocks;
-    List<LineBlock> conflictOrigBlocks;
-    int[] conflictHover;
-    int[] conflictChoice;
-    int[] lineCount;
-    int curConflict = 0;
-
-    public Action NextFileCallback { get; set; }
-    public Action FinishCallback { get; set; }
+    List<RichTextBox>[] lineTexts;
+    LineBlock[] myBlocks;
 
     public DiffViewer(string original, string myVersion, string newVersion) {
       InitializeComponent();
@@ -60,6 +53,9 @@ namespace SciGit_Client
         nextConflict.IsEnabled = prevConflict.IsEnabled = true;
       }
     }
+
+    public Action NextFileCallback { get; set; }
+    public Action FinishCallback { get; set; }
 
     public bool Finished() {
       return !conflictChoice.Contains(-1);
@@ -102,7 +98,7 @@ namespace SciGit_Client
       Style refused = GetStyle("textBackgroundConflictRefused");
       Style numNormal = GetStyle("numBackgroundConflict");
       for (int i = 0; i < 2; i++) {
-        Style normal = GetStyle("textBackground" + content[i][block].type.ToString());
+        Style normal = GetStyle("textBackground" + content[i][block].type);
         Border textBackground = lineTextBackgrounds[i][block];
         Border numBackground = lineNumBackgrounds[i][block];
         double opacity = 1;
@@ -148,7 +144,7 @@ namespace SciGit_Client
       Point p = lineNums[0][line].TransformToAncestor(grid).Transform(new Point(0, 0));
       scrollViewer.ScrollToVerticalOffset(p.Y);
 
-      conflictNumber.Text = "Conflict " + (index + 1).ToString() + "/" + conflictBlocks.Count.ToString();
+      conflictNumber.Text = "Conflict " + (index + 1) + "/" + conflictBlocks.Count;
       int prevConflict = curConflict;
       curConflict = index;
       UpdateConflictBlock(prevConflict);
@@ -184,7 +180,7 @@ namespace SciGit_Client
     private void EditConflict(int index) {
       int block = conflictBlocks[index];
       LineBlock chosenBlock = conflictChoice[index] == -1 ? null : content[conflictChoice[index]][block];
-      DiffEditor de = new DiffEditor(myBlocks[block], content[1][block], conflictOrigBlocks[index], chosenBlock);
+      var de = new DiffEditor(myBlocks[block], content[1][block], conflictOrigBlocks[index], chosenBlock);
       de.ShowDialog();
       if (de.newBlock != null) {
         ProcessBlockDiff(conflictOrigBlocks[index], de.newBlock, false);
@@ -237,17 +233,13 @@ namespace SciGit_Client
       }
     }
 
-    private void DisplayBlockContextMenu(int block, int side, MouseButtonEventArgs e) {
-      MessageBox.Show(e.GetPosition(Application.Current.MainWindow).ToString());
-    }
-
     private void ClearEditor() {
       grid.RowDefinitions.Clear();
-      RowDefinition rd = new RowDefinition();
+      var rd = new RowDefinition();
       rd.Height = new GridLength(1, GridUnitType.Star);
       grid.RowDefinitions.Add(rd);
 
-      List<UIElement> rects = new List<UIElement>();
+      var rects = new List<UIElement>();
       foreach (UIElement child in grid.Children) {
         if (child.GetType() == typeof(Rectangle)) {
           rects.Add(child);
@@ -281,7 +273,7 @@ namespace SciGit_Client
 
       int lines = lineCount.Sum();
       for (int i = 0; i < lines; i++) {
-        RowDefinition rd = new RowDefinition();
+        var rd = new RowDefinition();
         rd.Height = GridLength.Auto;
         grid.RowDefinitions.Insert(0, rd);
       }
@@ -295,7 +287,7 @@ namespace SciGit_Client
         lineTexts[i] = new List<RichTextBox>();
         lineNums[i] = new List<TextBlock>();
         for (int j = 0; j < lines; j++) {
-          TextBlock lineNum = new TextBlock();
+          var lineNum = new TextBlock();
           lineNum.Style = GetStyle("lineNumber");
           Panel.SetZIndex(lineNum, 5);
           Grid.SetRow(lineNum, j);
@@ -303,14 +295,14 @@ namespace SciGit_Client
           grid.Children.Add(lineNum);
           lineNums[i].Add(lineNum);
 
-          RichTextBox text = new RichTextBox();
+          var text = new RichTextBox();
           text.Style = GetStyle("lineText");
           text.HorizontalAlignment = HorizontalAlignment.Stretch;
           Panel.SetZIndex(text, 5);
           Grid.SetRow(text, j);
           Grid.SetColumn(text, 1 + 2 * i);
-          FlowDocument doc = new FlowDocument();
-          Paragraph p = new Paragraph();
+          var doc = new FlowDocument();
+          var p = new Paragraph();
           doc.Blocks.Add(p);
           text.Document = doc;
           grid.Children.Add(text);
@@ -328,25 +320,25 @@ namespace SciGit_Client
           LineBlock lblock = content[side][g];
           for (int i = 0; i < lblock.lines.Count; i++) {
             Line line = lblock.lines[i];
-            Paragraph p = (Paragraph)lineTexts[side][prevLine + i].Document.Blocks.First();
+            var p = (Paragraph)lineTexts[side][prevLine + i].Document.Blocks.First();
             foreach (Block b in line.blocks) {
               string text = b.text;
               if (text.EndsWith(SentenceFilter.SentenceDelim)) {
                 text = text.Substring(0, text.Length - SentenceFilter.SentenceDelim.Length);
               }
-              Run run = new Run(text);
+              var run = new Run(text);
               if (b.type != BlockType.Normal) {
                 if (lblock.type == BlockType.Conflict || lblock.type == BlockType.Edited) {
                   b.type = lblock.type;
                 }
-                run.Style = GetStyle("text" + b.type.ToString());
+                run.Style = GetStyle("text" + b.type);
               }
               p.Inlines.Add(run);
             }
             lineNums[side][prevLine + i].Text = lineNum++.ToString();
           }
 
-          Border numBorder = new Border();
+          var numBorder = new Border();
           Panel.SetZIndex(numBorder, 3);
           Grid.SetRow(numBorder, prevLine);
           Grid.SetColumn(numBorder, side * 2);
@@ -354,7 +346,7 @@ namespace SciGit_Client
           grid.Children.Add(numBorder);
           lineNumBackgrounds[side].Add(numBorder);
 
-          Border textBorder = new Border();
+          var textBorder = new Border();
           Panel.SetZIndex(textBorder, 2);
           Grid.SetRow(textBorder, prevLine);
           Grid.SetColumn(textBorder, side * 2 + 1);
@@ -363,13 +355,13 @@ namespace SciGit_Client
           lineTextBackgrounds[side].Add(textBorder);
 
           if (lblock.type != BlockType.Normal) {
-            numBorder.Style = GetStyle("numBackground" + lblock.type.ToString());
-            textBorder.Style = GetStyle("textBackground" + lblock.type.ToString());
+            numBorder.Style = GetStyle("numBackground" + lblock.type);
+            textBorder.Style = GetStyle("textBackground" + lblock.type);
             for (int line = 0; line < lineCount[g]; line++) {
               TextBlock num = lineNums[side][prevLine + line];
               RichTextBox text = lineTexts[side][prevLine + line];
-              num.Style = GetStyle("lineNum" + lblock.type.ToString());
-              text.Style = GetStyle("lineText" + lblock.type.ToString());
+              num.Style = GetStyle("lineNum" + lblock.type);
+              text.Style = GetStyle("lineText" + lblock.type);
               int cIndex = conflictBlocks.BinarySearch(g);
               if (cIndex >= 0) {
                 int myG = g; // for lambda scoping
@@ -390,7 +382,7 @@ namespace SciGit_Client
 
     private string[] ArraySlice(string[] a, int start, int length) {
       length = Math.Min(length, a.Length - start);
-      string[] ret = new string[length];
+      var ret = new string[length];
       for (int i = 0; i < length; i++) {
         ret[i] = a[start + i];
       }
@@ -399,8 +391,8 @@ namespace SciGit_Client
 
     private void ProcessBlockDiff(LineBlock oldLineBlock, LineBlock newLineBlock, bool modifyOld = true) {
       // Do block-by-block diffs inside LineBlocks.
-      List<Block> oldBlocks = new List<Block>();
-      List<Block> newBlocks = new List<Block>();
+      var oldBlocks = new List<Block>();
+      var newBlocks = new List<Block>();
 
       foreach (var line in oldLineBlock.lines) {
         oldBlocks.AddRange(line.blocks);
@@ -410,7 +402,7 @@ namespace SciGit_Client
         newBlocks.AddRange(line.blocks);
       }
 
-      Differ d = new Differ();
+      var d = new Differ();
       DiffResult diff = d.CreateLineDiffs(String.Join("\n", oldBlocks), String.Join("\n", newBlocks), false);
 
       foreach (DiffBlock dblock in diff.DiffBlocks) {
@@ -428,10 +420,10 @@ namespace SciGit_Client
     private void ProcessDiff(string original, string myVersion, string newVersion) {
       // Do a line-by-line diff, marking changed line groups.
       // Also, find intersecting diffs and mark them as conflicted changes for resolution.
-      Differ d = new Differ();
-      DiffResult[] diffs = new DiffResult[2] { d.CreateLineDiffs(original, myVersion, false), d.CreateLineDiffs(original, newVersion, false) };
+      var d = new Differ();
+      var diffs = new DiffResult[2] { d.CreateLineDiffs(original, myVersion, false), d.CreateLineDiffs(original, newVersion, false) };
 
-      List<Tuple<DiffBlock, int>> dblocks = new List<Tuple<DiffBlock, int>>();
+      var dblocks = new List<Tuple<DiffBlock, int>>();
       for (int side = 0; side < 2; side++) {
         foreach (var block in diffs[side].DiffBlocks) {
           dblocks.Add(new Tuple<DiffBlock, int>(block, side));
@@ -471,8 +463,8 @@ namespace SciGit_Client
 
         if (j == i + 1) {
           // No conflict - just add the change normally.
-          LineBlock oldBlock = new LineBlock(ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
-          LineBlock newBlock = new LineBlock(ArraySlice(diffs[owner].PiecesNew, block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
+          var oldBlock = new LineBlock(ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
+          var newBlock = new LineBlock(ArraySlice(diffs[owner].PiecesNew, block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
           ProcessBlockDiff(oldBlock, newBlock);
           content[owner].Add(newBlock);
           content[1 - owner].Add(oldBlock);
@@ -480,8 +472,8 @@ namespace SciGit_Client
           // Create a conflict block.
           for (int side = 0; side < 2; side++) {
             int curOriginalLine = rangeStart;
-            LineBlock conflictBlock = new LineBlock();
-            LineBlock origBlock = new LineBlock();
+            var conflictBlock = new LineBlock();
+            var origBlock = new LineBlock();
             conflictBlock.type = BlockType.Conflict;
             for (int k = i; k < j; k++) {
               DiffBlock subBlock = dblocks[k].Item1;
@@ -490,8 +482,8 @@ namespace SciGit_Client
                 conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, subBlock.DeleteStartA - curOriginalLine));
               }
               curOriginalLine = subBlock.DeleteStartA + subBlock.DeleteCountA;
-              LineBlock oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
-              LineBlock newBlock = new LineBlock(ArraySlice(diffs[side].PiecesNew, subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
+              var oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
+              var newBlock = new LineBlock(ArraySlice(diffs[side].PiecesNew, subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
               ProcessBlockDiff(oldBlock, newBlock, false);
               origBlock.Append(oldBlock);
               conflictBlock.Append(newBlock);
@@ -546,6 +538,9 @@ namespace SciGit_Client
 
   public class Block
   {
+    public string text;
+    public BlockType type;
+
     public Block(string text, BlockType type = BlockType.Normal) {
       this.text = text;
       this.type = type;
@@ -554,13 +549,12 @@ namespace SciGit_Client
     public override string ToString() {
       return text;
     }
-
-    public string text;
-    public BlockType type;
   }
 
   public class Line
   {
+    public List<Block> blocks = new List<Block>();
+
     public Line(string strLine) {
       strLine = SentenceFilter.Clean(strLine);
       string[] strBlocks = strLine.Split('\n');
@@ -580,12 +574,12 @@ namespace SciGit_Client
       }
       return ret;
     }
-
-    public List<Block> blocks = new List<Block>();
   }
 
   public class LineBlock
   {
+    public List<Line> lines = new List<Line>();
+    public BlockType type;
     public LineBlock() { }
 
     public LineBlock(string[] strLines, BlockType type = BlockType.Normal) {
@@ -608,8 +602,5 @@ namespace SciGit_Client
     public override string ToString() {
       return String.Join("\n", lines);
     }
-
-    public List<Line> lines = new List<Line>();
-    public BlockType type;
   }
 }

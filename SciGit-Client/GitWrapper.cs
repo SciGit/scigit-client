@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
 
 namespace SciGit_Client
@@ -33,16 +30,16 @@ namespace SciGit_Client
       string appPath = Path.GetDirectoryName(Application.ExecutablePath);
       exe = Path.Combine(appPath, "Libraries", "git", "bin", exe);
 
-      ProcessStartInfo startInfo = new ProcessStartInfo();
+      var startInfo = new ProcessStartInfo();
       startInfo.FileName = exe;
       startInfo.Arguments = args;
       startInfo.CreateNoWindow = true;
       startInfo.RedirectStandardError = true;
       startInfo.RedirectStandardOutput = true;
       startInfo.UseShellExecute = false;
-      startInfo.EnvironmentVariables["HOME"] = Path.Combine(GitWrapper.GetAppDataPath(), RestClient.username);
+      startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.username);
       startInfo.WorkingDirectory = dir;
-      Process process = new Process();
+      var process = new Process();
       process.StartInfo = startInfo;
       process.Start();
       process.WaitForExit();

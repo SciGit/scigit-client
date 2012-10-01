@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
-using System.Windows;
-using System.Threading;
-using Microsoft.Win32;
 using System.IO.Pipes;
+using System.Threading;
+using System.Windows;
 
 namespace SciGit_Client
 {
@@ -26,7 +21,7 @@ namespace SciGit_Client
             var pipeClient = new NamedPipeClientStream(".", "sciGitPipe", PipeDirection.Out);
             try {
               pipeClient.Connect(1000);
-              StreamString ss = new StreamString(pipeClient);
+              var ss = new StreamString(pipeClient);
               ss.WriteString(args[1]);
               ss.WriteString(args[2]);
             } catch (Exception) {

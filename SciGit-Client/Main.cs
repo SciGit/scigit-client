@@ -1,40 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
-using System.IO;
-using System.Diagnostics;
-using System.Windows.Threading;
-using System.Reflection;
-using System.Threading.Tasks;
 using System.Threading;
-using System.IO.Pipes;
+using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace SciGit_Client
 {
   struct BalloonTip
   {
-    public string title;
     public string message;
     public EventHandler onClick;
+    public string title;
   }
 
   public partial class Main : Form
   {
-    ProjectMonitor projectMonitor;
-    Queue<BalloonTip> balloonTips;
     const int balloonTipTimeout = 3000;
+    Queue<BalloonTip> balloonTips;
     Dispatcher dispatcher;
-    NamedPipeServerStream pipeServer;
     Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
+    NamedPipeServerStream pipeServer;
+    ProjectMonitor projectMonitor;
 
     public Main() {
       InitializeComponent();
-      ComponentResourceManager resources = new ComponentResourceManager(typeof(Main));
+      var resources = new ComponentResourceManager(typeof(Main));
       notifyIconBase = notifyIcon.Icon;
       notifyIconLoading = (Icon)resources.GetObject("notifyIconLoading.Icon");
       notifyIconUpdate = (Icon)resources.GetObject("notifyIconUpdate.Icon");
@@ -80,20 +77,20 @@ namespace SciGit_Client
       }
 
       pipeServer = new NamedPipeServerStream("sciGitPipe", PipeDirection.In, 2);
-      Thread t = new Thread(new ThreadStart(() => {
-        while (true) {
-          pipeServer.WaitForConnection();
-          try {
-            StreamString ss = new StreamString(pipeServer);
-            string verb = ss.ReadString();
-            string filename = ss.ReadString();
-            HandleCommand(verb, filename);
-          } catch (Exception) {
-            // TODO: log errors somewhere
-          }
-          pipeServer.Disconnect();
-        }
-      }));
+      var t = new Thread(() => {
+                              while (true) {
+                                pipeServer.WaitForConnection();
+                                try {
+                                  var ss = new StreamString(pipeServer);
+                                  string verb = ss.ReadString();
+                                  string filename = ss.ReadString();
+                                  HandleCommand(verb, filename);
+                                } catch (Exception) {
+                                  // TODO: log errors somewhere
+                                }
+                                pipeServer.Disconnect();
+                              }
+                            });
       t.Start();
     }
 
@@ -102,7 +99,7 @@ namespace SciGit_Client
       if (!File.Exists(Path.Combine(dir, filename))) {
         MessageBox.Show("File does not exist.", "Error");
       } else {
-        FileHistory fh = new FileHistory(p, filename);
+        var fh = new FileHistory(p, filename);
         fh.Show();
       }
     }
@@ -116,8 +113,8 @@ namespace SciGit_Client
     }
 
     private void NotifyClick(object sender, EventArgs e) {
-      MouseEventArgs me = (MouseEventArgs)e;
-      if (me.Button == System.Windows.Forms.MouseButtons.Left) {
+      var me = (MouseEventArgs)e;
+      if (me.Button == MouseButtons.Left) {
         OpenDirectoryHandler(sender, e);
       }
     }
@@ -128,7 +125,7 @@ namespace SciGit_Client
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        ProgressForm progressForm = new ProgressForm(dispatcher,
+        var progressForm = new ProgressForm(dispatcher,
           (form, disp, bw) => {
             projectMonitor.UpdateProject(p, form, disp, bw);
             UpdateContextMenu();
@@ -140,7 +137,7 @@ namespace SciGit_Client
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        ProgressForm progressForm = new ProgressForm(dispatcher,
+        var progressForm = new ProgressForm(dispatcher,
           (form, disp, bw) => {
             projectMonitor.UploadProject(p, form, disp, bw);
             UpdateContextMenu();
@@ -151,7 +148,7 @@ namespace SciGit_Client
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
-      ProgressForm progressForm = new ProgressForm(dispatcher,
+      var progressForm = new ProgressForm(dispatcher,
         (form, disp, bw) => {
           projectMonitor.UpdateAllProjects(form, disp, bw);
           UpdateContextMenu();
@@ -161,7 +158,7 @@ namespace SciGit_Client
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
-      ProgressForm progressForm = new ProgressForm(dispatcher,
+      var progressForm = new ProgressForm(dispatcher,
         (form, disp, bw) => {
           projectMonitor.UploadAllProjects(form, disp, bw);
           UpdateContextMenu();
@@ -201,7 +198,7 @@ namespace SciGit_Client
 
     private void QueueBalloonTip(string title, string message, EventHandler onClick) {
       lock (balloonTips) {
-        balloonTips.Enqueue(new BalloonTip() { title = title, message = message, onClick = onClick });
+        balloonTips.Enqueue(new BalloonTip { title = title, message = message, onClick = onClick });
         if (balloonTips.Count == 1) {
           ShowBalloonTip(null, null);
         }
@@ -248,9 +245,9 @@ namespace SciGit_Client
       List<Project> updatedProjects = projectMonitor.GetUpdatedProjects();
       var update = notifyIcon.ContextMenu.MenuItems[3];
       var upload = notifyIcon.ContextMenu.MenuItems[4];      
-      HashSet<string> curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
-      HashSet<string> newNames = new HashSet<string>(from p in projects select p.Name);
-      HashSet<string> updNames = new HashSet<string>(from p in updatedProjects select p.Name);
+      var curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
+      var newNames = new HashSet<string>(from p in projects select p.Name);
+      var updNames = new HashSet<string>(from p in updatedProjects select p.Name);
 
       for (int i = update.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = update.MenuItems[i];
@@ -270,7 +267,7 @@ namespace SciGit_Client
       foreach (var project in projects) {
         if (!curNames.Contains(project.Name)) {
           var curProject = project; // closure issues
-          MenuItem item = new MenuItem(project.Name, CreateUpdateProjectHandler(curProject));
+          var item = new MenuItem(project.Name, CreateUpdateProjectHandler(curProject));
           item.Checked = updNames.Contains(project.Name);
           item.RadioCheck = true;
           update.MenuItems.Add(item);

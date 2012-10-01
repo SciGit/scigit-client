@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.ComponentModel;
-using System.Windows.Threading;
-using System.Windows.Media.Animation;
 using System.Threading;
+using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media.Animation;
+using System.Windows.Shell;
+using System.Windows.Threading;
 
 namespace SciGit_Client
 {
@@ -22,18 +14,22 @@ namespace SciGit_Client
   /// </summary>
   public partial class ProgressForm : Window
   {
+    #region Delegates
+
     public delegate void BackgroundAction(Window wind, Dispatcher disp, BackgroundWorker bw);
+
+    #endregion
 
     public ProgressForm(Dispatcher disp, BackgroundAction action) {
       InitializeComponent();
 
-      textBox.Visibility = System.Windows.Visibility.Collapsed;
-      TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
+      textBox.Visibility = Visibility.Collapsed;
+      TaskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
       
-      BackgroundWorker bg = new BackgroundWorker();
+      var bg = new BackgroundWorker();
       bg.WorkerReportsProgress = true;
       bg.DoWork += (bw, _) => {
-        Mutex mutex = new Mutex(false, "SciGitOperationMutex");
+        var mutex = new Mutex(false, "SciGitOperationMutex");
         mutex.WaitOne();
         action(this, disp, (BackgroundWorker)bw);
         mutex.ReleaseMutex();
@@ -47,12 +43,12 @@ namespace SciGit_Client
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {
-      Duration duration = new Duration(TimeSpan.FromSeconds(0.5));
-      DoubleAnimation anim = new DoubleAnimation(e.ProgressPercentage, duration);
-      progressBar.BeginAnimation(ProgressBar.ValueProperty, anim);
+      var duration = new Duration(TimeSpan.FromSeconds(0.5));
+      var anim = new DoubleAnimation(e.ProgressPercentage, duration);
+      progressBar.BeginAnimation(RangeBase.ValueProperty, anim);
       progressBar.Value = e.ProgressPercentage;
       TaskbarItemInfo.ProgressValue = (double)(e.ProgressPercentage) / 100;
-      Tuple<String, String> data = (Tuple<String, String>)e.UserState;
+      var data = (Tuple<String, String>)e.UserState;
       status.Text = data.Item1;
       if (data.Item2.Length > 0) {
         textBox.Text += data.Item2.Replace("\n", "\r\n") + "\r\n";
@@ -65,8 +61,8 @@ namespace SciGit_Client
     }
 
     private void details_Click(object sender, EventArgs e) {
-      textBox.Visibility = (textBox.Visibility == System.Windows.Visibility.Collapsed) ?
-        System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+      textBox.Visibility = (textBox.Visibility == Visibility.Collapsed) ?
+        Visibility.Visible : Visibility.Collapsed;
     }
 
     private void close_Click(object sender, EventArgs e) {

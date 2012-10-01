@@ -1,21 +1,17 @@
-﻿<Window x:Class="SciGit_Client.MergeResolver"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:local="clr-namespace:SciGit_Client"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Merge Conflicts" Height="600" Width="800" SnapsToDevicePixels="True" ShowInTaskbar="True" Icon="/SciGit-Client;component/Images/icon.ico" Background="#FFF1F1F1" MinWidth="900" MinHeight="600" Closing="WindowClosing">
-    <Grid Margin="10" Name="grid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />            
-        </Grid.ColumnDefinitions>
-        
-        <TextBlock Text="Resolve Conflicts" Grid.Row="0" Grid.Column="0" FontSize="20" FontWeight="Normal" Margin="0,0,0,5" IsManipulationEnabled="False" />
-        <WrapPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">
-            <Label Content="File:" Target="{Binding ElementName=fileDropdown}" />
-            <ComboBox Name="fileDropdown" IsEnabled="True" MinWidth="250" />
-        </WrapPanel>
-    </Grid>
+﻿<Window x:Class="SciGit_Client.MergeResolver" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:local="clr-namespace:SciGit_Client" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Merge Conflicts" Height="600" Width="800" SnapsToDevicePixels="True" ShowInTaskbar="True" Icon="/SciGit-Client;component/Images/icon.ico" Background="#FFF1F1F1" MinWidth="900" MinHeight="600" Closing="WindowClosing">
+	<Grid Margin="10" Name="grid">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<TextBlock Text="Resolve Conflicts" Grid.Row="0" Grid.Column="0" FontSize="20" FontWeight="Normal" Margin="0,0,0,5" IsManipulationEnabled="False" />
+		<WrapPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">
+			<Label Content="File:" Target="{Binding ElementName=fileDropdown}" />
+			<ComboBox Name="fileDropdown" IsEnabled="True" MinWidth="250" />
+		</WrapPanel>
+	</Grid>
 </Window>

@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.IO;
 using SciGit_Filter;
 
 namespace SciGit_Client
@@ -19,9 +11,9 @@ namespace SciGit_Client
   /// </summary>
   public partial class FileHistory : Window
   {
-    DateTime epoch = new System.DateTime(1970, 1, 1, 0, 0, 0, 0);
-    Project project;
+    DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, 0);
     string fullpath;
+    Project project;
 
     public FileHistory(Project p, string filename) {
       InitializeComponent();
@@ -36,10 +28,10 @@ namespace SciGit_Client
 
       fullpath = Path.Combine(dir, filename);
       string curText = File.ReadAllText(fullpath);
-      int timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
+      var timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
       fileHistory.Items.Add(CreateListViewItem("Current Version", "", timestamp, curText));
       foreach (var commit in commits) {
-        string[] data = commit.Split(new char[] { ' ' }, 4);
+        string[] data = commit.Split(new[] { ' ' }, 4);
         ret = GitWrapper.ShowObject(dir, String.Format("{0}:\"{1}\"", data[0], gitFilename));
         if (ret.ReturnValue == 0) {
           fileHistory.Items.Add(CreateListViewItem(data[3], data[1], int.Parse(data[2]), ret.Output));
@@ -51,7 +43,7 @@ namespace SciGit_Client
 
     private ListViewItem CreateListViewItem(string message, string author, int time, string text) {
       var item = new ListViewItem();
-      StackPanel sp = new StackPanel();
+      var sp = new StackPanel();
       sp.Orientation = Orientation.Vertical;
       var tb = new TextBlock();
       tb.Text = message;

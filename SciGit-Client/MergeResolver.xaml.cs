@@ -1,27 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using SciGit_Filter;
-using System.IO;
-using System.Text.RegularExpressions;
 
 namespace SciGit_Client
 {
   public class FileData
   {
     public string filename;
-    public string original;
     public string myVersion;
     public string newVersion;
+    public string original;
   }
 
   /// <summary>
@@ -29,11 +23,10 @@ namespace SciGit_Client
   /// </summary>
   public partial class MergeResolver : Window
   {
+    int active;
+    List<DiffViewer> diffViewers;
     Project project;
     List<FileData> unmergedFiles;
-    List<DiffViewer> diffViewers;
-    int active;
-    public bool Saved { get; private set; }
 
     public MergeResolver(Project p) {
       InitializeComponent();
@@ -60,6 +53,8 @@ namespace SciGit_Client
       fileDropdown.SelectedIndex = 0;
     }
 
+    public bool Saved { get; private set; }
+
     void SetActiveDiffViewer(int dv) {
       if (active != dv) {
         diffViewers[active].Visibility = Visibility.Hidden;
@@ -74,7 +69,7 @@ namespace SciGit_Client
     }
 
     void Finish() {
-      List<string> unmerged = new List<string>();
+      var unmerged = new List<string>();
       for (int i = 0; i < unmergedFiles.Count; i++) {
         if (!diffViewers[i].Finished()) {
           unmerged.Add(unmergedFiles[i].filename);
@@ -85,7 +80,7 @@ namespace SciGit_Client
         string msg = String.Join("\n", unmerged.Select(str => "- " + str));
         MessageBox.Show("The following files are still unmerged:\n" + msg, "Unmerged Changes");
       } else {
-        DiffPreview preview = new DiffPreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());
+        var preview = new DiffPreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());
         preview.ShowDialog();
         if (preview.Saved) {
           Saved = true;
@@ -104,8 +99,8 @@ namespace SciGit_Client
       string dir = ProjectMonitor.GetProjectDirectory(project);
       ProcessReturn ret = GitWrapper.ListUnmergedFiles(dir);
 
-      Dictionary<String, FileData> files = new Dictionary<string, FileData>();
-      string[] lines = ret.Output.Split(new char[] {'\0'}, StringSplitOptions.RemoveEmptyEntries);
+      var files = new Dictionary<string, FileData>();
+      string[] lines = ret.Output.Split(new[] {'\0'}, StringSplitOptions.RemoveEmptyEntries);
       foreach (string line in lines) {
         var match = Regex.Match(line, "^[0-9]+ ([a-z0-9]+) ([0-9]+)\t(.*)$");
         if (match.Success) {
@@ -132,7 +127,7 @@ namespace SciGit_Client
     }
 
     private DiffViewer CreateDiffViewer(FileData f) {
-      DiffViewer dv = new DiffViewer(f.original, f.myVersion, f.newVersion);
+      var dv = new DiffViewer(f.original, f.myVersion, f.newVersion);
       dv.NextFileCallback = SelectNextFile;
       dv.FinishCallback = Finish;
       Grid.SetRow(dv, 1);
@@ -148,7 +143,7 @@ namespace SciGit_Client
       return dv;
     }
 
-    private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e) {
+    private void WindowClosing(object sender, CancelEventArgs e) {
       if (!Saved) {
         var res = MessageBox.Show(this, "This will cancel the merging process. Are you sure?", "Confirm cancel", MessageBoxButton.YesNo);
         if (res == MessageBoxResult.No) {

@@ -1,29 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Net.Security;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Runtime.Serialization.Json;
-using System.Xml;
-using System.Collections;
+using System.Text;
 using System.Windows.Threading;
-using System.Windows;
+using System.Xml;
 
 namespace SciGit_Client
 {
   class RestClient
   {
+    #region Delegates
+
+    public delegate void LoginResponseCallback(bool success);
+
+    #endregion
+
     public const string serverHost = "stage.scigit.sherk.me";
     public static int timeout = 20000;
     public static string username = "";
     private static string authToken = "";
-    private static int expiryTime = 0;
-
-    public delegate void LoginResponseCallback(bool success);
+    private static int expiryTime;
 
     public static void Login(string username, string password, LoginResponseCallback callback, Dispatcher disp) {
       string uri = "https://" + serverHost + "/api/auth/login";
@@ -32,16 +32,14 @@ namespace SciGit_Client
       request.Credentials = CredentialCache.DefaultCredentials;
       request.Timeout = timeout;
       request.ContentType = "application/x-www-form-urlencoded";
-      WriteData(request, new Dictionary<String, String>(){
+      WriteData(request, new Dictionary<String, String> {
         { "username", username },
         { "password", password }
       });
 
       ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
       //allows for validation of SSL certificates
-      ServicePointManager.ServerCertificateValidationCallback += new System.Net.Security.RemoteCertificateValidationCallback(
-          (sender, cert, chain, errors) => true // allow unverified certificate, just for testing purposes
-      );
+      ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, errors) => true;
 
       try {
         WebResponse response = request.GetResponse();
@@ -49,7 +47,7 @@ namespace SciGit_Client
 
         RestClient.username = username;
         XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
-        XmlDocument doc = new XmlDocument();
+        var doc = new XmlDocument();
         doc.Load(reader);
         XmlNode authTokenNode = doc.SelectSingleNode("//auth_token");
         XmlNode expiryTsNode = doc.SelectSingleNode("//expiry_ts");
@@ -67,7 +65,7 @@ namespace SciGit_Client
       if (username == "") return null;
 
       string uri = "http://" + serverHost + "/api/projects";
-      uri += "?" + GetQueryString(new Dictionary<String, String>(){
+      uri += "?" + GetQueryString(new Dictionary<String, String> {
         { "username", username },
         { "auth_token", authToken }
       });
@@ -75,17 +73,17 @@ namespace SciGit_Client
       request.Timeout = timeout;
 
       try {
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+        var response = (HttpWebResponse)request.GetResponse();
         Stream dataStream = response.GetResponseStream();
 
         XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
-        XmlDocument doc = new XmlDocument();
+        var doc = new XmlDocument();
         doc.Load(reader);
 
         XmlNodeList projectNodes = doc.SelectNodes("//item");
-        List<Project> projects = new List<Project>();
+        var projects = new List<Project>();
         foreach (XmlNode xmlNode in projectNodes) {
-          Project p = new Project();
+          var p = new Project();
           p.Id = Int32.Parse(xmlNode.SelectSingleNode("id").InnerText);
           p.OwnerId = Int32.Parse(xmlNode.SelectSingleNode("owner_id").InnerText);
           p.Name = xmlNode.SelectSingleNode("name").InnerText;
@@ -105,7 +103,7 @@ namespace SciGit_Client
       WebRequest request = WebRequest.Create(uri);
       request.Method = "PUT";
       request.Timeout = timeout;
-      WriteData(request, new Dictionary<String, String>(){
+      WriteData(request, new Dictionary<String, String> {
         { "username", username },
         { "auth_token", authToken },
         { "name", Environment.MachineName },
@@ -113,12 +111,12 @@ namespace SciGit_Client
       });
 
       try {
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+        var response = (HttpWebResponse)request.GetResponse();
         Stream dataStream = response.GetResponseStream();
         return true;
       }
       catch (WebException e) {
-        HttpWebResponse response = (HttpWebResponse)e.Response;
+        var response = (HttpWebResponse)e.Response;
         if (response.StatusCode == HttpStatusCode.Conflict) {
           return true; // just a duplicate key
         }

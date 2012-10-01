@@ -1,16 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using SciGit_Filter;
 
 namespace SciGit_Client
 {
@@ -20,7 +10,7 @@ namespace SciGit_Client
   public partial class CommitForm : Window
   {
     Project project;
-    public string savedMessage = null;
+    public string savedMessage;
 
     public CommitForm(Project p) {
       InitializeComponent();
@@ -33,7 +23,7 @@ namespace SciGit_Client
       string status = GitWrapper.Status(dir, "-uno").Stdout;
       string changeText = "";
       bool isFilename = false;
-      foreach (var line in status.Split(new char[] {'\0'}, StringSplitOptions.RemoveEmptyEntries)) {
+      foreach (var line in status.Split(new[] {'\0'}, StringSplitOptions.RemoveEmptyEntries)) {
         if (isFilename) {
           isFilename = false;
           changeText += line + ")\r\n";
@@ -73,7 +63,7 @@ namespace SciGit_Client
       Close();
     }
 
-    private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e) {
+    private void WindowClosing(object sender, CancelEventArgs e) {
       if (savedMessage == null) {
         var res = MessageBox.Show(this, "This will cancel the upload process. Are you sure?", "Confirm cancel", MessageBoxButton.YesNo);
         if (res == MessageBoxResult.No) {
