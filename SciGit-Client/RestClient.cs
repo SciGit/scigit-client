@@ -25,7 +25,7 @@ namespace SciGit_Client
     private static string AuthToken = "";
     private static int ExpiryTime;
 
-    public static void Login(string username, string password, LoginResponseCallback callback, Dispatcher disp) {
+    public static void Login(string username, string password, LoginResponseCallback callback) {
       const string uri = "https://" + serverHost + "/api/auth/login";
       WebRequest request = WebRequest.Create(uri);
       request.Method = "POST";
@@ -54,10 +54,10 @@ namespace SciGit_Client
 
         AuthToken = authTokenNode.InnerText;
         ExpiryTime = Int32.Parse(expiryTsNode.InnerText);
-        disp.Invoke(callback, true);
+        callback(true);
       } catch (Exception e) {
         Debug.WriteLine(e);
-        disp.Invoke(callback, false);
+        callback(false);
       }
     }
 

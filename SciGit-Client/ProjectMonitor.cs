@@ -156,12 +156,12 @@ namespace SciGit_Client
       return true;      
     }
 
-    private void ShowError(Window window, Dispatcher disp, string err) {
-      disp.Invoke(new Action(() => MessageBox.Show(window, err, "Error",
+    private void ShowError(Window window, string err) {
+      window.Dispatcher.Invoke(new Action(() => MessageBox.Show(window, err, "Error",
         MessageBoxButton.OK, MessageBoxImage.Error)));
     }
 
-    public bool UpdateProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
+    public bool UpdateProject(Project p, Window window, BackgroundWorker worker = null) {
       string dir = GetProjectDirectory(p);
 
       try {
@@ -199,10 +199,10 @@ namespace SciGit_Client
               "You can also resolve them manually using your text editor.\r\n" +
               "Please save any open files before continuing.";
             MessageBoxResult resp = MessageBoxResult.Cancel;
-            disp.Invoke(new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
+            window.Dispatcher.Invoke(new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
             MergeResolver mr = null;
             if (resp == MessageBoxResult.Yes) {
-              disp.Invoke(new Action(() => {
+              window.Dispatcher.Invoke(new Action(() => {
                 mr = new MergeResolver(p);
                 mr.ShowDialog();
               }));
@@ -237,20 +237,20 @@ namespace SciGit_Client
         }
         return success;
       } catch (Exception e) {
-        ShowError(window, disp, e.Message);
+        ShowError(window, e.Message);
         if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", e.Message));
         return false;
       }
     }
 
-    public bool UploadProject(Project p, Window window, Dispatcher disp, BackgroundWorker worker = null) {
+    public bool UploadProject(Project p, Window window, BackgroundWorker worker = null) {
       string dir = GetProjectDirectory(p);
 
       try {
         string commitMsg = null;
         while (true) {
           if (worker != null) worker.ReportProgress(20, Tuple.Create("Checking for updates...", ""));
-          if (!UpdateProject(p, window, disp)) {
+          if (!UpdateProject(p, window)) {
             if (worker != null) worker.ReportProgress(100, Tuple.Create("Canceled.", ""));
             return false;
           }
@@ -261,7 +261,7 @@ namespace SciGit_Client
           if (ret.Stdout.Trim() != "") {
             if (commitMsg == null) {
               CommitForm commitForm = null;
-              disp.Invoke(new Action(() => {
+              window.Dispatcher.Invoke(new Action(() => {
                 commitForm = new CommitForm(p);
                 commitForm.ShowDialog();
               }));
@@ -279,7 +279,7 @@ namespace SciGit_Client
             } else if (ret.Output.Contains("non-fast-forward")) {
               GitWrapper.Reset(dir, "HEAD^");
               MessageBoxResult resp = MessageBoxResult.Cancel;
-              disp.Invoke(new Action(() =>
+              window.Dispatcher.Invoke(new Action(() =>
                 resp = MessageBox.Show(window, "Additional updates must be merged in. Continue?",
                     "Additional updates", MessageBoxButton.OKCancel)));
               if (resp == MessageBoxResult.Cancel) {
@@ -299,29 +299,29 @@ namespace SciGit_Client
         if (worker != null) worker.ReportProgress(100, Tuple.Create("Finished.", ""));
         return true;
       } catch (Exception e) {
-        ShowError(window, disp, e.Message);
+        ShowError(window, e.Message);
         if (worker != null) worker.ReportProgress(100, Tuple.Create("Error.", e.Message));
         return false;
       }
     }
 
-    public void UpdateAllProjects(Window window, Dispatcher disp, BackgroundWorker worker = null) {
+    public void UpdateAllProjects(Window window, BackgroundWorker worker = null) {
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
           if (worker != null) {
-            worker.ReportProgress(100 * done++ / projects.Count,
-              Tuple.Create("Updating " + project.Name + "...", ""));
+            worker.ReportProgress(100*done++/projects.Count,
+                                  Tuple.Create("Updating " + project.Name + "...", ""));
           }
           if (HasUpdate(project)) {
-            UpdateProject(project, window, disp);
+            UpdateProject(project, window);
           }
         }
         worker.ReportProgress(100, Tuple.Create("Finished.", ""));
       }
     }
 
-    public void UploadAllProjects(Window window, Dispatcher disp, BackgroundWorker worker = null) {
+    public void UploadAllProjects(Window window, BackgroundWorker worker = null) {
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
@@ -329,7 +329,7 @@ namespace SciGit_Client
             worker.ReportProgress(100 * done++ / projects.Count,
               Tuple.Create("Uploading " + project.Name + "...", ""));
           }
-          UploadProject(project, window, disp);
+          UploadProject(project, window);
         }
         worker.ReportProgress(100, Tuple.Create("Finished.", ""));
       }

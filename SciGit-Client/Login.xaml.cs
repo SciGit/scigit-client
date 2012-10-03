@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Navigation;
 using SciGit_Client.Properties;
+using System;
 
 namespace SciGit_Client
 {
@@ -28,27 +29,29 @@ namespace SciGit_Client
       login.Content = "Logging in...";
       var bg = new BackgroundWorker();
       string email = emailValue.Text, password = passwordValue.Password;
-      bg.DoWork += (bw, _) => RestClient.Login(email, password, LoginCallback, Dispatcher);
+      bg.DoWork += (bw, _) => RestClient.Login(email, password, LoginCallback);
       bg.RunWorkerAsync();
     }
 
     private void LoginCallback(bool success) {
-      if (success) {
-        if (rememberMe.IsChecked ?? false) {
-          Settings.Default.RememberUser = true;
-          Settings.Default.SavedUsername = emailValue.Text;
-          Settings.Default.SavedPassword = passwordValue.Password;
-          Settings.Default.Save();
+      Dispatcher.Invoke(new Action(() => {
+        if (success) {
+          if (rememberMe.IsChecked ?? false) {
+            Settings.Default.RememberUser = true;
+            Settings.Default.SavedUsername = emailValue.Text;
+            Settings.Default.SavedPassword = passwordValue.Password;
+            Settings.Default.Save();
+          }
+          Hide();
+          var sgMain = new Main();
+          sgMain.Show();
+          sgMain.Hide();
+        } else {
+          MessageBox.Show("Invalid username or password.", "Error");
+          login.IsEnabled = true;
+          login.Content = "Login";
         }
-        Hide();
-        var sgMain = new Main();
-        sgMain.Show();
-        sgMain.Hide();
-      } else {
-        MessageBox.Show("Invalid username or password.", "Error");
-        login.IsEnabled = true;
-        login.Content = "Login";
-      }
+      }));
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e) {

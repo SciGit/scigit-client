@@ -39,7 +39,7 @@ namespace SciGit_Client
         UseShellExecute = false,
         WorkingDirectory = dir
       };
-      startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.username);
+      startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.Username);
       var process = new Process {StartInfo = startInfo};
       process.Start();
       process.WaitForExit();

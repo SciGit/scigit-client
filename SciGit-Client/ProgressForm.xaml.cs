@@ -16,11 +16,11 @@ namespace SciGit_Client
   {
     #region Delegates
 
-    public delegate void BackgroundAction(Window wind, Dispatcher disp, BackgroundWorker bw);
+    public delegate void BackgroundAction(Window wind, BackgroundWorker bw);
 
     #endregion
 
-    public ProgressForm(Dispatcher disp, BackgroundAction action) {
+    public ProgressForm(BackgroundAction action) {
       InitializeComponent();
 
       textBox.Visibility = Visibility.Collapsed;
@@ -29,15 +29,18 @@ namespace SciGit_Client
       var bg = new BackgroundWorker();
       bg.WorkerReportsProgress = true;
       bg.DoWork += (bw, _) => {
-        var mutex = new Mutex(false, "SciGitOperationMutex");
-        mutex.WaitOne();
-        action(this, disp, (BackgroundWorker)bw);
+        bool owned;
+        var mutex = new Mutex(true, "SciGitOperationMutex", out owned);
+        if (!owned) {
+          status.Dispatcher.Invoke(new Action(() => status.Text = "Waiting for other operations to finish..."));
+          mutex.WaitOne();
+        }
+        action(this, (BackgroundWorker)bw);
         mutex.ReleaseMutex();
       };
       bg.ProgressChanged += UpdateProgress;
       bg.RunWorkerCompleted += Completed;
 
-      status.Text = "Waiting for other operations to finish...";
       bg.RunWorkerAsync();
     }
 

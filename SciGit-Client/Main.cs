@@ -24,7 +24,6 @@ namespace SciGit_Client
   {
     const int balloonTipTimeout = 3000;
     Queue<BalloonTip> balloonTips;
-    Dispatcher dispatcher;
     Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
     NamedPipeServerStream pipeServer;
     ProjectMonitor projectMonitor;
@@ -43,7 +42,6 @@ namespace SciGit_Client
       notifyIcon.BalloonTipClosed += BalloonTipClosed;
       notifyIcon.BalloonTipClicked += BalloonTipClicked;
 
-      dispatcher = Dispatcher.CurrentDispatcher;
       projectMonitor = new ProjectMonitor();
       projectMonitor.updateCallbacks.Add(UpdateContextMenu);
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
@@ -62,11 +60,11 @@ namespace SciGit_Client
       if (p.Id == 0) {
         MessageBox.Show("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
       } else if (verb == "--versions") {
-        dispatcher.Invoke(new Action(() => OpenFileHistory(p, filename)));
+        this.Invoke(new Action(() => OpenFileHistory(p, filename)));
       } else if (verb == "--update") {
-        dispatcher.Invoke(CreateUpdateProjectHandler(p), new object[] { null, null });
+        this.Invoke(CreateUpdateProjectHandler(p), new object[] { null, null });
       } else if (verb == "--upload") {
-        dispatcher.Invoke(CreateUploadProjectHandler(p), new object[] { null, null });
+        this.Invoke(CreateUploadProjectHandler(p), new object[] { null, null });
       }
     }
 
@@ -125,45 +123,37 @@ namespace SciGit_Client
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm(dispatcher,
-          (form, disp, bw) => {
-            projectMonitor.UpdateProject(p, form, disp, bw);
-            UpdateContextMenu();
-          }
-         );
+        var progressForm = new ProgressForm((form, bw) => {
+          projectMonitor.UpdateProject(p, form, bw);
+          UpdateContextMenu();
+        });
         progressForm.Show();
       };
     }
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm(dispatcher,
-          (form, disp, bw) => {
-            projectMonitor.UploadProject(p, form, disp, bw);
-            UpdateContextMenu();
-          }
-         );
+        var progressForm = new ProgressForm((form, bw) => {
+          projectMonitor.UploadProject(p, form, bw);
+          UpdateContextMenu();
+        });
         progressForm.Show();
       };
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
-      var progressForm = new ProgressForm(dispatcher,
-        (form, disp, bw) => {
-          projectMonitor.UpdateAllProjects(form, disp, bw);
-          UpdateContextMenu();
-        }
-       );
+      var progressForm = new ProgressForm((form, bw) => {
+        projectMonitor.UpdateAllProjects(form, bw);
+        UpdateContextMenu();
+      });
       progressForm.Show();
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
-      var progressForm = new ProgressForm(dispatcher,
-        (form, disp, bw) => {
-          projectMonitor.UploadAllProjects(form, disp, bw);
-          UpdateContextMenu();
-        }
-       );
+      var progressForm = new ProgressForm((form, bw) => {
+        projectMonitor.UploadAllProjects(form, bw);
+        UpdateContextMenu();
+      });
       progressForm.Show();
     }
 
