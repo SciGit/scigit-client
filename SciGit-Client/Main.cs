@@ -131,37 +131,25 @@ namespace SciGit_Client
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm((form, bw) => {
-          projectMonitor.UpdateProject(p, form, bw);
-          UpdateContextMenu();
-        });
+        var progressForm = new ProgressForm((form, bw) => projectMonitor.UpdateProject(p, form, bw));
         progressForm.Show();
       };
     }
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm((form, bw) => {
-          projectMonitor.UploadProject(p, form, bw);
-          UpdateContextMenu();
-        });
+        var progressForm = new ProgressForm((form, bw) => projectMonitor.UploadProject(p, form, bw));
         progressForm.Show();
       };
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
-      var progressForm = new ProgressForm((form, bw) => {
-        projectMonitor.UpdateAllProjects(form, bw);
-        UpdateContextMenu();
-      });
+      var progressForm = new ProgressForm(projectMonitor.UpdateAllProjects);
       progressForm.Show();
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
-      var progressForm = new ProgressForm((form, bw) => {
-        projectMonitor.UploadAllProjects(form, bw);
-        UpdateContextMenu();
-      });
+      var progressForm = new ProgressForm(projectMonitor.UploadAllProjects);
       progressForm.Show();
     }
 

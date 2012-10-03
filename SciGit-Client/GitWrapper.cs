@@ -21,6 +21,7 @@ namespace SciGit_Client
   class GitWrapper
   {
     public const string ServerHost = "stage.scigit.sherk.me";
+    public const int ProcessTimeout = 10000;
 
     public static string GetAppDataPath() {
       return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SciGit");
@@ -42,7 +43,9 @@ namespace SciGit_Client
       startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.Username);
       var process = new Process {StartInfo = startInfo};
       process.Start();
-      process.WaitForExit();
+      if (!process.WaitForExit(ProcessTimeout)) {
+        return new ProcessReturn(-1, "", "");
+      }
       return new ProcessReturn(process.ExitCode, process.StandardOutput.ReadToEnd(), process.StandardError.ReadToEnd());
     }
 

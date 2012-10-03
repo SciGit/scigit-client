@@ -8,6 +8,7 @@
 			<ProgressBar Margin="0,0,0,10" Height="23" Name="progressBar" HorizontalAlignment="Stretch" />
 			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
 				<Button Name="details" Content="Details..." Margin="0,0,10,0" Click="details_Click" />
+                <Button Name="cancel" Content="Cancel" Margin="0,0,10,0" Click="cancel_Click" />
 				<Button Name="close" Content="Close" Click="close_Click" IsEnabled="False" IsCancel="True" />
 			</StackPanel>
 			<TextBox Name="textBox" VerticalScrollBarVisibility="Visible" Margin="0,10,0,0" IsReadOnly="True" IsEnabled="True" Height="80" />
