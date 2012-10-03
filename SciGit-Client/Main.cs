@@ -23,6 +23,7 @@ namespace SciGit_Client
   public partial class Main : Form
   {
     const int balloonTipTimeout = 3000;
+    bool loaded = false;
     Queue<BalloonTip> balloonTips;
     Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
     NamedPipeServerStream pipeServer;
@@ -69,6 +70,13 @@ namespace SciGit_Client
     }
 
     private void OnProjectMonitorLoaded() {
+      loaded = true;
+      lock (balloonTips) {
+        if (balloonTips.Count > 0) {
+          ShowBalloonTip(null, null);
+        }
+      }
+
       string[] args = Environment.GetCommandLineArgs();
       if (args.Length == 3) {
         HandleCommand(args[1], args[2]);
@@ -189,7 +197,7 @@ namespace SciGit_Client
     private void QueueBalloonTip(string title, string message, EventHandler onClick) {
       lock (balloonTips) {
         balloonTips.Enqueue(new BalloonTip { title = title, message = message, onClick = onClick });
-        if (balloonTips.Count == 1) {
+        if (balloonTips.Count == 1 && loaded) {
           ShowBalloonTip(null, null);
         }
       }
