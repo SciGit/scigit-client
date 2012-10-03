@@ -55,6 +55,10 @@ namespace SciGit_Client
     }
 
     private void ClickUpload(object sender, RoutedEventArgs e) {
+      if (message.Text.Trim() == "") {
+        MessageBox.Show("You must provide a message.", "Error");
+        return;
+      }
       savedMessage = message.Text;
       Close();
     }

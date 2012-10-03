@@ -44,7 +44,7 @@ namespace SciGit_Client
       var process = new Process {StartInfo = startInfo};
       process.Start();
       if (!process.WaitForExit(ProcessTimeout)) {
-        return new ProcessReturn(-1, "", "");
+        return new ProcessReturn(-1, "", "Process timed out.");
       }
       return new ProcessReturn(process.ExitCode, process.StandardOutput.ReadToEnd(), process.StandardError.ReadToEnd());
     }

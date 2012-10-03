@@ -44,7 +44,10 @@ namespace SciGit_Client
             dwe.Cancel = true;
           }
         } catch (Exception e) {
-          this.Dispatcher.Invoke(new Action(() => MessageBox.Show(this, e.Message, "Error")));
+          this.Dispatcher.Invoke(new Action(() => {
+            MessageBox.Show(this, e.Message, "Error");
+            status.Text = "Error.";
+          }));
         }
         mutex.ReleaseMutex();
       };
@@ -55,15 +58,18 @@ namespace SciGit_Client
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {
-      var duration = new Duration(TimeSpan.FromSeconds(0.5));
-      var anim = new DoubleAnimation(e.ProgressPercentage, duration);
-      progressBar.BeginAnimation(RangeBase.ValueProperty, anim);
-      progressBar.Value = e.ProgressPercentage;
-      TaskbarItemInfo.ProgressValue = (double)(e.ProgressPercentage) / 100;
-      var data = (Tuple<String, String>)e.UserState;
-      status.Text = data.Item1;
-      if (data.Item2.Length > 0) {
-        textBox.Text += data.Item2.Replace("\n", "\r\n") + "\r\n";
+      var data = (string)e.UserState;
+      if (e.ProgressPercentage >= 0) {
+        var duration = new Duration(TimeSpan.FromSeconds(0.5));
+        var anim = new DoubleAnimation(e.ProgressPercentage, duration);
+        progressBar.BeginAnimation(RangeBase.ValueProperty, anim);
+        progressBar.Value = e.ProgressPercentage;
+        TaskbarItemInfo.ProgressValue = (double) (e.ProgressPercentage)/100;
+        status.Text = data;
+      } else if (data.Length > 0) {
+        string str = data.Replace("\n", "\r\n");
+        if (!str.EndsWith("\r\n")) str += "\r\n";
+        textBox.Text += str;
       }
     }
 
