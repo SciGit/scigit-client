@@ -66,6 +66,7 @@ namespace SciGit_Client
         progressBar.Value = e.ProgressPercentage;
         TaskbarItemInfo.ProgressValue = (double) (e.ProgressPercentage)/100;
         status.Text = data;
+        textBox.Text += data + "\r\n";
       } else if (data.Length > 0) {
         string str = data.Replace("\n", "\r\n");
         if (!str.EndsWith("\r\n")) str += "\r\n";

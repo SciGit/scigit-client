@@ -168,9 +168,8 @@ namespace SciGit_Client
         GitWrapper.Rebase(dir, "--abort");
       }
 
-      if (progress) worker.ReportProgress(20, "Fetching updates...");
+      worker.ReportProgress(progress ? 25 : -1, "Fetching updates...");
       ProcessReturn ret = GitWrapper.Fetch(dir);
-      worker.ReportProgress(-1, "Fetching...");
       worker.ReportProgress(-1, ret.Output);
       if (ret.ReturnValue != 0) {
         throw new Exception("fetch: " + ret.Output);
@@ -190,9 +189,8 @@ namespace SciGit_Client
       worker.ReportProgress(-1, ret.Output);
       bool tempCommit = ret.ReturnValue == 0;
 
-      if (progress) worker.ReportProgress(50, "Merging...");
+      worker.ReportProgress(progress ? 50 : -1, "Merging...");
       ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
-      worker.ReportProgress(-1, "Merging...");
       worker.ReportProgress(-1, ret.Output);
 
       string message = "New changes successfully merged.";
@@ -220,7 +218,7 @@ namespace SciGit_Client
           } else {
             GitWrapper.AddAll(dir);
             ret = GitWrapper.Rebase(dir, "--continue");
-            worker.ReportProgress(-1, "Continuing merge...");
+            worker.ReportProgress(progress ? 75 : -1, "Continuing merge...");
             worker.ReportProgress(-1, ret.Output);
             if (ret.ReturnValue != 0) {
               throw new Exception("rebase: " + ret.Output);
@@ -233,7 +231,7 @@ namespace SciGit_Client
         message = "No changes.";
       }
 
-      if (progress) worker.ReportProgress(100, message);
+      worker.ReportProgress(progress ? 100 : -1, message);
       if (tempCommit) GitWrapper.Reset(dir, "HEAD^");
       if (success) {
         lock (updatedProjects) {
@@ -249,14 +247,13 @@ namespace SciGit_Client
 
       string commitMsg = null;
       while (true) {
-        if (progress) worker.ReportProgress(20, "Checking for updates...");
-        worker.ReportProgress(-1, "Checking for updates...");
+        worker.ReportProgress(progress ? 25 : -1, "Checking for updates...");
         if (!UpdateProject(p, window, worker, false)) {
           return false;
         }
 
         GitWrapper.AddAll(dir);
-        if (progress) worker.ReportProgress(50, "Committing...");
+        worker.ReportProgress(progress ? 50 : -1, "Committing...");
         ProcessReturn ret = GitWrapper.Status(dir);
         if (ret.Stdout.Trim() != "") {
           if (commitMsg == null) {
@@ -271,12 +268,10 @@ namespace SciGit_Client
             }
           }
           ret = GitWrapper.Commit(dir, commitMsg);
-          worker.ReportProgress(-1, "Committing...");
           worker.ReportProgress(-1, ret.Output);
 
-          if (progress) worker.ReportProgress(70, "Pushing...");
+          worker.ReportProgress(progress ? 75 : -1, "Pushing...");
           ret = GitWrapper.Push(dir);
-          worker.ReportProgress(-1, "Pushing...");
           worker.ReportProgress(-1, ret.Output);
           if (ret.ReturnValue == 0) {
             break;
@@ -294,12 +289,12 @@ namespace SciGit_Client
             throw new Exception("push: " + ret.Output);
           }
         } else {
-          if (progress) worker.ReportProgress(100, "No changes to upload.");
+          worker.ReportProgress(progress ? 100 : -1, "No changes to upload.");
           return true;
         }
       }
 
-      if (progress) worker.ReportProgress(100, "Upload successful.");
+      worker.ReportProgress(progress ? 100 : -1, "Upload successful.");
       return true;
     }
 
@@ -307,8 +302,7 @@ namespace SciGit_Client
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
-          worker.ReportProgress(-1, "--- " + project.Name + " ---");
-          worker.ReportProgress(100*done++/projects.Count, "Updating " + project.Name + "...");
+          worker.ReportProgress(100 * done++/projects.Count, "Updating " + project.Name + "...");
           if (HasUpdate(project)) {
             UpdateProject(project, window, worker, false);
           }
@@ -325,7 +319,6 @@ namespace SciGit_Client
       lock (projects) {
         int done = 0;
         foreach (var project in projects) {
-          worker.ReportProgress(-1, "--- " + project.Name + " ---");
           worker.ReportProgress(100 * done++ / projects.Count, "Uploading " + project.Name + "...");
           UploadProject(project, window, worker, false);
           if (worker.CancellationPending) {
