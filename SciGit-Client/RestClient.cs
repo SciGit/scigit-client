@@ -33,7 +33,7 @@ namespace SciGit_Client
       request.Timeout = Timeout;
       request.ContentType = "application/x-www-form-urlencoded";
       WriteData(request, new Dictionary<String, String> {
-        { "Username", username },
+        { "username", username },
         { "password", password }
       });
 
@@ -66,7 +66,7 @@ namespace SciGit_Client
 
       const string uri = "http://" + serverHost + "/api/projects";
       WebRequest request = WebRequest.Create(uri + "?" + GetQueryString(new Dictionary<String, String> {
-        { "Username", Username },
+        { "username", Username },
         { "auth_token", AuthToken }
       }));
       request.Timeout = Timeout;
@@ -104,7 +104,7 @@ namespace SciGit_Client
       request.Method = "PUT";
       request.Timeout = Timeout;
       WriteData(request, new Dictionary<String, String> {
-        { "Username", Username },
+        { "username", Username },
         { "auth_token", AuthToken },
         { "name", Environment.MachineName },
         { "public_key", key }
