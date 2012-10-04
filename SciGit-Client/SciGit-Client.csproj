@@ -99,6 +99,9 @@
     <Compile Include="DiffPreview.xaml.cs">
       <DependentUpon>DiffPreview.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ErrorForm.xaml.cs">
+      <DependentUpon>ErrorForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Exceptions.cs" />
     <Compile Include="FileHistory.xaml.cs">
       <DependentUpon>FileHistory.xaml</DependentUpon>
@@ -146,6 +149,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DiffPreview.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ErrorForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

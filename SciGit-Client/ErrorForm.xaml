@@ -1,0 +1,31 @@
+﻿<Window x:Class="SciGit_Client.ErrorForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Error"
+        Icon="/SciGit-Client;component/Images/icon.ico" 
+        Height="300" Width="400" Background="#FFF1F1F1" MinHeight="300" MinWidth="400   ">
+    <Grid Margin="10" Name="grid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="20" Text="Error Report" Margin="0,0,0,5" />
+
+        <TextBlock Grid.Row="1" Text="An unexpected error occured. Would you like to report it to us?" Margin="0,0,0,5" />
+
+        <TextBox Grid.Row="2" Name="errorDetails" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible"
+                 IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="3" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,10,0,0">
+            <Button Name="report" Content="Report Error" Click="ClickReport" Margin="0,0,10,0" />
+            <Button Name="retry" Content="Retry" Click="ClickRetry" Margin="0,0,10,0" />
+            <Button Name="close" Content="Close" Click="ClickClose" IsDefault="True" />
+        </StackPanel>
+    </Grid>
+</Window>

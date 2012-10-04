@@ -48,7 +48,7 @@ namespace SciGit_Client
           }
         } catch (Exception e) {
           this.Dispatcher.Invoke(new Action(() => {
-            MessageBox.Show(this, e.Message, "Error");
+            ErrorForm.ShowDialog(this, e.Message, true);
             status.Text = "Error.";
           }));
         }

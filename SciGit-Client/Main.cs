@@ -52,11 +52,6 @@ namespace SciGit_Client
       projectMonitor.StartMonitoring();
     }
 
-    private void FatalError(string err) {
-      MessageBox.Show(err, "Error");
-      Environment.Exit(1);
-    }
-
     private void HandleCommand(string verb, string filename) {
       Project p = projectMonitor.GetProjectFromFilename(ref filename);
       if (p.Id == 0) {
@@ -314,7 +309,8 @@ namespace SciGit_Client
 
       string key = File.ReadAllText(keyFile + ".pub").Trim();
       if (!RestClient.UploadPublicKey(key)) {
-        FatalError("It appears that your public key is invalid. Please remove or regenerate it.");
+        MessageBox.Show("It appears that your public key is invalid. Please remove or regenerate it.", "Error");
+        Environment.Exit(1);
         // TODO: add ability to regenerate
       }
 
