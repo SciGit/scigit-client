@@ -38,11 +38,9 @@ namespace SciGit_Client
           status.Dispatcher.Invoke(new Action(() => status.Text = "Waiting for other operations to finish..."));
           this.Dispatcher.Invoke(new Action(() => close.IsEnabled = true));
           mutex.WaitOne();
-          this.Dispatcher.Invoke(new Action(() => {
-            close.IsEnabled = false;
-            cancel.IsEnabled = true;
-          }));
+          this.Dispatcher.Invoke(new Action(() => close.IsEnabled = false));
         }
+        this.Dispatcher.Invoke(new Action(() => cancel.IsEnabled = true));
 
         try {
           if (!action(this, (BackgroundWorker)bw)) {

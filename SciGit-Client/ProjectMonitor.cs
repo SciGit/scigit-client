@@ -28,7 +28,7 @@ namespace SciGit_Client
 
     #endregion
 
-    private const int monitorDelay = 10 * 1000;
+    private const int monitorDelay = 5 * 1000;
 
     public List<Action> loadedCallbacks;
     private Thread monitorThread;
@@ -115,9 +115,10 @@ namespace SciGit_Client
 
           var newUpdatedProjects = new List<Project>();
           foreach (var project in newProjects) {
-            if (InitializeProject(project)) {
+            if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.Id)) {
               DispatchCallbacks(projectAddedCallbacks, project);
-            } else if (HasUpdate(project)) {
+            }
+            if (HasUpdate(project)) {
               newUpdatedProjects.Add(project);
               DispatchCallbacks(projectUpdatedCallbacks, project);
             }
@@ -128,7 +129,7 @@ namespace SciGit_Client
           }
 
           foreach (var project in oldProjectDict) {
-            if (!newProjectDict.ContainsKey(project.Value.Id)) {
+            if (!newProjectDict.ContainsKey(project.Key)) {
               DispatchCallbacks(projectRemovedCallbacks, project.Value);
               // TODO: delete removed projects?
             }

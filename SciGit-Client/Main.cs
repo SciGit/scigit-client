@@ -46,6 +46,7 @@ namespace SciGit_Client
       projectMonitor = new ProjectMonitor();
       projectMonitor.updateCallbacks.Add(UpdateContextMenu);
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
+      projectMonitor.projectRemovedCallbacks.Add(ProjectRemoved);
       projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
       projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
       projectMonitor.StartMonitoring();
@@ -191,14 +192,19 @@ namespace SciGit_Client
       }
     }
 
-    private void ProjectUpdated(Project p) {
-      QueueBalloonTip("Project Updated",
-        "Project " + p.Name + " has been updated. Click to update the local version...", CreateUpdateProjectHandler(p));
-    }
-
     private void ProjectAdded(Project p) {
       QueueBalloonTip("Project Added",
         "Project " + p.Name + " has been added. Click to open the project folder...", CreateOpenDirectoryHandler(p));
+    }
+
+    private void ProjectRemoved(Project p) {
+      QueueBalloonTip("Project Removed",
+        "You are no longer receiving updates for project " + p.Name + ". Click to open the project folder...", CreateOpenDirectoryHandler(p));
+    }
+
+    private void ProjectUpdated(Project p) {
+      QueueBalloonTip("Project Updated",
+        "Project " + p.Name + " has been updated. Click to update the local version...", CreateUpdateProjectHandler(p));
     }
 
     // ContextMenuStrip (from the designer) is inconsistent with Windows context menus.
