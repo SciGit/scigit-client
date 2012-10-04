@@ -53,18 +53,20 @@ namespace SciGit_Client
       };
       bg.ProgressChanged += UpdateProgress;
       bg.RunWorkerCompleted += Completed;
-
       bg.RunWorkerAsync();
+    }
+
+    private void SetProgressValue(int percentage) {
+      var duration = new Duration(TimeSpan.FromSeconds(0.5));
+      var anim = new DoubleAnimation(percentage, duration);
+      progressBar.BeginAnimation(RangeBase.ValueProperty, anim);
+      TaskbarItemInfo.ProgressValue = (double)(percentage) / 100;
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {
       var data = (string)e.UserState;
       if (e.ProgressPercentage >= 0) {
-        var duration = new Duration(TimeSpan.FromSeconds(0.5));
-        var anim = new DoubleAnimation(e.ProgressPercentage, duration);
-        progressBar.BeginAnimation(RangeBase.ValueProperty, anim);
-        progressBar.Value = e.ProgressPercentage;
-        TaskbarItemInfo.ProgressValue = (double) (e.ProgressPercentage)/100;
+        SetProgressValue(e.ProgressPercentage);
         status.Text = data;
         textBox.Text += data + "\r\n";
       } else if (data.Length > 0) {
@@ -76,10 +78,12 @@ namespace SciGit_Client
 
     public void Completed(object sender, RunWorkerCompletedEventArgs e) {
       TaskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
-      progressBar.Value = 100;
+      SetProgressValue(100);
       if (e.Cancelled) {
         status.Text = "Cancelled.";
+        cancel.Content = "Cancelled.";
       }
+      cancel.IsEnabled = false;
       close.IsEnabled = true;
     }
 
@@ -90,6 +94,8 @@ namespace SciGit_Client
 
     private void cancel_Click(object sender, EventArgs e) {
       bg.CancelAsync();
+      cancel.Content = "Cancelling...";
+      cancel.IsEnabled = false;
     }
 
     private void close_Click(object sender, EventArgs e) {
