@@ -18,6 +18,18 @@ namespace SciGit_Client
     public string Output { get { return Stdout + Stderr; } }
   }
 
+  class AsyncStreamReader
+  {
+    public string Data = "";
+    public void DataReceived(object sender, DataReceivedEventArgs e) {
+      lock (Data) {
+        if (e.Data != null) {
+          Data += e.Data + "\n";
+        }
+      }
+    }
+  }
+
   class GitWrapper
   {
     public const string ServerHost = "stage.scigit.sherk.me";
@@ -43,10 +55,15 @@ namespace SciGit_Client
       startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.Username);
       var process = new Process {StartInfo = startInfo};
       process.Start();
+      process.BeginErrorReadLine();
+      process.BeginOutputReadLine();
+      AsyncStreamReader stdout = new AsyncStreamReader(), stderr = new AsyncStreamReader();
+      process.OutputDataReceived += stdout.DataReceived;
+      process.ErrorDataReceived += stderr.DataReceived;
       if (!process.WaitForExit(ProcessTimeout)) {
         return new ProcessReturn(-1, "", "Process timed out.");
       }
-      return new ProcessReturn(process.ExitCode, process.StandardOutput.ReadToEnd(), process.StandardError.ReadToEnd());
+      return new ProcessReturn(process.ExitCode, stdout.Data, stderr.Data);
     }
 
     private static string EscapeShellArg(string s) {
