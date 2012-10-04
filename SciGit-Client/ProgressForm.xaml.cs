@@ -36,7 +36,12 @@ namespace SciGit_Client
         var mutex = new Mutex(true, "SciGitOperationMutex", out owned);
         if (!owned) {
           status.Dispatcher.Invoke(new Action(() => status.Text = "Waiting for other operations to finish..."));
+          this.Dispatcher.Invoke(new Action(() => close.IsEnabled = true));
           mutex.WaitOne();
+          this.Dispatcher.Invoke(new Action(() => {
+            close.IsEnabled = false;
+            cancel.IsEnabled = true;
+          }));
         }
 
         try {
