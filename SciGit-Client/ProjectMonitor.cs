@@ -109,6 +109,7 @@ namespace SciGit_Client
       bool loaded = false;
       while (true) {
         List<Project> newProjects = RestClient.GetProjects();
+        // TODO: if I consistently get null, this indicates some network error.
         if (newProjects != null && !newProjects.SequenceEqual(projects)) {
           Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
           Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);

@@ -21,14 +21,19 @@ namespace SciGit_Client
       string gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');
 
       string dir = ProjectMonitor.GetProjectDirectory(p);
-      ProcessReturn ret = GitWrapper.Log(dir, String.Format("--pretty=\"%H %ae %at %s\" -- \"{0}\"", filename));
+      ProcessReturn ret = GitWrapper.Log(dir, String.Format("-- \"{0}\"", filename));
       string[] commits = SentenceFilter.SplitLines(ret.Output.Trim());
+      if (ret.ReturnValue != 0 || commits.Length == 0) {
+        throw new InvalidRepositoryException(p);
+      }
+      var actualCommits = new string[commits.Length - 1];
+      Array.Copy(commits, actualCommits, commits.Length - 1);
 
       fullpath = Path.Combine(dir, filename);
       string curText = File.ReadAllText(fullpath);
       var timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
       fileHistory.Items.Add(CreateListViewItem("Current Version", "", timestamp, curText));
-      foreach (var commit in commits) {
+      foreach (var commit in actualCommits) {
         string[] data = commit.Split(new[] { ' ' }, 4);
         ret = GitWrapper.ShowObject(dir, String.Format("{0}:\"{1}\"", data[0], gitFilename));
         if (ret.ReturnValue == 0) {

@@ -92,7 +92,7 @@ namespace SciGit_Client
     }
 
     public static ProcessReturn Log(string dir, string options = "") {
-      return ExecuteCommand("log " + options, dir);
+      return ExecuteCommand("log --pretty=\"%H %ae %at %s\" " + options, dir);
     }
 
     public static ProcessReturn GetLastCommit(string dir, string obj = "") {

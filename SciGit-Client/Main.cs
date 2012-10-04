@@ -67,6 +67,8 @@ namespace SciGit_Client
         this.Invoke(CreateUpdateProjectHandler(p), new object[] { null, null });
       } else if (verb == "--upload") {
         this.Invoke(CreateUploadProjectHandler(p), new object[] { null, null });
+      } else if (verb == "--pversions") {
+        this.Invoke(new Action(() => OpenProjectHistory(p)));
       }
     }
 
@@ -108,6 +110,16 @@ namespace SciGit_Client
       } else {
         var fh = new FileHistory(p, filename);
         fh.Show();
+      }
+    }
+
+    private void OpenProjectHistory(Project p) {
+      string dir = ProjectMonitor.GetProjectDirectory(p);
+      if (!Directory.Exists(Path.Combine(dir))) {
+        MessageBox.Show("Project does not exist.", "Error");
+      } else {
+        var ph = new ProjectHistory(p);
+        ph.Show();
       }
     }
 
@@ -303,6 +315,7 @@ namespace SciGit_Client
       string key = File.ReadAllText(keyFile + ".pub").Trim();
       if (!RestClient.UploadPublicKey(key)) {
         FatalError("It appears that your public key is invalid. Please remove or regenerate it.");
+        // TODO: add ability to regenerate
       }
 
       // Add scigit server to known_hosts

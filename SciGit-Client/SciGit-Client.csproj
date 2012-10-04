@@ -99,6 +99,7 @@
     <Compile Include="DiffPreview.xaml.cs">
       <DependentUpon>DiffPreview.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Exceptions.cs" />
     <Compile Include="FileHistory.xaml.cs">
       <DependentUpon>FileHistory.xaml</DependentUpon>
     </Compile>
@@ -108,6 +109,9 @@
     <Compile Include="GitWrapper.cs" />
     <Compile Include="ProgressForm.xaml.cs">
       <DependentUpon>ProgressForm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ProjectHistory.xaml.cs">
+      <DependentUpon>ProjectHistory.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -154,6 +158,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ProgressForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ProjectHistory.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
