@@ -8,20 +8,26 @@ namespace SciGit_Client
   /// </summary>
   public partial class ErrorForm : Window
   {
-    public ErrorForm(string errorText, bool canRetry = false) {
+    public ErrorForm(Exception e, bool canRetry = false) {
       InitializeComponent();
 
-      errorDetails.Text = errorText;
+      while (e.InnerException != null) e = e.InnerException;
+      errorDetails.Text = e.GetType().Name + ": " + e.Message + "\n" + e.StackTrace;
       retry.Visibility = canRetry ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    public static bool? ShowDialog(Window w, string errorText, bool canRetry = false) {
-      var form = new ErrorForm(errorText, canRetry);
+    public static void Show(Exception e, bool canRetry = false) {
+      var form = new ErrorForm(e, canRetry);
+      form.Show();
+    }
+
+    public static bool? ShowDialog(Window w, Exception e, bool canRetry = false) {
+      var form = new ErrorForm(e, canRetry);
       return w.Dispatcher.Invoke(new Func<bool?>(form.ShowDialog)) as bool?;
     }
 
-    public static void FatalError(Window w, string errorText, bool canRetry = false) {
-      ShowDialog(w, errorText, canRetry);
+    public static void FatalError(Window w, Exception e, bool canRetry = false) {
+      ShowDialog(w, e, canRetry);
       Environment.Exit(1);
     }
 

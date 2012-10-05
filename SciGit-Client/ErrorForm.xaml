@@ -17,14 +17,14 @@
 
         <TextBlock FontSize="20" Text="Error Report" Margin="0,0,0,5" />
 
-        <TextBlock Grid.Row="1" Text="An unexpected error occured. Would you like to report it to us?" Margin="0,0,0,5" />
+        <TextBlock Grid.Row="1" Text="An unexpected error occured. Would you like to report it to us?" Margin="0,0,0,10" />
 
         <TextBox Grid.Row="2" Name="errorDetails" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible"
                  IsReadOnly="True" FontFamily="Consolas" TextWrapping="Wrap"/>
 
         <StackPanel Grid.Row="3" HorizontalAlignment="Right" Orientation="Horizontal" Margin="0,10,0,0">
             <Button Name="report" Content="Report Error" Click="ClickReport" Margin="0,0,10,0" />
-            <Button Name="retry" Content="Retry" Click="ClickRetry" Margin="0,0,10,0" />
+            <Button Name="retry" Content="Retry Operation" Click="ClickRetry" Margin="0,0,10,0" />
             <Button Name="close" Content="Close" Click="ClickClose" IsDefault="True" />
         </StackPanel>
     </Grid>

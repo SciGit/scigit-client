@@ -103,8 +103,14 @@ namespace SciGit_Client
       if (!File.Exists(Path.Combine(dir, filename))) {
         MessageBox.Show("File does not exist.", "Error");
       } else {
-        var fh = new FileHistory(p, filename);
-        fh.Show();
+        FileHistory fh = null;
+        try {
+          fh = new FileHistory(p, filename);
+          fh.Show();
+        } catch (Exception e) {
+          if (fh != null) fh.Hide();
+          ErrorForm.Show(e, true);
+        }
       }
     }
 
@@ -113,8 +119,14 @@ namespace SciGit_Client
       if (!Directory.Exists(Path.Combine(dir))) {
         MessageBox.Show("Project does not exist.", "Error");
       } else {
-        var ph = new ProjectHistory(p);
-        ph.Show();
+        ProjectHistory ph = null;
+        try {
+          ph = new ProjectHistory(p);
+          ph.Show();
+        } catch (Exception e) {
+          if (ph != null) ph.Hide();
+          ErrorForm.Show(e, true);
+        }
       }
     }
 

@@ -83,10 +83,6 @@ namespace SciGit_Client
       return ExecuteCommand(String.Format("commit -a -m {0} {1}", EscapeShellArg(msg), options), dir);
     }
 
-    public static ProcessReturn Diff(string dir, string options = "") {
-      return ExecuteCommand("diff " + options, dir);
-    }
-
     public static ProcessReturn Fetch(string dir, string options = "") {
       return ExecuteCommand("fetch " + options, dir);
     }

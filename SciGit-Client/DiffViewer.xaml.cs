@@ -95,28 +95,21 @@ namespace SciGit_Client
       Style active = GetStyle("textBackgroundConflictActive");
       Style hover = GetStyle("textBackgroundConflictHover");
       Style refused = GetStyle("textBackgroundConflictRefused");
-      Style numNormal = GetStyle("numBackgroundConflict");
       for (int i = 0; i < 2; i++) {
         Style normal = GetStyle("textBackground" + content[i][block].type);
         Border textBackground = lineTextBackgrounds[i][block];
-        Border numBackground = lineNumBackgrounds[i][block];
         double opacity = 1;
         int border = 0;
 
         // background color
         if (conflictHover[index] == i && conflictChoice[index] != i) {
           textBackground.Background = (hover.Setters[0] as Setter).Value as Brush;
-        } else if (conflictChoice[index] != -1) {
-          Style s;
+        } else {
           if (conflictChoice[index] == i) {
-            s = normal;
             border = 3;
-          } else {
-            s = refused;
+          } else if (conflictChoice[index] != -1) {
             opacity = 0.3;
           }
-          textBackground.Background = (s.Setters[0] as Setter).Value as Brush;
-        } else {
           textBackground.Background = (normal.Setters[0] as Setter).Value as Brush;
         }
 
@@ -263,7 +256,7 @@ namespace SciGit_Client
       lineCount = new int[content[0].Count];
       for (int i = 0; i < content[0].Count; i++) {
         lineCount[i] = Math.Max(content[0][i].lines.Count, content[1][i].lines.Count);
-        if (content[1][i].type == BlockType.Conflict) {
+        if (content[0][i].type != BlockType.Normal) {
           conflictBlocks.Add(i);
         }
       }
@@ -448,21 +441,26 @@ namespace SciGit_Client
         int rangeStart = block.DeleteStartA;
         int rangeEnd = rangeStart + block.DeleteCountA;
         int j = i;
-        // If this change intersects any other changes, then merge them together to form a conflict block.
+        // If this change intersects any other changes, then merge them together to form a block.
         while (j < dblocks.Count && dblocks[j].Item1.DeleteStartA <= rangeEnd) {
           rangeEnd = Math.Max(rangeEnd, dblocks[j].Item1.DeleteStartA + dblocks[j].Item1.DeleteCountA);
           j++;
         }
 
         if (j == i + 1) {
-          // No conflict - just add the change normally.
+          // A regular change.
           var oldBlock = new LineBlock(ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
           var newBlock = new LineBlock(ArraySlice(diffs[owner].PiecesNew, block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
+          if (block.DeleteCountA != 0 && block.InsertCountB != 0) {
+            oldBlock.type = BlockType.Conflict;
+            newBlock.type = BlockType.Conflict;
+          }
           ProcessBlockDiff(oldBlock, newBlock);
           content[owner].Add(newBlock);
           content[1 - owner].Add(oldBlock);
+          conflictOrigBlocks.Add(owner == 0 ? newBlock : oldBlock);
         } else {
-          // Create a conflict block.
+          // Create a change block.
           for (int side = 0; side < 2; side++) {
             int curOriginalLine = rangeStart;
             var conflictBlock = new LineBlock();
@@ -493,12 +491,14 @@ namespace SciGit_Client
           int last = content[0].Count - 1;
           if (content[0][last].ToString() == content[1][last].ToString()) {
             // Not actually a conflict if they're both the same change.
+            // TODO: handle this better?
             if (content[0][last].lines.Count == 0) {
-              // If both deleted, show the original.
-              content[0][last] = content[1][last] = conflictOrigBlocks.Last();
-              conflictOrigBlocks.Last().type = BlockType.ChangeDelete;
+              // If both are deleted, just show nothing.
+              content[0].RemoveAt(last);
+              content[1].RemoveAt(last);
             } else {
-              content[0][last].type = content[1][last].type = BlockType.ChangeAdd;
+              // Make them normal blocks.
+              content[0][last] = content[1][last] = conflictOrigBlocks.Last();
             }
             conflictOrigBlocks.RemoveAt(conflictOrigBlocks.Count - 1);
           }

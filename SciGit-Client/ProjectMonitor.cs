@@ -155,6 +155,8 @@ namespace SciGit_Client
       string dir = GetProjectDirectory();
       if (Directory.Exists(Path.Combine(dir, p.Name))) return false;
       GitWrapper.Clone(dir, p);
+      dir = GetProjectDirectory(p);
+      File.WriteAllText(Path.Combine(dir, ".git", "info", "attributes"), "* -merge -diff");
       return true;      
     }
 
@@ -210,12 +212,20 @@ namespace SciGit_Client
             window.Dispatcher.Invoke(
               new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
             MergeResolver mr = null;
+            Exception exception = null;
             if (resp == MessageBoxResult.Yes) {
               window.Dispatcher.Invoke(new Action(() => {
-                mr = new MergeResolver(p);
-                mr.ShowDialog();
+                try {
+                  mr = new MergeResolver(p);
+                  mr.ShowDialog();
+                } catch (Exception e) {
+                  if (mr != null) mr.Hide();
+                  exception = e;
+                }
               }));
             }
+            if (exception != null) throw new Exception("", exception);
+
             if (resp != MessageBoxResult.No && (mr == null || !mr.Saved)) {
               // Cancel the process here.
               return false;
@@ -245,7 +255,7 @@ namespace SciGit_Client
           success = true;
         }
       } catch (Exception e) {
-        throw e;
+        throw new Exception("", e);
       } finally {
         if (rebaseStarted) GitWrapper.Rebase(dir, "--abort");
         if (tempCommit) GitWrapper.Reset(dir, "HEAD^");
