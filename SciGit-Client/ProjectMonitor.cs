@@ -170,7 +170,7 @@ namespace SciGit_Client
 
     public bool UpdateProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
       string dir = GetProjectDirectory(p);
-      bool tempCommit = false, rebaseStarted = false, success = false;
+      bool rebaseStarted = false, success = false;
       ProcessReturn ret;
 
       try {
@@ -193,7 +193,6 @@ namespace SciGit_Client
         worker.ReportProgress(-1, "Creating temporary commit...");
         ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
         worker.ReportProgress(-1, ret.Output);
-        tempCommit = ret.ReturnValue == 0;
         if (worker.CancellationPending) return false;
 
         worker.ReportProgress(progress ? 50 : -1, "Merging...");
@@ -238,7 +237,6 @@ namespace SciGit_Client
                 if (ret.Output.Contains("No changes")) {
                   // The temp commit was effectively ignored. Just skip it.
                   CheckReturn("rebase", GitWrapper.Rebase(dir, "--skip"), worker);
-                  tempCommit = false;
                 } else {
                   throw new Exception("rebase: " + ret.Output);
                 }
@@ -258,7 +256,9 @@ namespace SciGit_Client
         throw new Exception("", e);
       } finally {
         if (rebaseStarted) GitWrapper.Rebase(dir, "--abort");
-        if (tempCommit) GitWrapper.Reset(dir, "HEAD^");
+        // Reset commits until we get to something in common with FETCH_HEAD.
+        ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
+        GitWrapper.Reset(dir, ret.Stdout.Trim());
         if (success) {
           lock (updatedProjects) {
             updatedProjects = updatedProjects.Where(up => up.Id != p.Id).ToList();

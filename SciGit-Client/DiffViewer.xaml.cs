@@ -73,11 +73,6 @@ namespace SciGit_Client
           side = 1;
         }
 
-        if (content[side][i].type == BlockType.ChangeDelete) {
-          // Both sides must have been deletions; it was an empty block.
-          continue;
-        }
-
         result += content[side][i].ToString();
         if (content[side][i].lines.Count > 0 && i != content[0].Count - 1) {
           result += "\n";
