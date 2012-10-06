@@ -63,11 +63,14 @@ namespace SciGit_Client
 
     private void ClickRevert(object sender, EventArgs e) {
       if (projectHistory.SelectedIndex != 0) {
-        MessageBoxResult res = MessageBox.Show(this, "You will lose any un-uploaded changes to your current files. Are you sure?", "Confirm", MessageBoxButton.YesNo);
+        MessageBoxResult res = MessageBox.Show(this,
+          "You will lose any un-uploaded changes to your current files, as well as any new un-uploaded files. Are you sure?",
+          "Confirm", MessageBoxButton.YesNo);
         if (res == MessageBoxResult.Yes) {
           string hash = commitHashes[projectHistory.SelectedIndex - 1];
           string dir = ProjectMonitor.GetProjectDirectory(project);
           // TODO: handle errors
+          GitWrapper.AddAll(dir);
           GitWrapper.Reset(dir, "--hard " + hash);
           GitWrapper.Reset(dir, "ORIG_HEAD");
         } else {

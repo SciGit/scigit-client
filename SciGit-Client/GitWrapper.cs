@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace SciGit_Client
 {
@@ -20,12 +22,32 @@ namespace SciGit_Client
 
   class AsyncStreamReader
   {
-    public string Data = "";
-    public void DataReceived(object sender, DataReceivedEventArgs e) {
-      lock (Data) {
-        if (e.Data != null) {
-          Data += e.Data + "\n";
+    private string data = "";
+    private byte[] buffer;
+    private const int bufferSize = 1024;
+    private Stream stream;
+    private Thread t;
+
+    public AsyncStreamReader(Stream stream) {
+      buffer = new byte[bufferSize];
+      this.stream = stream;
+      t = new Thread(new ThreadStart(this.BeginRead));
+      t.Start();
+    }
+
+    public string GetData() {
+      t.Join();
+      return data;
+    }
+
+    private void BeginRead() {
+      while (true) {
+        IAsyncResult ar = this.stream.BeginRead(buffer, 0, bufferSize, null, null);
+        int bytes = stream.EndRead(ar);
+        if (bytes == 0) {
+          return;
         }
+        data += Encoding.Default.GetString(buffer, 0, bytes);
       }
     }
   }
@@ -55,15 +77,12 @@ namespace SciGit_Client
       startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.Username);
       var process = new Process {StartInfo = startInfo};
       process.Start();
-      process.BeginErrorReadLine();
-      process.BeginOutputReadLine();
-      AsyncStreamReader stdout = new AsyncStreamReader(), stderr = new AsyncStreamReader();
-      process.OutputDataReceived += stdout.DataReceived;
-      process.ErrorDataReceived += stderr.DataReceived;
+      AsyncStreamReader stdout = new AsyncStreamReader(process.StandardOutput.BaseStream), 
+                        stderr = new AsyncStreamReader(process.StandardError.BaseStream);
       if (!process.WaitForExit(ProcessTimeout)) {
         return new ProcessReturn(-1, "", "Process timed out.");
       }
-      return new ProcessReturn(process.ExitCode, stdout.Data, stderr.Data);
+      return new ProcessReturn(process.ExitCode, stdout.GetData(), stderr.GetData());
     }
 
     private static string EscapeShellArg(string s) {

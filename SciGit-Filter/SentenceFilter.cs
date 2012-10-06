@@ -17,6 +17,10 @@ namespace SciGit_Filter
       return str.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.None);
     }
 
+    public static bool IsBinary(string str) {
+      return str.Contains('\0');
+    }
+
     public static bool IsWord(string str, bool allowEnd = false) {
       if (str == null) return false;
       string patt = String.Format(@"^[""']?\w+[""',:;{0}]?$", allowEnd ? @"\.!?" : "");
