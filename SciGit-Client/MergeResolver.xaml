@@ -1,4 +1,4 @@
-﻿<Window x:Class="SciGit_Client.MergeResolver" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Merge Conflicts" Height="600" Width="800" SnapsToDevicePixels="True" ShowInTaskbar="True" Icon="/SciGit-Client;component/Images/icon.ico" Background="#FFF1F1F1" MinWidth="900" MinHeight="600" Closing="WindowClosing">
+﻿<Window x:Class="SciGit_Client.MergeResolver" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Merge Conflicts" Height="600" Width="800" SnapsToDevicePixels="True" ShowInTaskbar="True" Icon="/SciGit-Client;component/Images/icon.ico" Background="#FFF1F1F1" MinWidth="900" MinHeight="600" Closing="WindowClosing" Closed="WindowClosed">
 	<Grid Margin="10" Name="grid">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />

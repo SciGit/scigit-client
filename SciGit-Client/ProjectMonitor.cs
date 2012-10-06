@@ -113,6 +113,7 @@ namespace SciGit_Client
         if (newProjects != null && !newProjects.SequenceEqual(projects)) {
           Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
           Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
+          Dictionary<int, Project> updatedProjectDict = newProjects.ToDictionary(p => p.Id);
 
           var newUpdatedProjects = new List<Project>();
           foreach (var project in newProjects) {
@@ -121,7 +122,9 @@ namespace SciGit_Client
             }
             if (HasUpdate(project)) {
               newUpdatedProjects.Add(project);
-              DispatchCallbacks(projectUpdatedCallbacks, project);
+              if (!updatedProjectDict.ContainsKey(project.Id)) {
+                DispatchCallbacks(projectUpdatedCallbacks, project);
+              }
             }
           }
 

@@ -33,7 +33,16 @@
 				<Rectangle Grid.Row="0" Grid.Column="2" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Right" />
 				<Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
 				<Rectangle Grid.Row="0" Grid.Column="2" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
-			</Grid>
+                
+                <StackPanel Grid.Column="1" Name="binaryMe" Visibility="Collapsed">
+                    <TextBlock Name="binaryMsgMe" Text="This is a binary file. Please edit" Margin="10"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Name="binaryNew" Visibility="Collapsed">
+                    <TextBlock Name="binaryMsgNew" Text="This is a binary file. Please edit" Margin="10"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
 		</ScrollViewer>
 
 		<WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" VerticalAlignment="Top">

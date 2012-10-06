@@ -87,8 +87,7 @@ namespace SciGit_Client
           List<string> mergeResults = preview.GetFinalText();
           string dir = ProjectMonitor.GetProjectDirectory(project);
           for (int i = 0; i < unmergedFiles.Count; i++) {
-            File.WriteAllBytes(dir + "/" + unmergedFiles[i].filename,
-              Encoding.UTF8.GetBytes(mergeResults[i]));
+            File.WriteAllText(dir + "/" + unmergedFiles[i].filename, mergeResults[i], Encoding.Default);
           }
           Close();
         }
@@ -127,7 +126,7 @@ namespace SciGit_Client
     }
 
     private DiffViewer CreateDiffViewer(FileData f) {
-      var dv = new DiffViewer(f.original, f.myVersion, f.newVersion) {
+      var dv = new DiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion) {
         NextFileCallback = SelectNextFile,
         FinishCallback = Finish,
         Visibility = Visibility.Hidden
@@ -149,6 +148,12 @@ namespace SciGit_Client
         if (res == MessageBoxResult.No) {
           e.Cancel = true;
         }
+      }
+    }
+
+    private void WindowClosed(object sender, EventArgs e) {
+      foreach (var viewer in diffViewers) {
+        viewer.Cleanup();
       }
     }
   }

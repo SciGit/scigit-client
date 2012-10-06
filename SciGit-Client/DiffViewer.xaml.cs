@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +11,7 @@ using System.Windows.Shapes;
 using DiffPlex;
 using DiffPlex.Model;
 using SciGit_Filter;
+using System.Text;
 
 namespace SciGit_Client
 {
@@ -18,24 +20,34 @@ namespace SciGit_Client
   /// </summary>
   public partial class DiffViewer : UserControl
   {
-    List<int> conflictBlocks;
-    int[] conflictChoice;
-    int[] conflictHover;
-    List<LineBlock> conflictOrigBlocks;
-    List<LineBlock>[] content;
-    int curConflict;
-    int[] lineCount;
-    List<Border>[] lineNumBackgrounds;
-    List<TextBlock>[] lineNums;
-    List<Border>[] lineTextBackgrounds;
-    List<RichTextBox>[] lineTexts;
-    LineBlock[] myBlocks;
+    private List<int> conflictBlocks;
+    private int[] conflictChoice, conflictHover;
+    private List<LineBlock> conflictOrigBlocks;
+    private List<LineBlock>[] content;
+    private int curConflict;
+    private int[] lineCount;
+    private List<TextBlock>[] lineNums;
+    private List<Border>[] lineNumBackgrounds, lineTextBackgrounds;
+    private List<RichTextBox>[] lineTexts;
+    private LineBlock[] myBlocks;
+    private string gitFilename, fullpath, newFullpath;
+    private Project project;
+    private bool binary = false;
+    private int binarySide = -1;
 
-    public DiffViewer(string original, string myVersion, string newVersion) {
+    public DiffViewer(Project p, string filename, string original, string myVersion, string newVersion) {
       InitializeComponent();
 
+      gitFilename = filename;
+      project = p;
       if (original == null) {
         // TODO: when a file is null, this means there was a deletion conflict. Handle these later
+      }
+
+      if (SentenceFilter.IsBinary(myVersion) || SentenceFilter.IsBinary(newVersion)) {
+        binary = true;
+        InitializeBinaryEditor(myVersion, newVersion);
+        return;
       }
 
       ProcessDiff(original, myVersion, newVersion);
@@ -53,15 +65,26 @@ namespace SciGit_Client
       }
     }
 
+    public void Cleanup() {
+      if (binary) {
+        File.Delete(newFullpath);
+      }
+    }
+
     public Action NextFileCallback { get; set; }
     public Action FinishCallback { get; set; }
 
     public bool Finished() {
+      if (binary) return binarySide != -1;
       return !conflictChoice.Contains(-1);
     }
 
     public string GetMergeResult() {
       if (!Finished()) return null;
+
+      if (binary) {
+        return File.ReadAllText(binarySide == 0 ? fullpath : newFullpath, Encoding.Default);
+      }
 
       string result = "";
       for (int i = 0; i < content[0].Count; i++) {
@@ -188,12 +211,22 @@ namespace SciGit_Client
       }
     }
 
+    private void Accept(int side) {
+      if (binary) {
+        binarySide = side;
+        acceptMe.IsChecked = side == 0;
+        acceptThem.IsChecked = side == 1;
+      } else {
+        ClickAccept(curConflict, side);
+      }
+    }
+
     private void ClickAcceptMe(object sender, RoutedEventArgs e) {
-      ClickAccept(curConflict, 0);
+      Accept(0);
     }
 
     private void ClickAcceptThem(object sender, RoutedEventArgs e) {
-      ClickAccept(curConflict, 1);
+      Accept(1);
     }
 
     private void ClickEdit(object sender, RoutedEventArgs e) {
@@ -361,6 +394,24 @@ namespace SciGit_Client
           prevLine += lineCount[g];
         }
       }
+    }
+
+    private void InitializeBinaryEditor(string myVersion, string newVersion) {
+      binaryMe.Visibility = Visibility.Visible;
+      binaryNew.Visibility = Visibility.Visible;
+      string projectDir = ProjectMonitor.GetProjectDirectory(project);
+      string winFilename = gitFilename.Replace('/', System.IO.Path.DirectorySeparatorChar);
+      fullpath = System.IO.Path.Combine(projectDir, winFilename);
+      string dir = System.IO.Path.GetDirectoryName(fullpath);
+      string name = System.IO.Path.GetFileName(fullpath);
+      binaryMsgMe.Text = "This is a binary file. Please edit the file " + name + " to resolve the conflict.";
+      // Copy updated text into a new, temporary file.
+      newFullpath = System.IO.Path.Combine(dir, System.IO.Path.GetFileNameWithoutExtension(name) + ".sciGitUpdated");
+      newFullpath += System.IO.Path.GetExtension(name);
+      File.WriteAllText(fullpath, myVersion, Encoding.Default);
+      File.WriteAllText(newFullpath, newVersion, Encoding.Default);
+      binaryMsgNew.Text = "This is a binary file. Please edit the file scigitUpdated." + gitFilename + " to resolve the conflict.";
+      edit.IsEnabled = false;
     }
 
     private string[] ArraySlice(string[] a, int start, int length) {
