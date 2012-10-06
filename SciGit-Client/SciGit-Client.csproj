@@ -106,6 +106,7 @@
     <Compile Include="FileHistory.xaml.cs">
       <DependentUpon>FileHistory.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LineBlock.cs" />
     <Compile Include="MergeResolver.xaml.cs">
       <DependentUpon>MergeResolver.xaml</DependentUpon>
     </Compile>

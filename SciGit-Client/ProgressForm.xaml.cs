@@ -91,8 +91,13 @@ namespace SciGit_Client
     }
 
     private void details_Click(object sender, EventArgs e) {
-      textBox.Visibility = (textBox.Visibility == Visibility.Collapsed) ?
-        Visibility.Visible : Visibility.Collapsed;
+      if (textBox.Visibility == Visibility.Collapsed) {
+        textBox.Visibility = Visibility.Visible;
+        details.IsChecked = true;
+      } else {
+        textBox.Visibility = Visibility.Collapsed;
+        details.IsChecked = false;
+      }
     }
 
     private void cancel_Click(object sender, EventArgs e) {
