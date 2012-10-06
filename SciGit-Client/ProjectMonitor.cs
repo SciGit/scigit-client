@@ -160,7 +160,10 @@ namespace SciGit_Client
       GitWrapper.Clone(dir, p);
       dir = GetProjectDirectory(p);
       File.WriteAllText(Path.Combine(dir, ".git", "info", "attributes"), "* -merge -diff");
-      return true;      
+      // Ignore some common temporary files.
+      string[] exclude = new string[] {"*~", "~*", "*.tmp", "*.scigitUpdated*", "*.swp"};
+      File.WriteAllText(Path.Combine(dir, ".git", "info", "exclude"), String.Join("\n", exclude));
+      return true;
     }
 
     private ProcessReturn CheckReturn(string command, ProcessReturn ret, BackgroundWorker worker) {
