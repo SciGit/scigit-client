@@ -33,7 +33,7 @@ namespace SciGit_Client
       bg.RunWorkerAsync();
     }
 
-    private void LoginCallback(bool success) {
+    private void LoginCallback(bool success, string error = "") {
       Dispatcher.Invoke(new Action(() => {
         if (success) {
           if (rememberMe.IsChecked ?? false) {
@@ -47,7 +47,7 @@ namespace SciGit_Client
           sgMain.Show();
           sgMain.Hide();
         } else {
-          MessageBox.Show("Invalid username or password.", "Error");
+          MessageBox.Show(error, "Error");
           login.IsEnabled = true;
           login.Content = "Login";
         }

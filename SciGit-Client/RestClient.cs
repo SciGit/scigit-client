@@ -15,7 +15,7 @@ namespace SciGit_Client
   {
     #region Delegates
 
-    public delegate void LoginResponseCallback(bool success);
+    public delegate void LoginResponseCallback(bool success, string error = "");
 
     #endregion
 
@@ -55,9 +55,15 @@ namespace SciGit_Client
         AuthToken = authTokenNode.InnerText;
         ExpiryTime = Int32.Parse(expiryTsNode.InnerText);
         callback(true);
+      } catch (WebException e) {
+        var response = (HttpWebResponse)e.Response;
+        if (response.StatusCode == HttpStatusCode.Forbidden) {
+          callback(false, "Invalid username or password.");
+        } else {
+          callback(false, "Could not connect to the SciGit server. Please try again.");
+        }
       } catch (Exception e) {
-        Debug.WriteLine(e);
-        callback(false);
+        callback(false, "Could not connect to the SciGit server. Please try again.");
       }
     }
 
@@ -93,8 +99,7 @@ namespace SciGit_Client
           projects.Add(p);
         }
         return projects;
-      } catch (Exception e) {
-        Debug.WriteLine(e);
+      } catch (Exception) {
         return null;
       }
     }
@@ -121,10 +126,9 @@ namespace SciGit_Client
         if (response.StatusCode == HttpStatusCode.Conflict) {
           return true; // just a duplicate key
         }
-        Debug.WriteLine(e);
       }
       catch (Exception e) {
-        Debug.WriteLine(e);
+        ErrorForm.Show(e);
       }
 
       return false;

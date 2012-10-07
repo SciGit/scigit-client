@@ -107,7 +107,7 @@ namespace SciGit_Client
         try {
           fh = new FileHistory(p, filename);
           fh.Show();
-        } catch (InvalidRepositoryException e) {
+        } catch (InvalidRepositoryException) {
           if (fh != null) fh.Hide();
           MessageBox.Show("This file does not belong to a valid SciGit project.", "Error");
         } catch (Exception e) {
@@ -126,7 +126,7 @@ namespace SciGit_Client
         try {
           ph = new ProjectHistory(p);
           ph.Show();
-        } catch (InvalidRepositoryException e) {
+        } catch (InvalidRepositoryException) {
           if (ph != null) ph.Hide();
           MessageBox.Show("This file does not belong to a valid SciGit project.", "Error");
         } catch (Exception e) {
