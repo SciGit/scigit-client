@@ -107,9 +107,12 @@ namespace SciGit_Client
         try {
           fh = new FileHistory(p, filename);
           fh.Show();
+        } catch (InvalidRepositoryException e) {
+          if (fh != null) fh.Hide();
+          MessageBox.Show("This file does not belong to a valid SciGit project.", "Error");
         } catch (Exception e) {
           if (fh != null) fh.Hide();
-          ErrorForm.Show(e, true);
+          ErrorForm.Show(e);
         }
       }
     }
@@ -123,9 +126,12 @@ namespace SciGit_Client
         try {
           ph = new ProjectHistory(p);
           ph.Show();
+        } catch (InvalidRepositoryException e) {
+          if (ph != null) ph.Hide();
+          MessageBox.Show("This file does not belong to a valid SciGit project.", "Error");
         } catch (Exception e) {
           if (ph != null) ph.Hide();
-          ErrorForm.Show(e, true);
+          ErrorForm.Show(e);
         }
       }
     }
@@ -213,7 +219,8 @@ namespace SciGit_Client
 
     private void ProjectAdded(Project p) {
       QueueBalloonTip("Project Added",
-        "Project " + p.Name + " has been added. Click to open the project folder...", CreateOpenDirectoryHandler(p));
+        "Project " + p.Name + (p.CanWrite ? "" : " (read-only)") +
+        " has been added. Click to open the project folder...", CreateOpenDirectoryHandler(p));
     }
 
     private void ProjectRemoved(Project p) {
@@ -259,6 +266,7 @@ namespace SciGit_Client
       var curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
       var newNames = new HashSet<string>(from p in projects select p.Name);
       var updNames = new HashSet<string>(from p in updatedProjects select p.Name);
+      var writeNames = new HashSet<string>(from p in projects where p.CanWrite select p.Name);
 
       for (int i = update.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = update.MenuItems[i];
@@ -268,10 +276,19 @@ namespace SciGit_Client
         }
       }
 
+      const string readOnlySuffix = " (read-only)";
       for (int i = upload.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = upload.MenuItems[i];
-        if (!newNames.Contains(item.Text)) {
+        string projName = item.Text;
+        if (projName.EndsWith(readOnlySuffix)) {
+          projName = projName.Substring(0, projName.Length - readOnlySuffix.Length);
+        }
+        if (!newNames.Contains(projName)) {
           upload.MenuItems.Remove(item);
+        } else {
+          bool canWrite = writeNames.Contains(projName); 
+          item.Enabled = canWrite;
+          item.Text = projName + (canWrite ? "" : readOnlySuffix);
         }
       }
 
@@ -283,7 +300,10 @@ namespace SciGit_Client
             RadioCheck = true
           };
           update.MenuItems.Add(item);
-          item = new MenuItem(project.Name, CreateUploadProjectHandler(curProject));
+          item = new MenuItem(project.Name + (project.CanWrite ? "" : readOnlySuffix),
+                              CreateUploadProjectHandler(curProject)) {
+            Enabled = project.CanWrite
+          };
           upload.MenuItems.Add(item);
         }
       }
@@ -292,7 +312,8 @@ namespace SciGit_Client
       updateAll.Text = "Update All" + (updNames.Count > 0 ? String.Format(" ({0})", updNames.Count) : "");
 
       var uploadAll = notifyIcon.ContextMenu.MenuItems[7];
-      update.Enabled = upload.Enabled = updateAll.Enabled = uploadAll.Enabled = projects.Count > 0;
+      update.Enabled = upload.Enabled = updateAll.Enabled = projects.Count > 0;
+      uploadAll.Enabled = writeNames.Count > 0;
 
       // Hide the loading indicator and show others
       notifyIcon.Icon = updNames.Count > 0 ? notifyIconUpdate : notifyIconBase;

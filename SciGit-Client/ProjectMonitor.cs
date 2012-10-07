@@ -16,6 +16,7 @@ namespace SciGit_Client
     public int OwnerId { get; set; }
     public int CreatedTime { get; set; }
     public string LastCommitHash { get; set; }
+    public bool CanWrite { get; set; }
   }
 
   class ProjectMonitor
@@ -108,46 +109,50 @@ namespace SciGit_Client
     private void MonitorProjects() {
       bool loaded = false;
       while (true) {
-        List<Project> newProjects = RestClient.GetProjects();
-        // TODO: if I consistently get null, this indicates some network error.
-        if (newProjects != null && !newProjects.SequenceEqual(projects)) {
-          Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
-          Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
-          Dictionary<int, Project> updatedProjectDict = updatedProjects.ToDictionary(p => p.Id);
+        try {
+          List<Project> newProjects = RestClient.GetProjects();
+          // TODO: if I consistently get null, this indicates some network error.
+          if (newProjects != null && !newProjects.SequenceEqual(projects)) {
+            Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
+            Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
+            Dictionary<int, Project> updatedProjectDict = updatedProjects.ToDictionary(p => p.Id);
 
-          var newUpdatedProjects = new List<Project>();
-          foreach (var project in newProjects) {
-            if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.Id)) {
-              DispatchCallbacks(projectAddedCallbacks, project);
-            }
-            if (HasUpdate(project)) {
-              newUpdatedProjects.Add(project);
-              if (!updatedProjectDict.ContainsKey(project.Id)) {
-                DispatchCallbacks(projectUpdatedCallbacks, project);
+            var newUpdatedProjects = new List<Project>();
+            foreach (var project in newProjects) {
+              if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.Id)) {
+                DispatchCallbacks(projectAddedCallbacks, project);
+              }
+              if (HasUpdate(project)) {
+                newUpdatedProjects.Add(project);
+                if (!updatedProjectDict.ContainsKey(project.Id)) {
+                  DispatchCallbacks(projectUpdatedCallbacks, project);
+                }
               }
             }
-          }
 
-          lock (updatedProjects) {
-            updatedProjects = newUpdatedProjects;
-          }
-
-          foreach (var project in oldProjectDict) {
-            if (!newProjectDict.ContainsKey(project.Key)) {
-              DispatchCallbacks(projectRemovedCallbacks, project.Value);
-              // TODO: delete removed projects?
+            lock (updatedProjects) {
+              updatedProjects = newUpdatedProjects;
             }
+
+            foreach (var project in oldProjectDict) {
+              if (!newProjectDict.ContainsKey(project.Key)) {
+                DispatchCallbacks(projectRemovedCallbacks, project.Value);
+                // TODO: delete removed projects?
+              }
+            }
+
+            lock (projects) {
+              projects = newProjects;
+            }
+            updateCallbacks.ForEach(c => c.Invoke());
           }
 
-          lock (projects) {
-            projects = newProjects;
+          if (newProjects != null && !loaded) {
+            loaded = true;
+            loadedCallbacks.ForEach(c => c.Invoke());
           }
-          updateCallbacks.ForEach(c => c.Invoke());
-        }
-
-        if (newProjects != null && !loaded) {
-          loaded = true;
-          loadedCallbacks.ForEach(c => c.Invoke());
+        } catch (Exception e) {
+          ErrorForm.Show(e);
         }
 
         Thread.Sleep(monitorDelay);
@@ -174,9 +179,15 @@ namespace SciGit_Client
       return ret;
     }
 
+    private void ShowError(Window window, string message) {
+      window.Dispatcher.Invoke(new Action(() => 
+        MessageBox.Show(window, message, "Error")
+      ));
+    }
+
     public bool UpdateProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
       string dir = GetProjectDirectory(p);
-      bool rebaseStarted = false, success = false;
+      bool possibleCommit = false, rebaseStarted = false, success = false;
       ProcessReturn ret;
 
       try {
@@ -186,7 +197,18 @@ namespace SciGit_Client
         if (worker.CancellationPending) return false;
 
         worker.ReportProgress(progress ? 25 : -1, "Fetching updates...");
-        CheckReturn("fetch", GitWrapper.Fetch(dir), worker);
+        ret = GitWrapper.Fetch(dir);
+        worker.ReportProgress(-1, ret.Output);
+        if (ret.ReturnValue != 0) {
+          if (ret.Output.Contains("Not a git")) {
+            ShowError(window, "This project seems to be corrupted. Delete the folder to allow SciGit to re-create it.");
+            return false;
+          } else {
+            ShowError(window, "Could not connect to the SciGit servers. Please try again later.");
+            return false;
+          }
+        }
+
         if (worker.CancellationPending) return false;
 
         // Reset commits until we get to something in common with FETCH_HEAD.
@@ -198,6 +220,7 @@ namespace SciGit_Client
         GitWrapper.AddAll(dir);
         worker.ReportProgress(-1, "Creating temporary commit...");
         ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
+        possibleCommit = true;
         worker.ReportProgress(-1, ret.Output);
         if (worker.CancellationPending) return false;
 
@@ -262,9 +285,11 @@ namespace SciGit_Client
         throw new Exception("", e);
       } finally {
         if (rebaseStarted) GitWrapper.Rebase(dir, "--abort");
-        // Reset commits until we get to something in common with FETCH_HEAD.
-        ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
-        GitWrapper.Reset(dir, ret.Stdout.Trim());
+        if (possibleCommit) {
+          // Reset commits until we get to something in common with FETCH_HEAD.
+          ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
+          GitWrapper.Reset(dir, ret.Stdout.Trim());
+        }
         if (success) {
           lock (updatedProjects) {
             updatedProjects = updatedProjects.Where(up => up.Id != p.Id).ToList();
@@ -277,6 +302,16 @@ namespace SciGit_Client
     }
 
     public bool UploadProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
+      Project updatedProject;
+      lock (projects) {
+        updatedProject = projects.Find(pr => pr.Id == p.Id);
+      }
+      if (!updatedProject.CanWrite) {
+        window.Dispatcher.Invoke(new Action(() =>
+          MessageBox.Show(window, "You don't have write access to this project.", "Not authorized")
+        ));
+        return false;
+      }
       string dir = GetProjectDirectory(p);
 
       bool committed = false, success = false;
@@ -327,8 +362,12 @@ namespace SciGit_Client
               if (resp == MessageBoxResult.Cancel) {
                 return false;
               }
+            } else if (ret.Output.Contains("not authorized")) {
+              ShowError(window, "You don't have write access to this repository anymore.");
+              return false;
             } else {
-              throw new Exception("push: " + ret.Output);
+              ShowError(window, "Could not connect to the SciGit servers. Please try again later.");
+              return false;
             }
           } else {
             worker.ReportProgress(progress ? 100 : -1, "No changes to upload.");
@@ -368,6 +407,7 @@ namespace SciGit_Client
       lock (projects) {
         for (int i = 0; i < projects.Count; i++) {
           var project = projects[i];
+          if (!project.CanWrite) continue;
           worker.ReportProgress(100 * (i + 1) / (projects.Count + 1), "Uploading " + project.Name + "...");
           bool cancelled = !UploadProject(project, window, worker, false);
           if (worker.CancellationPending && (i+1 != projects.Count || cancelled)) {
