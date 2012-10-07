@@ -9,6 +9,7 @@ namespace SciGit_Client
   public enum BlockType
   {
     Normal,
+    Blank,
     ChangeAdd,
     ChangeDelete,
     Conflict,

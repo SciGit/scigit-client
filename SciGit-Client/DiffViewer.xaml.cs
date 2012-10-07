@@ -117,22 +117,27 @@ namespace SciGit_Client
         Style normal = GetStyle("textBackground" + content[i][block].type);
         Border textBackground = lineTextBackgrounds[i][block];
         double opacity = 1;
-        int border = 0;
+        bool border = false;
 
         // background color
         if (conflictHover[index] == i && conflictChoice[index] != i) {
-          textBackground.Background = (hover.Setters[0] as Setter).Value as Brush;
+          textBackground.Style = hover;
         } else {
           if (conflictChoice[index] == i) {
-            border = 3;
+            border = true;
           } else if (conflictChoice[index] != -1) {
             opacity = 0.3;
           }
-          textBackground.Background = (normal.Setters[0] as Setter).Value as Brush;
+          textBackground.Style = normal;
         }
 
-        textBackground.BorderThickness = new Thickness(border);
-        textBackground.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+        textBackground.ClearValue(Border.BorderThicknessProperty);
+        textBackground.ClearValue(Border.BorderBrushProperty);
+        if (border) {
+          textBackground.BorderThickness = new Thickness(3);
+          textBackground.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+        }
+
         int startLine = lineCount.Take(block).Sum();
         for (int line = 0; line < lineCount[block]; line++) {
           lineTexts[i][line + startLine].Opacity = opacity;
@@ -500,7 +505,11 @@ namespace SciGit_Client
           if (block.DeleteCountA != 0 && block.InsertCountB != 0) {
             oldBlock.type = BlockType.Conflict;
             newBlock.type = BlockType.Conflict;
-          }
+          } else if (block.DeleteCountA == 0) {
+            oldBlock.type = BlockType.Blank;
+          } else if (block.InsertCountB == 0) {
+            newBlock.type = BlockType.Blank;
+          } // can't both be empty!
           ProcessBlockDiff(oldBlock, newBlock);
           content[owner].Add(newBlock);
           content[1 - owner].Add(oldBlock);
