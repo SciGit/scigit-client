@@ -58,5 +58,23 @@ namespace SciGit_Client.Properties {
                 this["RememberUser"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("stage.scigit.sherk.me")]
+        public string SciGitHostname {
+            get {
+                return ((string)(this["SciGitHostname"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("team@scigit.com")]
+        public string SciGitEmail {
+            get {
+                return ((string)(this["SciGitEmail"]));
+            }
+        }
     }
 }

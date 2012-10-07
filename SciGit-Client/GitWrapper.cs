@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {
@@ -54,7 +55,7 @@ namespace SciGit_Client
 
   class GitWrapper
   {
-    public const string ServerHost = "stage.scigit.sherk.me";
+    public readonly static string ServerHost = (string)Settings.Default["SciGitHostname"];
     public const int ProcessTimeout = 10000;
 
     public static string GetAppDataPath() {

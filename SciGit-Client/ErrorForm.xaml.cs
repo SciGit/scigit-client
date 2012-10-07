@@ -1,5 +1,7 @@
 ﻿using System.Windows;
 using System;
+using System.Diagnostics;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {
@@ -31,7 +33,11 @@ namespace SciGit_Client
     }
 
     private void ClickReport(object sender, EventArgs e) {
-      
+      string email = (string)Settings.Default["SciGitEmail"];
+      string content = errorDetails.Text;
+      Process.Start(String.Format("mailto:{0}?subject={1}&body={2}",
+        email, Uri.EscapeDataString("Error report"), Uri.EscapeDataString(content)));
+      Close();
     }
 
     private void ClickClose(object sender, EventArgs e) {

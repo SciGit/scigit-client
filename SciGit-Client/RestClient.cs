@@ -8,6 +8,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Windows.Threading;
 using System.Xml;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {
@@ -19,14 +20,14 @@ namespace SciGit_Client
 
     #endregion
 
-    public const string serverHost = "stage.scigit.sherk.me";
+    public readonly static string ServerHost = (string)Settings.Default["SciGitHostname"];
     public static int Timeout = 20000;
     public static string Username = "";
     private static string AuthToken = "";
     private static int ExpiryTime;
 
     public static void Login(string username, string password, LoginResponseCallback callback) {
-      const string uri = "https://" + serverHost + "/api/auth/login";
+      string uri = "https://" + ServerHost + "/api/auth/login";
       WebRequest request = WebRequest.Create(uri);
       request.Method = "POST";
       request.Credentials = CredentialCache.DefaultCredentials;
@@ -71,7 +72,7 @@ namespace SciGit_Client
     public static List<Project> GetProjects() {
       if (Username == "") return null;
 
-      const string uri = "http://" + serverHost + "/api/projects";
+      string uri = "http://" + ServerHost + "/api/projects";
       WebRequest request = WebRequest.Create(uri + "?" + GetQueryString(new Dictionary<String, String> {
         { "username", Username },
         { "auth_token", AuthToken }
@@ -107,7 +108,7 @@ namespace SciGit_Client
     }
 
     public static bool? UploadPublicKey(string key) {
-      const string uri = "http://" + serverHost + "/api/users/public_keys";
+      string uri = "http://" + ServerHost + "/api/users/public_keys";
       WebRequest request = WebRequest.Create(uri);
       request.Method = "PUT";
       request.Timeout = Timeout;

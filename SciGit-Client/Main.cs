@@ -141,7 +141,7 @@ namespace SciGit_Client
     }
 
     private void ManageProjectsHandler(object sender, EventArgs e) {
-      Process.Start("http://" + RestClient.serverHost + "/projects");
+      Process.Start("http://" + RestClient.ServerHost + "/projects");
     }
 
     private void NotifyClick(object sender, EventArgs e) {
