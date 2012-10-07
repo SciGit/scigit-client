@@ -587,7 +587,6 @@ namespace SciGit_Client
           int last = content[0].Count - 1;
           if (content[0][last].ToString() == content[1][last].ToString()) {
             // Not actually a conflict if they're both the same change.
-            // TODO: handle this better?
             if (content[0][last].lines.Count == 0) {
               // If both are deleted, just show nothing.
               content[0].RemoveAt(last);

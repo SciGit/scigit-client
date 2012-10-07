@@ -24,7 +24,8 @@ namespace SciGit_Client
               var ss = new StreamString(pipeClient);
               ss.WriteString(args[1]);
               ss.WriteString(args[2]);
-            } catch (Exception) {
+            } catch (Exception e) {
+              Logger.LogException(e);
               MessageBox.Show("Please wait for the SciGit client to connect.", "Error");
             }
           } else {

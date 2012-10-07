@@ -63,6 +63,7 @@ namespace SciGit_Client
           callback(false, "Could not connect to the SciGit server. Please try again.");
         }
       } catch (Exception e) {
+        Logger.LogException(e);
         callback(false, "Could not connect to the SciGit server. Please try again.");
       }
     }
@@ -99,12 +100,13 @@ namespace SciGit_Client
           projects.Add(p);
         }
         return projects;
-      } catch (Exception) {
+      } catch (Exception e) {
+        Logger.LogException(e);
         return null;
       }
     }
 
-    public static bool UploadPublicKey(string key) {
+    public static bool? UploadPublicKey(string key) {
       const string uri = "http://" + serverHost + "/api/users/public_keys";
       WebRequest request = WebRequest.Create(uri);
       request.Method = "PUT";
@@ -125,13 +127,14 @@ namespace SciGit_Client
         var response = (HttpWebResponse)e.Response;
         if (response.StatusCode == HttpStatusCode.Conflict) {
           return true; // just a duplicate key
+        } else if (response.StatusCode == HttpStatusCode.BadRequest) {
+          return false;
         }
-      }
-      catch (Exception e) {
-        ErrorForm.Show(e);
+      } catch (Exception e) {
+        Logger.LogException(e);
       }
 
-      return false;
+      return null;
     }
 
     private static string GetQueryString(Dictionary<String, String> data) {

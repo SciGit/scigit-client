@@ -69,10 +69,15 @@ namespace SciGit_Client
         if (res == MessageBoxResult.Yes) {
           string hash = commitHashes[projectHistory.SelectedIndex - 1];
           string dir = ProjectMonitor.GetProjectDirectory(project);
-          // TODO: handle errors
-          GitWrapper.AddAll(dir);
-          GitWrapper.Reset(dir, "--hard " + hash);
-          GitWrapper.Reset(dir, "ORIG_HEAD");
+          try {
+            GitWrapper.AddAll(dir);
+            ProcessReturn ret = GitWrapper.Reset(dir, "--hard " + hash);
+            if (ret.ReturnValue != 0) throw new Exception("reset: " + ret.Output);
+            ret = GitWrapper.Reset(dir, "ORIG_HEAD");
+            if (ret.ReturnValue != 0) throw new Exception("reset: " + ret.Output);
+          } catch (Exception ex) {
+            ErrorForm.Show(ex);
+          }
         } else {
           return;
         }

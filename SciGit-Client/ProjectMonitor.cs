@@ -111,7 +111,6 @@ namespace SciGit_Client
       while (true) {
         try {
           List<Project> newProjects = RestClient.GetProjects();
-          // TODO: if I consistently get null, this indicates some network error.
           if (newProjects != null && !newProjects.SequenceEqual(projects)) {
             Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
             Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
@@ -137,7 +136,6 @@ namespace SciGit_Client
             foreach (var project in oldProjectDict) {
               if (!newProjectDict.ContainsKey(project.Key)) {
                 DispatchCallbacks(projectRemovedCallbacks, project.Value);
-                // TODO: delete removed projects?
               }
             }
 
@@ -152,7 +150,7 @@ namespace SciGit_Client
             loadedCallbacks.ForEach(c => c.Invoke());
           }
         } catch (Exception e) {
-          ErrorForm.Show(e);
+          Logger.LogException(e);
         }
 
         Thread.Sleep(monitorDelay);

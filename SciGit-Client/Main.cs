@@ -89,8 +89,8 @@ namespace SciGit_Client
             string verb = ss.ReadString();
             string filename = ss.ReadString();
             HandleCommand(verb, filename);
-          } catch (Exception) {
-            // TODO: log errors somewhere
+          } catch (Exception e) {
+            Logger.LogException(e);
           }
           pipeServer.Disconnect();
         }
@@ -341,10 +341,13 @@ namespace SciGit_Client
       GitWrapper.GlobalConfig("user.email", RestClient.Username);
 
       string key = File.ReadAllText(keyFile + ".pub").Trim();
-      if (!RestClient.UploadPublicKey(key)) {
-        MessageBox.Show("It appears that your public key is invalid. Please remove or regenerate it.", "Error");
-        Environment.Exit(1);
+      bool? uploadResult = RestClient.UploadPublicKey(key);
+      if (uploadResult != true) {
+        MessageBox.Show(uploadResult == false ?
+          "It appears that your public key is invalid. Please remove or regenerate it." :
+          "Could not connect to the SciGit server. Please try again later.", "Error");
         // TODO: add ability to regenerate
+        Environment.Exit(1);
       }
 
       // Add scigit server to known_hosts
