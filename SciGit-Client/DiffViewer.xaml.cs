@@ -29,19 +29,30 @@ namespace SciGit_Client
     private List<TextBlock>[] lineNums;
     private List<Border>[] lineNumBackgrounds, lineTextBackgrounds;
     private List<RichTextBox>[] lineTexts;
-    private LineBlock[] myBlocks;
+    private LineBlock[][] origBlocks;
     private string gitFilename, fullpath, newFullpath;
     private Project project;
     private bool binary = false;
     private int binarySide = -1;
-
+    private int deletedSide = -1;
+    
     public DiffViewer(Project p, string filename, string original, string myVersion, string newVersion) {
       InitializeComponent();
 
       gitFilename = filename;
       project = p;
+
       if (original == null) {
-        // TODO: when a file is null, this means there was a deletion conflict. Handle these later
+        original = ""; // We don't really have to display anything differently.
+        // Also, add-add conflicts don't need any special treatment.
+      }
+
+      if (myVersion == null) {
+        titleMe.Text = "Your Version (file was deleted)";
+        deletedSide = 0;
+      } else if (newVersion == null) {
+        titleNew.Text = "Updated Version (file was deleted)";
+        deletedSide = 1;
       }
 
       if (SentenceFilter.IsBinary(myVersion) || SentenceFilter.IsBinary(newVersion)) {
@@ -67,7 +78,9 @@ namespace SciGit_Client
 
     public void Cleanup() {
       if (binary) {
-        File.Delete(newFullpath);
+        if (File.Exists(newFullpath)) {
+          File.Delete(newFullpath);
+        }
       }
     }
 
@@ -83,9 +96,11 @@ namespace SciGit_Client
       if (!Finished()) return null;
 
       if (binary) {
+        if (binarySide == deletedSide) return null;
         return File.ReadAllText(binarySide == 0 ? fullpath : newFullpath, Encoding.Default);
       }
 
+      int totalLines = 0;
       string result = "";
       for (int i = 0; i < content[0].Count; i++) {
         int side = 0;
@@ -97,11 +112,12 @@ namespace SciGit_Client
         }
 
         result += content[side][i].ToString();
+        totalLines += content[side][i].lines.Count;
         if (content[side][i].lines.Count > 0 && i != content[0].Count - 1) {
           result += "\n";
         }
       }
-      return result;
+      return totalLines > 0 ? result : null;
     }
 
     private Style GetStyle(string name) {
@@ -166,7 +182,8 @@ namespace SciGit_Client
 
       acceptMe.IsChecked = conflictChoice[index] == 0;
       acceptThem.IsChecked = conflictChoice[index] == 1;
-      revert.IsEnabled = content[0][newBlock].type == BlockType.Edited;
+      revert.IsEnabled = conflictChoice[index] == -1 ? false :
+        content[conflictChoice[index]][newBlock].type == BlockType.Edited;
     }
 
     private void SelectPreviousConflict(object sender, RoutedEventArgs e) {
@@ -194,12 +211,12 @@ namespace SciGit_Client
     private void EditConflict(int index) {
       int block = conflictBlocks[index];
       LineBlock chosenBlock = conflictChoice[index] == -1 ? null : content[conflictChoice[index]][block];
-      var de = new DiffEditor(myBlocks[block], content[1][block], conflictOrigBlocks[index], chosenBlock);
+      var de = new DiffEditor(origBlocks[0][block], origBlocks[1][block], conflictOrigBlocks[index], chosenBlock);
       de.ShowDialog();
       if (de.newBlock != null) {
         ProcessBlockDiff(conflictOrigBlocks[index], de.newBlock, false);
-        content[0][block] = de.newBlock;
-        conflictChoice[index] = 0;
+        if (conflictChoice[index] == -1) conflictChoice[index] = 0;
+        content[conflictChoice[index]][block] = de.newBlock;
         revert.IsEnabled = true;
         ReloadEditor();
       }
@@ -240,7 +257,8 @@ namespace SciGit_Client
 
     private void ClickRevert(object sender, RoutedEventArgs e) {
       int block = conflictBlocks[curConflict];
-      content[0][block] = myBlocks[block];
+      int side = conflictChoice[curConflict];
+      content[side][block] = origBlocks[side][block];
       revert.IsEnabled = false;
       ReloadEditor();
     }
@@ -402,21 +420,31 @@ namespace SciGit_Client
     }
 
     private void InitializeBinaryEditor(string myVersion, string newVersion) {
-      binaryMe.Visibility = Visibility.Visible;
-      binaryNew.Visibility = Visibility.Visible;
+      edit.IsEnabled = false;
+      messageMe.Visibility = Visibility.Visible;
+      messageNew.Visibility = Visibility.Visible;
       string projectDir = ProjectMonitor.GetProjectDirectory(project);
       string winFilename = gitFilename.Replace('/', System.IO.Path.DirectorySeparatorChar);
       fullpath = System.IO.Path.Combine(projectDir, winFilename);
       string dir = System.IO.Path.GetDirectoryName(fullpath);
       string name = System.IO.Path.GetFileName(fullpath);
-      binaryMsgMe.Text = "This is a binary file. Please edit the file " + name + " to resolve the conflict.";
+      if (myVersion != null) {
+        messageMe.Text = "This is a binary file. Please edit the file " + name + " if you wish to edit your version.";
+        File.WriteAllText(fullpath, myVersion, Encoding.Default);
+      } else {
+        messageMe.Text = "You deleted this file.";
+      }
       // Copy updated text into a new, temporary file.
-      newFullpath = System.IO.Path.Combine(dir, System.IO.Path.GetFileNameWithoutExtension(name) + ".sciGitUpdated");
-      newFullpath += System.IO.Path.GetExtension(name);
-      File.WriteAllText(fullpath, myVersion, Encoding.Default);
-      File.WriteAllText(newFullpath, newVersion, Encoding.Default);
-      binaryMsgNew.Text = "This is a binary file. Please edit the file scigitUpdated." + gitFilename + " to resolve the conflict.";
-      edit.IsEnabled = false;
+      string newFilename = System.IO.Path.GetFileNameWithoutExtension(name) + ".sciGitUpdated" +
+        System.IO.Path.GetExtension(name);
+      newFullpath = System.IO.Path.Combine(dir, newFilename);
+      if (newVersion != null) {
+        messageNew.Text = "This is a binary file. Please edit the file " + newFilename +
+          " if you wish to edit the updated version.";
+        File.WriteAllText(newFullpath, newVersion, Encoding.Default);
+      } else {
+        messageMe.Text = "This file was deleted in the updated version.";
+      }
     }
 
     private string[] ArraySlice(string[] a, int start, int length) {
@@ -460,12 +488,25 @@ namespace SciGit_Client
       // Do a line-by-line diff, marking changed line groups.
       // Also, find intersecting diffs and mark them as conflicted changes for resolution.
       var d = new Differ();
-      var diffs = new DiffResult[2] { d.CreateLineDiffs(original, myVersion, false), d.CreateLineDiffs(original, newVersion, false) };
+      var diffs = new DiffResult[2] {
+        d.CreateLineDiffs(original, myVersion ?? "", false),
+        d.CreateLineDiffs(original, newVersion ?? "", false)
+      };
+
+      string[][] newPieces = new string[2][];
+      newPieces[0] = diffs[0].PiecesNew;
+      newPieces[1] = diffs[1].PiecesNew;
+      if (myVersion == "") newPieces[0] = new string[] {""};
+      if (newVersion == "") newPieces[1] = new string[] {""};
 
       var dblocks = new List<Tuple<DiffBlock, int>>();
       for (int side = 0; side < 2; side++) {
         foreach (var block in diffs[side].DiffBlocks) {
-          dblocks.Add(new Tuple<DiffBlock, int>(block, side));
+          DiffBlock actualBlock = block;
+          if (diffs[side].PiecesNew.Length == 0 && block.InsertCountB == 0 && block.InsertStartB == 0) {
+            actualBlock = new DiffBlock(block.DeleteStartA, block.DeleteCountA, 0, 1);
+          }
+          dblocks.Add(new Tuple<DiffBlock, int>(actualBlock, side));
         }
       }
       dblocks.Sort((a, b) => a.Item1.DeleteStartA.CompareTo(b.Item1.DeleteStartA));
@@ -501,7 +542,7 @@ namespace SciGit_Client
         if (j == i + 1) {
           // A regular change.
           var oldBlock = new LineBlock(ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
-          var newBlock = new LineBlock(ArraySlice(diffs[owner].PiecesNew, block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
+          var newBlock = new LineBlock(ArraySlice(newPieces[owner], block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
           if (block.DeleteCountA != 0 && block.InsertCountB != 0) {
             oldBlock.type = BlockType.Conflict;
             newBlock.type = BlockType.Conflict;
@@ -529,7 +570,7 @@ namespace SciGit_Client
               }
               curOriginalLine = subBlock.DeleteStartA + subBlock.DeleteCountA;
               var oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
-              var newBlock = new LineBlock(ArraySlice(diffs[side].PiecesNew, subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
+              var newBlock = new LineBlock(ArraySlice(newPieces[side], subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
               ProcessBlockDiff(oldBlock, newBlock, false);
               origBlock.Append(oldBlock);
               conflictBlock.Append(newBlock);
@@ -570,8 +611,11 @@ namespace SciGit_Client
         }
       }
 
-      myBlocks = new LineBlock[content[0].Count];
-      content[0].CopyTo(myBlocks);
+      origBlocks = new LineBlock[2][];
+      origBlocks[0] = new LineBlock[content[0].Count];
+      origBlocks[1] = new LineBlock[content[1].Count];
+      content[0].CopyTo(origBlocks[0]);
+      content[1].CopyTo(origBlocks[1]);
     }
   }
 }

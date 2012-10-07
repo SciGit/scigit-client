@@ -87,7 +87,15 @@ namespace SciGit_Client
           List<string> mergeResults = preview.GetFinalText();
           string dir = ProjectMonitor.GetProjectDirectory(project);
           for (int i = 0; i < unmergedFiles.Count; i++) {
-            File.WriteAllText(dir + "/" + unmergedFiles[i].filename, mergeResults[i], Encoding.Default);
+            string filename = dir + "/" + unmergedFiles[i].filename;
+            if (mergeResults[i] == null) {
+              // null means the file will be deleted
+              if (File.Exists(filename)) {
+                File.Delete(filename);
+              }
+            } else {
+              File.WriteAllText(filename, mergeResults[i], Encoding.Default);
+            }
           }
           Close();
         }

@@ -18,6 +18,7 @@ namespace SciGit_Filter
     }
 
     public static bool IsBinary(string str) {
+      if (str == null) return false;
       return str.Contains('\0');
     }
 
