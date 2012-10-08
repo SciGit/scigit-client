@@ -138,7 +138,8 @@ namespace SciGit_Client
               }
               if (HasUpdate(project)) {
                 newUpdatedProjects.Add(project);
-                if (!updatedProjectDict.ContainsKey(project.Id)) {
+                if (!updatedProjectDict.ContainsKey(project.Id) ||
+                    updatedProjectDict[project.Id].LastCommitHash != project.LastCommitHash) {
                   DispatchCallbacks(projectUpdatedCallbacks, project);
                 }
               }

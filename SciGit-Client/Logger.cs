@@ -14,7 +14,7 @@ namespace SciGit_Client
         AppendToFile = true,
         RollingStyle = log4net.Appender.RollingFileAppender.RollingMode.Composite,
         MaxSizeRollBackups = 1,
-        MaximumFileSize = "10MB",
+        MaximumFileSize = "1MB",
         StaticLogFileName = true
       };
       appender.ActivateOptions();

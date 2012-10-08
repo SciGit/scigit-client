@@ -112,7 +112,9 @@ namespace SciGit_Client
         return Tuple.Create(projects, Error.NoError);
       } catch (WebException e) {
         var response = (HttpWebResponse)e.Response;
-        if (response.StatusCode == HttpStatusCode.Forbidden) {
+        if (response == null) {
+          error = Error.ConnectionError;
+        } else if (response.StatusCode == HttpStatusCode.Forbidden) {
           error = Error.Forbidden;
         } else {
           error = Error.InvalidRequest;
@@ -141,10 +143,11 @@ namespace SciGit_Client
         var response = (HttpWebResponse)request.GetResponse();
         Stream dataStream = response.GetResponseStream();
         return true;
-      }
-      catch (WebException e) {
+      } catch (WebException e) {
         var response = (HttpWebResponse)e.Response;
-        if (response.StatusCode == HttpStatusCode.Conflict) {
+        if (response == null) {
+          return false;
+        } else if (response.StatusCode == HttpStatusCode.Conflict) {
           return true; // just a duplicate key
         } else if (response.StatusCode == HttpStatusCode.BadRequest) {
           return false;
