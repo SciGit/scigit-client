@@ -20,7 +20,7 @@
     <Setting Name="NotifyMask" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">7</Value>
     </Setting>
-    <Setting Name="ProjectFolder" Type="System.String" Scope="User">
+    <Setting Name="ProjectDirectory" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>

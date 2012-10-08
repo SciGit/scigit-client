@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {
@@ -38,9 +39,16 @@ namespace SciGit_Client
     public List<Action> updateCallbacks;
     public List<Action> failureCallbacks;
     List<Project> updatedProjects;
-
+    private static string projectDirectory;
+    
     public ProjectMonitor(List<Project> projects = null) {
-      if (!Directory.Exists(GetProjectDirectory())) {
+      projectDirectory = Settings.Default.ProjectDirectory;
+      if (String.IsNullOrEmpty(projectDirectory)) {
+        projectDirectory = DefaultProjectDirectory();
+        Settings.Default.ProjectDirectory = projectDirectory;
+        Settings.Default.Save();
+      }
+      if (!Directory.Exists(projectDirectory)) {
         CreateProjectDirectory();
       }
 
@@ -443,12 +451,28 @@ namespace SciGit_Client
       return lastHash != p.LastCommitHash;
     }
 
+    private static string DefaultProjectDirectory() {
+      return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SciGit");
+    }
+
     private static void CreateProjectDirectory() {
-      Directory.CreateDirectory(GetProjectDirectory());
+      try {
+        Directory.CreateDirectory(GetProjectDirectory());
+      } catch (Exception) {
+        Settings.Default.ProjectDirectory = projectDirectory = DefaultProjectDirectory();
+        MessageBox.Show("Invalid project directory. Reverting to default (" + 
+          projectDirectory + ")", "Error");
+        Settings.Default.Save();
+        if (!Directory.Exists(projectDirectory)) {
+          Directory.CreateDirectory(projectDirectory);
+        }
+      }
     }
 
     public static string GetProjectDirectory() {
-      return Path.Combine(Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%"), "SciGit");
+      lock (projectDirectory) {
+        return projectDirectory;
+      }
     }
 
     public static string GetProjectDirectory(Project p) {

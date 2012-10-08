@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Threading;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {
@@ -184,7 +185,13 @@ namespace SciGit_Client
 
     private void SettingsClick(object sender, EventArgs e) {
       var sf = new SettingsForm();
-      sf.Show();
+      sf.ShowDialog();
+
+      if (Settings.Default.ProjectDirectory != ProjectMonitor.GetProjectDirectory()) {
+        MessageBox.Show("To complete the change, SciGit needs to be restarted. " +
+          "Please finish any remaining operations.", "Restart required");
+        Logout();
+      }
     }
 
     private void LogoutClick(object sender, EventArgs e) {

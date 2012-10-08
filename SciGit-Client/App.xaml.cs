@@ -2,6 +2,7 @@
 using System.IO.Pipes;
 using System.Threading;
 using System.Windows;
+using SciGit_Client.Properties;
 
 namespace SciGit_Client
 {

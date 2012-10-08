@@ -36,7 +36,7 @@ namespace SciGit_Client
       InitializeComponent();
 
       int notifyMask = Settings.Default.NotifyMask;
-      projectFolder = Settings.Default.ProjectFolder;
+      projectFolder = Settings.Default.ProjectDirectory;
       notifyUpdate.IsChecked = (notifyMask & (int)NotifyFlags.NotifyUpdate) != 0;
       notifyAddDelete.IsChecked = (notifyMask & (int)NotifyFlags.NotifyAddDelete) != 0;
       notifyUpload.IsChecked = (notifyMask & (int)NotifyFlags.NotifyUpload) != 0;
@@ -50,6 +50,7 @@ namespace SciGit_Client
     private void ClickChooseFolder(object sender, EventArgs e) {
       var dialog = new FolderBrowserDialog();
       dialog.Description = "Select a folder for your SciGit projects. Projects will appear as subdirectories.";
+      dialog.SelectedPath = folder.Text;
       dialog.ShowNewFolderButton = true;
       DialogResult result = dialog.ShowDialog();
       if (result == System.Windows.Forms.DialogResult.OK) {
@@ -72,15 +73,11 @@ namespace SciGit_Client
       if (notifyUpload.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyUpload;
       if (folder.Text != projectFolder) {
         projectFolder = folder.Text;
-        try {
-          if (!Directory.Exists(projectFolder)) {
-            var directoryInfo = Directory.CreateDirectory(projectFolder);
-          }
-        } catch (Exception) {
+        if (!Directory.Exists(projectFolder)) {
           MessageBox.Show(this, "Invalid project directory.", "Error");
           return;
         }
-        Settings.Default.ProjectFolder = projectFolder;
+        Settings.Default.ProjectDirectory = projectFolder;
       }
       Settings.Default.NotifyMask = newNotifyMask;
       Settings.Default.Save();

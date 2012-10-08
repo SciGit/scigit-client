@@ -92,12 +92,12 @@ namespace SciGit_Client.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ProjectFolder {
+        public string ProjectDirectory {
             get {
-                return ((string)(this["ProjectFolder"]));
+                return ((string)(this["ProjectDirectory"]));
             }
             set {
-                this["ProjectFolder"] = value;
+                this["ProjectDirectory"] = value;
             }
         }
     }
