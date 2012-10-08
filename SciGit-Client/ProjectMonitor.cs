@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Security.Permissions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -30,17 +31,21 @@ namespace SciGit_Client
 
     #endregion
 
-    private const int monitorDelay = 5 * 1000;
-
     public List<Action> loadedCallbacks;
-    private Thread monitorThread;
-    public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks, projectUpdatedCallbacks;
-    List<Project> projects;
     public List<Action> updateCallbacks;
     public List<Action> failureCallbacks;
-    List<Project> updatedProjects;
+
+    public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks;
+    public List<ProjectCallback> projectUpdatedCallbacks, projectEditedCallbacks;
+
+    private Thread monitorThread;
+    private const int monitorDelay = 5 * 1000;
+
+    private List<Project> projects, updatedProjects, editedProjects;
     private static string projectDirectory;
-    
+    private FileSystemWatcher fileWatcher;
+
+    [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
     public ProjectMonitor(List<Project> projects = null) {
       projectDirectory = Settings.Default.ProjectDirectory;
       if (String.IsNullOrEmpty(projectDirectory)) {
@@ -61,14 +66,24 @@ namespace SciGit_Client
         this.projects = new List<Project>();
       }
       updatedProjects = new List<Project>();
+      editedProjects = new List<Project>();
 
       monitorThread = new Thread(MonitorProjects);
       updateCallbacks = new List<Action>();
       loadedCallbacks = new List<Action>();
       projectUpdatedCallbacks = new List<ProjectCallback>();
+      projectEditedCallbacks = new List<ProjectCallback>();
       projectAddedCallbacks = new List<ProjectCallback>();
       projectRemovedCallbacks = new List<ProjectCallback>();
       failureCallbacks = new List<Action>();
+
+      fileWatcher = new FileSystemWatcher(GetProjectDirectory());
+      fileWatcher.IncludeSubdirectories = true;
+      fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
+      fileWatcher.Changed += FileChanged;
+      fileWatcher.Created += FileChanged;
+      fileWatcher.Deleted += FileChanged;
+      fileWatcher.EnableRaisingEvents = true;
     }
 
     public void StartMonitoring() {
@@ -89,6 +104,12 @@ namespace SciGit_Client
     public List<Project> GetUpdatedProjects() {
       lock (updatedProjects) {
         return new List<Project>(updatedProjects);
+      }
+    }
+
+    public List<Project> GetEditedProjects() {
+      lock (editedProjects) {
+        return new List<Project>(editedProjects);
       }
     }
 
@@ -135,14 +156,25 @@ namespace SciGit_Client
           }
 
           if (newProjects != null && !newProjects.SequenceEqual(projects)) {
-            Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
-            Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);
-            Dictionary<int, Project> updatedProjectDict = updatedProjects.ToDictionary(p => p.Id);
+            Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
+            oldProjectDict = GetProjects().ToDictionary(p => p.Id);
+            newProjectDict = newProjects.ToDictionary(p => p.Id);
+            updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.Id);
+            editedProjectDict = GetEditedProjects().ToDictionary(p => p.Id);
 
             var newUpdatedProjects = new List<Project>();
             foreach (var project in newProjects) {
               if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.Id)) {
                 DispatchCallbacks(projectAddedCallbacks, project);
+              }
+              // This only needs to be done at load. Otherwise, the file watcher will catch it.
+              if (!loaded && HasUpload(project)) {
+                lock (editedProjects) {
+                  editedProjects.Add(project);
+                }
+                if (project.CanWrite && !editedProjectDict.ContainsKey(project.Id)) {
+                  DispatchCallbacks(projectEditedCallbacks, project);
+                }
               }
               if (HasUpdate(project)) {
                 newUpdatedProjects.Add(project);
@@ -256,14 +288,13 @@ namespace SciGit_Client
           if (ret.Output.Contains("CONFLICT")) {
             const string dialogMsg =
               "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
-                "You can also resolve them manually using your text editor.\r\n" +
-                  "Please save any open files before continuing.";
+              "Please save any remaining changes before continuing.";
             MessageBoxResult resp = MessageBoxResult.Cancel;
             window.Dispatcher.Invoke(
-              new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.YesNoCancel)));
+              new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.OKCancel)));
             MergeResolver mr = null;
             Exception exception = null;
-            if (resp == MessageBoxResult.Yes) {
+            if (resp == MessageBoxResult.OK) {
               window.Dispatcher.Invoke(new Action(() => {
                 try {
                   mr = new MergeResolver(p);
@@ -314,7 +345,7 @@ namespace SciGit_Client
         }
         if (success) {
           lock (updatedProjects) {
-            updatedProjects = updatedProjects.Where(up => up.Id != p.Id).ToList();
+            updatedProjects.RemoveAll(pr => pr.Id == p.Id);
           }
           updateCallbacks.ForEach(c => c.Invoke());
         }
@@ -449,6 +480,34 @@ namespace SciGit_Client
         lastHash = ret.Stdout.Trim();
       }
       return lastHash != p.LastCommitHash;
+    }
+
+    public bool HasUpload(Project p) {
+      string dir = GetProjectDirectory(p);
+      ProcessReturn ret = GitWrapper.Status(dir);
+      return ret.Stdout.Trim() != "";
+    }
+
+    private void FileChanged(object sender, FileSystemEventArgs e) {
+      string filename = e.FullPath;
+      Project p = GetProjectFromFilename(ref filename);
+      if (p.Id != 0) {
+        lock (editedProjects) {
+          bool contains = editedProjects.Find(pr => pr.Id == p.Id).Id != 0;
+          if (HasUpload(p)) {
+            if (!contains) {
+              editedProjects.Add(p);
+              if (p.CanWrite) {
+                DispatchCallbacks(projectEditedCallbacks, p);
+                updateCallbacks.ForEach(c => c.Invoke());
+              }
+            }
+          } else if (contains) {
+            editedProjects.RemoveAll(pr => pr.Id == p.Id);
+            updateCallbacks.ForEach(c => c.Invoke());
+          }
+        }
+      }
     }
 
     private static string DefaultProjectDirectory() {

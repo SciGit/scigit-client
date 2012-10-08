@@ -52,6 +52,7 @@ namespace SciGit_Client
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
       projectMonitor.projectRemovedCallbacks.Add(ProjectRemoved);
       projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
+      projectMonitor.projectEditedCallbacks.Add(ProjectEdited);
       projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
       projectMonitor.failureCallbacks.Add(OnProjectMonitorFailure);
       projectMonitor.StartMonitoring();
@@ -260,6 +261,14 @@ namespace SciGit_Client
       }
     }
 
+    private void ProjectEdited(Project p) {
+      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpload) != 0) {
+        QueueBalloonTip("Project Edited",
+                        "You made changes to project " + p.Name + ". Click to upload your changes...",
+                        CreateUploadProjectHandler(p));
+      }
+    }
+
     // ContextMenuStrip (from the designer) is inconsistent with Windows context menus.
     // Use our own
     private void InitializeContextMenu() {
@@ -288,20 +297,23 @@ namespace SciGit_Client
     }
 
     private void UpdateContextMenu() {
-      List<Project> projects = projectMonitor.GetProjects();
-      List<Project> updatedProjects = projectMonitor.GetUpdatedProjects();
+      var projects = projectMonitor.GetProjects();
+      var updatedProjects = projectMonitor.GetUpdatedProjects();
+      var editedProjects = projectMonitor.GetEditedProjects();
       var update = notifyIcon.ContextMenu.MenuItems[3];
       var upload = notifyIcon.ContextMenu.MenuItems[4];      
       var curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
       var newNames = new HashSet<string>(from p in projects select p.Name);
       var updNames = new HashSet<string>(from p in updatedProjects select p.Name);
+      var editNames = new HashSet<string>(from p in editedProjects select p.Name);
       var writeNames = new HashSet<string>(from p in projects where p.CanWrite select p.Name);
 
       for (int i = update.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = update.MenuItems[i];
-        item.Checked = updNames.Contains(item.Text);
         if (!newNames.Contains(item.Text)) {
           update.MenuItems.Remove(item);
+        } else {
+          item.Checked = updNames.Contains(item.Text);
         }
       }
 
@@ -317,6 +329,7 @@ namespace SciGit_Client
         } else {
           bool canWrite = writeNames.Contains(projName); 
           item.Enabled = canWrite;
+          item.Checked = canWrite && editNames.Contains(projName);
           item.Text = projName + (canWrite ? "" : readOnlySuffix);
         }
       }
@@ -331,7 +344,9 @@ namespace SciGit_Client
           update.MenuItems.Add(item);
           item = new MenuItem(project.Name + (project.CanWrite ? "" : readOnlySuffix),
                               CreateUploadProjectHandler(curProject)) {
-            Enabled = project.CanWrite
+            Enabled = project.CanWrite,
+            Checked = project.CanWrite && editNames.Contains(project.Name),
+            RadioCheck = true
           };
           upload.MenuItems.Add(item);
         }
@@ -341,11 +356,14 @@ namespace SciGit_Client
       updateAll.Text = "Update All" + (updNames.Count > 0 ? String.Format(" ({0})", updNames.Count) : "");
 
       var uploadAll = notifyIcon.ContextMenu.MenuItems[7];
-      update.Enabled = upload.Enabled = updateAll.Enabled = projects.Count > 0;
+      int uploadable = writeNames.Intersect(editNames).Count();
+      uploadAll.Text = "Upload All" + (uploadable > 0 ? String.Format(" ({0})", uploadable) : "");
       uploadAll.Enabled = writeNames.Count > 0;
 
+      update.Enabled = upload.Enabled = updateAll.Enabled = projects.Count > 0;
+
       // Hide the loading indicator and show others
-      notifyIcon.Icon = updNames.Count > 0 ? notifyIconUpdate : notifyIconBase;
+      notifyIcon.Icon = updNames.Count > 0 || uploadable > 0 ? notifyIconUpdate : notifyIconBase;
       for (int i = 3; i <= 7; i++) {
         notifyIcon.ContextMenu.MenuItems[i].Visible = true;
       }

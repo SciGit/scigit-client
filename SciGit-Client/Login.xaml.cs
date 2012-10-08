@@ -57,6 +57,7 @@ namespace SciGit_Client
         Hide();
         main = new Main(this);
         main.Show();
+        main.Hide();
       } else {
         MessageBox.Show(result.Item2 == RestClient.Error.Forbidden ?
           "Incorrect username or password." :
