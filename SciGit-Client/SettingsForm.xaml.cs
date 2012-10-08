@@ -13,6 +13,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Microsoft.VisualBasic.FileIO;
 using SciGit_Client.Properties;
 using MessageBox = System.Windows.MessageBox;
 
@@ -71,12 +72,21 @@ namespace SciGit_Client
       if (notifyAddDelete.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyAddDelete;
       if (notifyUpload.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyUpload;
       if (folder.Text != projectFolder) {
-        projectFolder = folder.Text;
-        if (!Directory.Exists(projectFolder)) {
-          MessageBox.Show(this, "Invalid project directory.", "Error");
+        var result = MessageBox.Show(this, "Would you like to move your existing projects over?", "Move", MessageBoxButton.YesNoCancel);
+        try {
+          if (!Directory.Exists(folder.Text)) {
+            Directory.CreateDirectory(folder.Text);
+          }
+          if (result == MessageBoxResult.Yes) {
+            FileSystem.MoveDirectory(projectFolder, folder.Text, UIOption.AllDialogs);
+          } else if (result == MessageBoxResult.Cancel) {
+            return;
+          }
+        } catch (Exception) {
+          MessageBox.Show("Error creating project directory.");
           return;
         }
-        Settings.Default.ProjectDirectory = projectFolder;
+        Settings.Default.ProjectDirectory = projectFolder = folder.Text;
       }
       Settings.Default.NotifyMask = newNotifyMask;
       Settings.Default.Save();
