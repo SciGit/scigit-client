@@ -49,12 +49,11 @@ namespace SciGit_Client
 
     private void ClickChooseFolder(object sender, EventArgs e) {
       var dialog = new FolderBrowserDialog();
-      dialog.Description = "Select a folder for your SciGit projects. Projects will appear as subdirectories.";
-      dialog.SelectedPath = folder.Text;
+      dialog.Description = "Select a folder for your projects. Projects will be placed under a SciGit folder at the destination.";
       dialog.ShowNewFolderButton = true;
       DialogResult result = dialog.ShowDialog();
       if (result == System.Windows.Forms.DialogResult.OK) {
-        folder.Text = dialog.SelectedPath;
+        folder.Text = System.IO.Path.Combine(dialog.SelectedPath, "SciGit");
       }
     }
 
