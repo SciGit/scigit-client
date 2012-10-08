@@ -237,19 +237,27 @@ namespace SciGit_Client
     }
 
     private void ProjectAdded(Project p) {
-      QueueBalloonTip("Project Added",
-        "Project " + p.Name + (p.CanWrite ? "" : " (read-only)") +
-        " has been added. Click to open the project folder...", CreateOpenDirectoryHandler(p));
+      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyAddDelete) != 0) {
+        QueueBalloonTip("Project Added",
+                        "Project " + p.Name + (p.CanWrite ? "" : " (read-only)") +
+                          " has been added. Click to open the project folder...", CreateOpenDirectoryHandler(p));
+      }
     }
 
     private void ProjectRemoved(Project p) {
-      QueueBalloonTip("Project Removed",
-        "You are no longer receiving updates for project " + p.Name + ". Click to open the project folder...", CreateOpenDirectoryHandler(p));
+      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyAddDelete) != 0) {
+        QueueBalloonTip("Project Removed",
+                        "You are no longer receiving updates for project " + p.Name +
+                          ". Click to open the project folder...", CreateOpenDirectoryHandler(p));
+      }
     }
 
     private void ProjectUpdated(Project p) {
-      QueueBalloonTip("Project Updated",
-        "Project " + p.Name + " has been updated. Click to update the local version...", CreateUpdateProjectHandler(p));
+      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpdate) != 0) {
+        QueueBalloonTip("Project Updated",
+                        "Project " + p.Name + " has been updated. Click to update the local version...",
+                        CreateUpdateProjectHandler(p));
+      }
     }
 
     // ContextMenuStrip (from the designer) is inconsistent with Windows context menus.
