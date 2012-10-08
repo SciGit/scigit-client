@@ -76,5 +76,29 @@ namespace SciGit_Client.Properties {
                 return ((string)(this["SciGitEmail"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("7")]
+        public int NotifyMask {
+            get {
+                return ((int)(this["NotifyMask"]));
+            }
+            set {
+                this["NotifyMask"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ProjectFolder {
+            get {
+                return ((string)(this["ProjectFolder"]));
+            }
+            set {
+                this["ProjectFolder"] = value;
+            }
+        }
     }
 }

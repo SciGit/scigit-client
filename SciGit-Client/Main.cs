@@ -182,6 +182,11 @@ namespace SciGit_Client
       Close();
     }
 
+    private void SettingsClick(object sender, EventArgs e) {
+      var sf = new SettingsForm();
+      sf.Show();
+    }
+
     private void LogoutClick(object sender, EventArgs e) {
       Logout();
     }
@@ -256,6 +261,7 @@ namespace SciGit_Client
       notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("Loading...").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
+      notifyIcon.ContextMenu.MenuItems.Add("Settings...", SettingsClick);
       notifyIcon.ContextMenu.MenuItems.Add("Logout...", LogoutClick);
       notifyIcon.ContextMenu.MenuItems.Add("Exit", ExitClick);
 
