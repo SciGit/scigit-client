@@ -44,6 +44,7 @@ namespace SciGit_Client
     private List<Project> projects, updatedProjects, editedProjects;
     private static string projectDirectory;
     private FileSystemWatcher fileWatcher;
+    private int activeProjectId;
 
     [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
     public ProjectMonitor(List<Project> projects = null) {
@@ -240,6 +241,8 @@ namespace SciGit_Client
     }
 
     public bool UpdateProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
+      activeProjectId = p.Id;
+
       string dir = GetProjectDirectory(p);
       bool possibleCommit = false, rebaseStarted = false, success = false;
       ProcessReturn ret;
@@ -349,12 +352,15 @@ namespace SciGit_Client
           }
           updateCallbacks.ForEach(c => c.Invoke());
         }
+        activeProjectId = 0;
       }
 
       return success;
     }
 
     public bool UploadProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
+      activeProjectId = p.Id;
+
       Project updatedProject;
       lock (projects) {
         updatedProject = projects.Find(pr => pr.Id == p.Id);
@@ -435,6 +441,8 @@ namespace SciGit_Client
         if (!success && committed) {
           CheckReturn("reset", GitWrapper.Reset(dir, "HEAD^"), worker);
         }
+        updateCallbacks.ForEach(c => c.Invoke());
+        activeProjectId = 0;
       }
     }
 
@@ -497,14 +505,16 @@ namespace SciGit_Client
           if (HasUpload(p)) {
             if (!contains) {
               editedProjects.Add(p);
-              if (p.CanWrite) {
+              if (p.CanWrite && activeProjectId != p.Id) {
                 DispatchCallbacks(projectEditedCallbacks, p);
                 updateCallbacks.ForEach(c => c.Invoke());
               }
             }
           } else if (contains) {
             editedProjects.RemoveAll(pr => pr.Id == p.Id);
-            updateCallbacks.ForEach(c => c.Invoke());
+            if (activeProjectId != p.Id) {
+              updateCallbacks.ForEach(c => c.Invoke());
+            }
           }
         }
       }
