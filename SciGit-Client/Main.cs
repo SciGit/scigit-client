@@ -52,6 +52,7 @@ namespace SciGit_Client
       projectMonitor.projectRemovedCallbacks.Add(ProjectRemoved);
       projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
       projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
+      projectMonitor.failureCallbacks.Add(OnProjectMonitorFailure);
       projectMonitor.StartMonitoring();
     }
 
@@ -85,6 +86,13 @@ namespace SciGit_Client
 
       shellCmdHandler = new ShellCommandHandler(HandleCommand);
       shellCmdHandler.Start();
+    }
+
+    private void OnProjectMonitorFailure() {
+      this.Invoke(new Action(() => {
+        MessageBox.Show("Could not authenticate with the SciGit server. Please log in again.", "Error");
+        Logout();
+      }));
     }
 
     private void OpenFileHistory(Project p, string filename) {
@@ -168,10 +176,14 @@ namespace SciGit_Client
       progressForm.Show();
     }
 
-    private void LogoutClick(object sender, EventArgs e) {
+    private void Logout() {
       loginWindow.Reset();
       loginWindow.Show();
       Close();
+    }
+
+    private void LogoutClick(object sender, EventArgs e) {
+      Logout();
     }
 
     private void ExitClick(object sender, EventArgs e) {
@@ -361,7 +373,7 @@ namespace SciGit_Client
 
     private void OnClosed(object sender, FormClosedEventArgs e) {
       projectMonitor.StopMonitoring();
-      shellCmdHandler.Stop();
+      if (shellCmdHandler != null) shellCmdHandler.Stop();
     }
   }
 }

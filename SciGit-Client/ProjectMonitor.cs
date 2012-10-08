@@ -36,6 +36,7 @@ namespace SciGit_Client
     public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks, projectUpdatedCallbacks;
     List<Project> projects;
     public List<Action> updateCallbacks;
+    public List<Action> failureCallbacks;
     List<Project> updatedProjects;
 
     public ProjectMonitor(List<Project> projects = null) {
@@ -59,6 +60,7 @@ namespace SciGit_Client
       projectUpdatedCallbacks = new List<ProjectCallback>();
       projectAddedCallbacks = new List<ProjectCallback>();
       projectRemovedCallbacks = new List<ProjectCallback>();
+      failureCallbacks = new List<Action>();
     }
 
     public void StartMonitoring() {
@@ -114,7 +116,16 @@ namespace SciGit_Client
       bool loaded = false;
       while (true) {
         try {
-          List<Project> newProjects = RestClient.GetProjects();
+          var tuple = RestClient.GetProjects();
+          List<Project> newProjects = tuple.Item1;
+          RestClient.Error error = tuple.Item2;
+          if (error == RestClient.Error.Forbidden) {
+            failureCallbacks.ForEach(c => c.Invoke());
+            break;
+          } else if (error != RestClient.Error.NoError) {
+            Logger.LogMessage(error.ToString() + " getting projects");
+          }
+
           if (newProjects != null && !newProjects.SequenceEqual(projects)) {
             Dictionary<int, Project> oldProjectDict = projects.ToDictionary(p => p.Id);
             Dictionary<int, Project> newProjectDict = newProjects.ToDictionary(p => p.Id);

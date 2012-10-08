@@ -14,11 +14,13 @@ namespace SciGit_Client
 {
   class RestClient
   {
-    #region Delegates
-
-    public delegate void LoginResponseCallback(bool success, string error = "");
-
-    #endregion
+    public enum Error
+    {
+      NoError,
+      Forbidden,
+      InvalidRequest,
+      ConnectionError
+    }
 
     public readonly static string ServerHost = (string)Settings.Default["SciGitHostname"];
     public static int Timeout = 20000;
@@ -26,23 +28,25 @@ namespace SciGit_Client
     private static string AuthToken = "";
     private static int ExpiryTime;
 
-    public static void Login(string username, string password, LoginResponseCallback callback) {
+    public static Tuple<bool, Error> Login(string username, string password) {
       string uri = "https://" + ServerHost + "/api/auth/login";
-      WebRequest request = WebRequest.Create(uri);
-      request.Method = "POST";
-      request.Credentials = CredentialCache.DefaultCredentials;
-      request.Timeout = Timeout;
-      request.ContentType = "application/x-www-form-urlencoded";
-      WriteData(request, new Dictionary<String, String> {
-        { "username", username },
-        { "password", password }
-      });
-
-      ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
-      //allows for validation of SSL certificates
-      ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, errors) => true;
+      Error error;
 
       try {
+        WebRequest request = WebRequest.Create(uri);
+        request.Method = "POST";
+        request.Credentials = CredentialCache.DefaultCredentials;
+        request.Timeout = Timeout;
+        request.ContentType = "application/x-www-form-urlencoded";
+        WriteData(request, new Dictionary<String, String> {
+          { "username", username },
+          { "password", password }
+        });
+
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
+        //allows for validation of SSL certificates
+        ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, errors) => true;
+
         WebResponse response = request.GetResponse();
         Stream dataStream = response.GetResponseStream();
 
@@ -55,32 +59,37 @@ namespace SciGit_Client
 
         AuthToken = authTokenNode.InnerText;
         ExpiryTime = Int32.Parse(expiryTsNode.InnerText);
-        callback(true);
+        return Tuple.Create(true, Error.NoError);
       } catch (WebException e) {
         var response = (HttpWebResponse)e.Response;
-        if (response.StatusCode == HttpStatusCode.Forbidden) {
-          callback(false, "Invalid username or password.");
+        if (response == null) {
+          error = Error.ConnectionError;
+        } else if (response.StatusCode == HttpStatusCode.Forbidden) {
+          error = Error.Forbidden;
         } else {
-          callback(false, "Could not connect to the SciGit server. Please try again.");
+          error = Error.InvalidRequest;
         }
       } catch (Exception e) {
+        error = Error.ConnectionError;
         Logger.LogException(e);
-        callback(false, "Could not connect to the SciGit server. Please try again.");
       }
+
+      return Tuple.Create(false, error);
     }
 
-    public static List<Project> GetProjects() {
+    public static Tuple<List<Project>, Error> GetProjects() {
       if (Username == "") return null;
 
-      string uri = "http://" + ServerHost + "/api/projects";
-      WebRequest request = WebRequest.Create(uri + "?" + GetQueryString(new Dictionary<String, String> {
-        { "username", Username },
-        { "auth_token", AuthToken }
-      }));
-      request.Timeout = Timeout;
-
+      Error error;
+      string uri = "http://" + ServerHost + "/api/projects";      
       try {
-        var response = (HttpWebResponse)request.GetResponse();
+        WebRequest request = WebRequest.Create(uri + "?" + GetQueryString(new Dictionary<String, String> {
+          { "username", Username },
+          { "auth_token", AuthToken }
+        }));
+        request.Timeout = Timeout;
+
+        var response = (HttpWebResponse) request.GetResponse();
         Stream dataStream = response.GetResponseStream();
 
         XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
@@ -100,26 +109,35 @@ namespace SciGit_Client
           };
           projects.Add(p);
         }
-        return projects;
+        return Tuple.Create(projects, Error.NoError);
+      } catch (WebException e) {
+        var response = (HttpWebResponse)e.Response;
+        if (response.StatusCode == HttpStatusCode.Forbidden) {
+          error = Error.Forbidden;
+        } else {
+          error = Error.InvalidRequest;
+        }
       } catch (Exception e) {
+        error = Error.ConnectionError;
         Logger.LogException(e);
-        return null;
       }
+
+      return Tuple.Create<List<Project>, Error>(null, error);
     }
 
     public static bool? UploadPublicKey(string key) {
       string uri = "http://" + ServerHost + "/api/users/public_keys";
-      WebRequest request = WebRequest.Create(uri);
-      request.Method = "PUT";
-      request.Timeout = Timeout;
-      WriteData(request, new Dictionary<String, String> {
-        { "username", Username },
-        { "auth_token", AuthToken },
-        { "name", Environment.MachineName },
-        { "public_key", key }
-      });
 
       try {
+        WebRequest request = WebRequest.Create(uri);
+        request.Method = "PUT";
+        request.Timeout = Timeout;
+        WriteData(request, new Dictionary<String, String> {
+          { "username", Username },
+          { "auth_token", AuthToken },
+          { "name", Environment.MachineName },
+          { "public_key", key }
+        });
         var response = (HttpWebResponse)request.GetResponse();
         Stream dataStream = response.GetResponseStream();
         return true;

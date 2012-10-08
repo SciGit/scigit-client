@@ -20,8 +20,8 @@ namespace SciGit_Client
         rememberMe.IsChecked = true;
         emailValue.Text = Settings.Default.SavedUsername;
         passwordValue.Password = Settings.Default.SavedPassword;
+        // BeginLogin();
       }
-      BeginLogin();
     }
 
     public void Reset() {
@@ -38,27 +38,31 @@ namespace SciGit_Client
       login.Content = "Logging in...";
       var bg = new BackgroundWorker();
       string email = emailValue.Text, password = passwordValue.Password;
-      bg.DoWork += (bw, _) => RestClient.Login(email, password, LoginCallback);
+      bg.DoWork += (bw, _) => Dispatcher.Invoke(new Action(() =>
+        FinishLogin(RestClient.Login(email, password))));
       bg.RunWorkerAsync();
     }
 
-    private void LoginCallback(bool success, string error = "") {
-      Dispatcher.Invoke(new Action(() => {
-        if (success) {
-          if (rememberMe.IsChecked ?? false) {
-            Settings.Default.RememberUser = true;
-            Settings.Default.SavedUsername = emailValue.Text;
-            Settings.Default.SavedPassword = passwordValue.Password;
-            Settings.Default.Save();
-          }
-          Hide();
-          main = new Main(this);
-          main.Show();
+    private void FinishLogin(Tuple<bool, RestClient.Error> result) {
+      if (result.Item1) {
+        if (rememberMe.IsChecked ?? false) {
+          Settings.Default.RememberUser = true;
+          Settings.Default.SavedUsername = emailValue.Text;
+          Settings.Default.SavedPassword = passwordValue.Password;
+          Settings.Default.Save();
         } else {
-          MessageBox.Show(error, "Error");
-          Reset();
+          Settings.Default.RememberUser = false;
+          Settings.Default.Save();
         }
-      }));
+        Hide();
+        main = new Main(this);
+        main.Show();
+      } else {
+        MessageBox.Show(result.Item2 == RestClient.Error.Forbidden ?
+          "Incorrect username or password." :
+          "Could not connect to the SciGit servers. Please try again later.", "Error");
+        Reset();
+      }
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e) {
