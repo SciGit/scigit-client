@@ -65,6 +65,10 @@ namespace SciGit_Client
       monitorThread.Start();
     }
 
+    public void StopMonitoring() {
+      monitorThread.Abort();
+    }
+
     // Return a clone to avoid concurrency issues.
     public List<Project> GetProjects() {
       lock (projects) {

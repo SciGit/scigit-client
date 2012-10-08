@@ -94,6 +94,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ShellCommandHandler.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="CommitForm.xaml.cs">
       <DependentUpon>CommitForm.xaml</DependentUpon>

@@ -52,6 +52,7 @@ namespace SciGit_Client
       this.ShowIcon = false;
       this.ShowInTaskbar = false;
       this.Text = "SGMain";
+      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OnClosed);
       this.ResumeLayout(false);
 
         }

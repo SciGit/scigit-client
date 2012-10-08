@@ -12,6 +12,8 @@ namespace SciGit_Client
   /// </summary>
   public partial class Login : Window
   {
+    private Main main;
+
     public Login() {
       InitializeComponent();
       if (Settings.Default.RememberUser) {
@@ -19,9 +21,19 @@ namespace SciGit_Client
         emailValue.Text = Settings.Default.SavedUsername;
         passwordValue.Password = Settings.Default.SavedPassword;
       }
+      BeginLogin();
+    }
+
+    public void Reset() {
+      login.Content = "Login";
+      login.IsEnabled = true;
     }
 
     private void login_Click(object sender, RoutedEventArgs e) {
+      BeginLogin();
+    }
+
+    private void BeginLogin() {
       login.IsEnabled = false;
       login.Content = "Logging in...";
       var bg = new BackgroundWorker();
@@ -40,13 +52,11 @@ namespace SciGit_Client
             Settings.Default.Save();
           }
           Hide();
-          var sgMain = new Main();
-          sgMain.Show();
-          sgMain.Hide();
+          main = new Main(this);
+          main.Show();
         } else {
           MessageBox.Show(error, "Error");
-          login.IsEnabled = true;
-          login.Content = "Login";
+          Reset();
         }
       }));
     }

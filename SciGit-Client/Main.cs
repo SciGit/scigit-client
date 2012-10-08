@@ -22,14 +22,17 @@ namespace SciGit_Client
 
   public partial class Main : Form
   {
-    const int balloonTipTimeout = 3000;
-    bool loaded = false;
-    Queue<BalloonTip> balloonTips;
-    Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
-    NamedPipeServerStream pipeServer;
-    ProjectMonitor projectMonitor;
+    private const int balloonTipTimeout = 3000;
+    private bool loaded = false;
+    private Queue<BalloonTip> balloonTips;
+    private Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
+    private ShellCommandHandler shellCmdHandler;
+    private ProjectMonitor projectMonitor;
+    private Login loginWindow;
 
-    public Main() {
+    public Main(Login loginWindow) {
+      this.loginWindow = loginWindow;
+
       InitializeComponent();
       var resources = new ComponentResourceManager(typeof(Main));
       notifyIconBase = notifyIcon.Icon;
@@ -80,22 +83,8 @@ namespace SciGit_Client
         HandleCommand(args[1], args[2]);
       }
 
-      pipeServer = new NamedPipeServerStream("sciGitPipe", PipeDirection.In, 2);
-      var t = new Thread(() => {
-        while (true) {
-          pipeServer.WaitForConnection();
-          try {
-            var ss = new StreamString(pipeServer);
-            string verb = ss.ReadString();
-            string filename = ss.ReadString();
-            HandleCommand(verb, filename);
-          } catch (Exception e) {
-            Logger.LogException(e);
-          }
-          pipeServer.Disconnect();
-        }
-      });
-      t.Start();
+      shellCmdHandler = new ShellCommandHandler(HandleCommand);
+      shellCmdHandler.Start();
     }
 
     private void OpenFileHistory(Project p, string filename) {
@@ -179,6 +168,12 @@ namespace SciGit_Client
       progressForm.Show();
     }
 
+    private void LogoutClick(object sender, EventArgs e) {
+      loginWindow.Reset();
+      loginWindow.Show();
+      Close();
+    }
+
     private void ExitClick(object sender, EventArgs e) {
       notifyIcon.Visible = false;
       Environment.Exit(0);
@@ -249,6 +244,7 @@ namespace SciGit_Client
       notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("Loading...").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
+      notifyIcon.ContextMenu.MenuItems.Add("Logout...", LogoutClick);
       notifyIcon.ContextMenu.MenuItems.Add("Exit", ExitClick);
 
       // Just show the loading indicator for now
@@ -361,6 +357,11 @@ namespace SciGit_Client
       var knownHostsHandle = File.Open(knownHostsFile, FileMode.Append);
       knownHostsHandle.Write(Encoding.ASCII.GetBytes(hostKey), 0, hostKey.Length);
       knownHostsHandle.Close();
+    }
+
+    private void OnClosed(object sender, FormClosedEventArgs e) {
+      projectMonitor.StopMonitoring();
+      shellCmdHandler.Stop();
     }
   }
 }
