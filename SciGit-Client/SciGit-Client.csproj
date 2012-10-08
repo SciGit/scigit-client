@@ -151,6 +151,7 @@
       <DependentUpon>DiffViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="StreamString.cs" />
+    <Compile Include="UpdateChecker.cs" />
     <Page Include="CommitForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

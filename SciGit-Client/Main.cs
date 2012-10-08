@@ -29,6 +29,7 @@ namespace SciGit_Client
     private Icon notifyIconBase, notifyIconLoading, notifyIconUpdate;
     private ShellCommandHandler shellCmdHandler;
     private ProjectMonitor projectMonitor;
+    private UpdateChecker updateChecker;
     private Login loginWindow;
 
     public Main(Login loginWindow) {
@@ -56,6 +57,9 @@ namespace SciGit_Client
       projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
       projectMonitor.failureCallbacks.Add(OnProjectMonitorFailure);
       projectMonitor.StartMonitoring();
+
+      updateChecker = new UpdateChecker();
+      updateChecker.Start();
     }
 
     private void HandleCommand(string verb, string filename) {
@@ -412,6 +416,7 @@ namespace SciGit_Client
 
     private void OnClosed(object sender, FormClosedEventArgs e) {
       projectMonitor.StopMonitoring();
+      updateChecker.Stop();
       if (shellCmdHandler != null) shellCmdHandler.Stop();
     }
   }

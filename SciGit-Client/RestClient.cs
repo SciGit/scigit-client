@@ -127,6 +127,39 @@ namespace SciGit_Client
       return Tuple.Create<List<Project>, Error>(null, error);
     }
 
+    public static Tuple<string, Error> GetLatestClientVersion() {
+      Error error;
+      string uri = "http://" + ServerHost + "/api/client_version";
+      try {
+        WebRequest request = WebRequest.Create(uri);
+        request.Timeout = Timeout;
+
+        var response = (HttpWebResponse)request.GetResponse();
+        Stream dataStream = response.GetResponseStream();
+
+        XmlReader reader = JsonReaderWriterFactory.CreateJsonReader(dataStream, new XmlDictionaryReaderQuotas());
+        var doc = new XmlDocument();
+        doc.Load(reader);
+
+        string version = doc.SelectSingleNode("//version").InnerText;
+        return Tuple.Create(version, Error.NoError);
+      } catch (WebException e) {
+        var response = (HttpWebResponse)e.Response;
+        if (response == null) {
+          error = Error.ConnectionError;
+        } else if (response.StatusCode == HttpStatusCode.Forbidden) {
+          error = Error.Forbidden;
+        } else {
+          error = Error.InvalidRequest;
+        }
+      } catch (Exception e) {
+        error = Error.ConnectionError;
+        Logger.LogException(e);
+      }
+
+      return Tuple.Create<string, Error>(null, error);
+    }
+
     public static bool? UploadPublicKey(string key) {
       string uri = "http://" + ServerHost + "/api/users/public_keys";
 
