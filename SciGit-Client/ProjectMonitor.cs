@@ -156,7 +156,7 @@ namespace SciGit_Client
             Logger.LogMessage(error.ToString() + " getting projects");
           }
 
-          if (newProjects != null && !newProjects.SequenceEqual(projects)) {
+          if (newProjects != null && (!loaded || !newProjects.SequenceEqual(projects))) {
             Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
             oldProjectDict = GetProjects().ToDictionary(p => p.Id);
             newProjectDict = newProjects.ToDictionary(p => p.Id);

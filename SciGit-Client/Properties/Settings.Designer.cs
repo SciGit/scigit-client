@@ -61,7 +61,7 @@ namespace SciGit_Client.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("stage.scigit.sherk.me")]
+        [global::System.Configuration.DefaultSettingValueAttribute("beta.scigit.com")]
         public string SciGitHostname {
             get {
                 return ((string)(this["SciGitHostname"]));
@@ -70,7 +70,7 @@ namespace SciGit_Client.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("team@scigit.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("eric@scigit.com")]
         public string SciGitEmail {
             get {
                 return ((string)(this["SciGitEmail"]));
