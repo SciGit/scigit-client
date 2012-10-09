@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Microsoft.VisualBasic.FileIO;
+using Microsoft.Win32;
 using SciGit_Client.Properties;
 using MessageBox = System.Windows.MessageBox;
 
@@ -46,6 +47,9 @@ namespace SciGit_Client
       } else {
         folder.Text = projectFolder;
       }
+
+      RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+      startup.IsChecked = rk.GetValue("SciGit") != null;
     }
 
     private void ClickChooseFolder(object sender, EventArgs e) {
@@ -90,6 +94,13 @@ namespace SciGit_Client
       }
       Settings.Default.NotifyMask = newNotifyMask;
       Settings.Default.Save();
+
+      RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+      if (startup.IsChecked == true) {
+        rk.SetValue("SciGit", '"' + System.Windows.Forms.Application.ExecutablePath + '"');
+      } else {
+        rk.DeleteValue("SciGit", false);
+      }
 
       Close();
     }
