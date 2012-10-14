@@ -20,7 +20,10 @@ namespace SciGit_Client
         rememberMe.IsChecked = true;
         emailValue.Text = Settings.Default.SavedUsername;
         passwordValue.Password = Settings.Default.SavedPassword;
-        // BeginLogin();
+        string[] args = Environment.GetCommandLineArgs();
+        if (args.Length == 2 && args[1] == "-autologin") {
+          BeginLogin();
+        }
       }
     }
 

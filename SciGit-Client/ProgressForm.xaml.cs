@@ -25,7 +25,7 @@ namespace SciGit_Client
     public ProgressForm(BackgroundAction action) {
       InitializeComponent();
 
-      textBox.Visibility = Visibility.Collapsed;
+      detailTextBox.Visibility = Visibility.Collapsed;
       TaskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
       
       bg = new BackgroundWorker();
@@ -71,11 +71,11 @@ namespace SciGit_Client
       if (e.ProgressPercentage >= 0) {
         SetProgressValue(e.ProgressPercentage);
         status.Text = data;
-        textBox.Text += data + "\r\n";
+        detailTextBox.Text += data + "\r\n";
       } else if (data.Length > 0) {
         string str = data.Replace("\n", "\r\n");
         if (!str.EndsWith("\r\n")) str += "\r\n";
-        textBox.Text += str;
+        detailTextBox.Text += str;
       }
     }
 
@@ -91,11 +91,11 @@ namespace SciGit_Client
     }
 
     private void details_Click(object sender, EventArgs e) {
-      if (textBox.Visibility == Visibility.Collapsed) {
-        textBox.Visibility = Visibility.Visible;
+      if (detailTextBox.Visibility == Visibility.Collapsed) {
+        detailTextBox.Visibility = Visibility.Visible;
         details.IsChecked = true;
       } else {
-        textBox.Visibility = Visibility.Collapsed;
+        detailTextBox.Visibility = Visibility.Collapsed;
         details.IsChecked = false;
       }
     }

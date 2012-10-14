@@ -97,7 +97,7 @@ namespace SciGit_Client
 
       RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
       if (startup.IsChecked == true) {
-        rk.SetValue("SciGit", '"' + System.Windows.Forms.Application.ExecutablePath + '"');
+        rk.SetValue("SciGit", '"' + System.Windows.Forms.Application.ExecutablePath + "\" -autologin");
       } else {
         rk.DeleteValue("SciGit", false);
       }

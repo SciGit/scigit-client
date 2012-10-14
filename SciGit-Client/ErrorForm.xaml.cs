@@ -27,11 +27,6 @@ namespace SciGit_Client
       return w.Dispatcher.Invoke(new Func<bool?>(form.ShowDialog)) as bool?;
     }
 
-    public static void FatalError(Window w, Exception e) {
-      ShowDialog(w, e);
-      Environment.Exit(1);
-    }
-
     private void ClickReport(object sender, EventArgs e) {
       string email = (string)Settings.Default["SciGitEmail"];
       string content = errorDetails.Text;
