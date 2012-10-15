@@ -16,6 +16,9 @@ namespace SciGit_Client
 
     public Login() {
       InitializeComponent();
+      registerLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/register");
+      forgotPassLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/forgot_password");
+
       if (Settings.Default.RememberUser) {
         rememberMe.IsChecked = true;
         emailValue.Text = Settings.Default.SavedUsername;
@@ -41,8 +44,10 @@ namespace SciGit_Client
       login.Content = "Logging in...";
       var bg = new BackgroundWorker();
       string email = emailValue.Text, password = passwordValue.Password;
-      bg.DoWork += (bw, _) => Dispatcher.Invoke(new Action(() =>
-        FinishLogin(RestClient.Login(email, password))));
+      bg.DoWork += (bw, _) => {
+        var result = RestClient.Login(email, password);
+        Dispatcher.Invoke(new Action(() => FinishLogin(result)));
+      };
       bg.RunWorkerAsync();
     }
 

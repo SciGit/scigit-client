@@ -24,9 +24,9 @@
 		</WrapPanel>
 
 		<TextBlock Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" Name="textBlock1" VerticalAlignment="Top" Margin="0,79,20,0" FontSize="11" Grid.ColumnSpan="2">
-			<Hyperlink NavigateUri="https://scigit.sherk.me/auth/register" RequestNavigate="Hyperlink_RequestNavigate">Register</Hyperlink>
+			<Hyperlink Name="registerLink" RequestNavigate="Hyperlink_RequestNavigate">Register</Hyperlink>
 			/
-			<Hyperlink NavigateUri="https://scigit.sherk.me/auth/forgot_password" RequestNavigate="Hyperlink_RequestNavigate">
+			<Hyperlink Name="forgotPassLink" RequestNavigate="Hyperlink_RequestNavigate">
 				Forgot your password?
 			</Hyperlink>
 		</TextBlock>
