@@ -23,5 +23,8 @@
     <Setting Name="ProjectDirectory" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="StageHostname" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">stage.scigit.com</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

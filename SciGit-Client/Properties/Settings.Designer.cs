@@ -100,5 +100,14 @@ namespace SciGit_Client.Properties {
                 this["ProjectDirectory"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("stage.scigit.com")]
+        public string StageHostname {
+            get {
+                return ((string)(this["StageHostname"]));
+            }
+        }
     }
 }

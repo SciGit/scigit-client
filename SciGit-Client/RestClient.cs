@@ -22,7 +22,7 @@ namespace SciGit_Client
       ConnectionError
     }
 
-    public readonly static string ServerHost = (string)Settings.Default["SciGitHostname"];
+    public static readonly string ServerHost = App.Hostname;
     public static int Timeout = 20000;
     public static string Username = "";
     private static string AuthToken = "";
@@ -101,7 +101,6 @@ namespace SciGit_Client
         foreach (XmlNode xmlNode in projectNodes) {
           var p = new Project {
             Id = Int32.Parse(xmlNode.SelectSingleNode("id").InnerText),
-            OwnerId = Int32.Parse(xmlNode.SelectSingleNode("owner_id").InnerText),
             Name = xmlNode.SelectSingleNode("name").InnerText,
             CreatedTime = Int32.Parse(xmlNode.SelectSingleNode("created_ts").InnerText),
             LastCommitHash = xmlNode.SelectSingleNode("last_commit_hash").InnerText,

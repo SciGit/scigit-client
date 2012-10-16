@@ -15,7 +15,6 @@ namespace SciGit_Client
   {
     public int Id { get; set; }
     public string Name { get; set; }
-    public int OwnerId { get; set; }
     public int CreatedTime { get; set; }
     public string LastCommitHash { get; set; }
     public bool CanWrite { get; set; }

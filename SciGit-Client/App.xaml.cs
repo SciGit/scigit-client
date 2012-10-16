@@ -12,11 +12,14 @@ namespace SciGit_Client
     public partial class App : Application
     {
       private static Mutex mutex;
+      public static string Hostname;
 
       public App() {
         bool owned;
         mutex = new Mutex(true, "SciGitApplicationMutex", out owned);
         string[] args = Environment.GetCommandLineArgs();
+        // Process context menu commands (of the form --{command} {file})
+        // If there is no instance open, then process the arguments after everything has loaded.
         if (!owned) {
           if (args.Length == 3) {
             var pipeClient = new NamedPipeClientStream(".", "sciGitPipe", PipeDirection.Out);
@@ -35,7 +38,11 @@ namespace SciGit_Client
           Environment.Exit(0);
         }
 
-        // If there is no instance open, then process the arguments after everything has loaded.
+#if STAGE
+        Hostname = Settings.Default.StageHostname;
+#else
+        Hostname = Settings.Default.SciGitHostname;
+#endif
       }
     }
 }

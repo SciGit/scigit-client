@@ -55,7 +55,7 @@ namespace SciGit_Client
 
   class GitWrapper
   {
-    public readonly static string ServerHost = (string)Settings.Default["SciGitHostname"];
+    public static readonly string ServerHost = App.Hostname;
     public const int ProcessTimeout = 30000;
 
     public static string GetAppDataPath() {
