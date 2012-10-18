@@ -1,8 +1,2 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
-        <Setter Property="Padding" Value="2,1,2,1" />
-    </Style>
-    <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
-		<Setter Property="Padding" Value="2,1,2,1" />
-	</Style>
 </ResourceDictionary>

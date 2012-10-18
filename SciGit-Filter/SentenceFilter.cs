@@ -51,7 +51,7 @@ namespace SciGit_Filter
         }
       }
       merged.Add(currentLine);
-      str = String.Join("", merged);
+      str = String.Join("", merged.ToArray());
 
       // Split any sentences on the same line.
       // We'll define the end of a sentence to be a lowercase letter,

@@ -215,13 +215,13 @@ namespace SciGit_Client
 
     private bool InitializeProject(Project p) {
       string dir = GetProjectDirectory();
-      if (Directory.Exists(Path.Combine(dir, p.Name))) return false;
+      if (Directory.Exists(Util.PathCombine(dir, p.Name))) return false;
       GitWrapper.Clone(dir, p);
       dir = GetProjectDirectory(p);
-      File.WriteAllText(Path.Combine(dir, ".git", "info", "attributes"), "* -merge -diff");
+      File.WriteAllText(Util.PathCombine(dir, ".git", "info", "attributes"), "* -merge -diff");
       // Ignore some common temporary files.
       string[] exclude = new string[] {"*~", "~*", "*.tmp", "*.scigitUpdated*", "*.swp"};
-      File.WriteAllText(Path.Combine(dir, ".git", "info", "exclude"), String.Join("\n", exclude));
+      File.WriteAllText(Util.PathCombine(dir, ".git", "info", "exclude"), String.Join("\n", exclude));
       return true;
     }
 
@@ -520,7 +520,7 @@ namespace SciGit_Client
     }
 
     private static string DefaultProjectDirectory() {
-      return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SciGit");
+      return Util.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SciGit");
     }
 
     private static void CreateProjectDirectory() {
@@ -544,7 +544,7 @@ namespace SciGit_Client
     }
 
     public static string GetProjectDirectory(Project p) {
-      return Path.Combine(GetProjectDirectory(), p.Name);
+      return Util.PathCombine(GetProjectDirectory(), p.Name);
     }
   }
 }

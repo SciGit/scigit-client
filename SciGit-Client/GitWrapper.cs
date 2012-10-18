@@ -59,12 +59,12 @@ namespace SciGit_Client
     public const int ProcessTimeout = 30000;
 
     public static string GetAppDataPath() {
-      return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SciGit");
+      return Util.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SciGit");
     }
 
     private static ProcessReturn ExecuteCommand(string args, string dir = "", string exe = "git.exe") {
       string appPath = Path.GetDirectoryName(Application.ExecutablePath);
-      exe = Path.Combine(appPath, "Libraries", "git", "bin", exe);
+      exe = Util.PathCombine(appPath, "Libraries", "git", "bin", exe);
 
       var startInfo = new ProcessStartInfo {
         FileName = exe,
@@ -75,7 +75,7 @@ namespace SciGit_Client
         UseShellExecute = false,
         WorkingDirectory = dir
       };
-      startInfo.EnvironmentVariables["HOME"] = Path.Combine(GetAppDataPath(), RestClient.Username);
+      startInfo.EnvironmentVariables["HOME"] = Util.PathCombine(GetAppDataPath(), RestClient.Username);
       var process = new Process {StartInfo = startInfo};
       process.Start();
       AsyncStreamReader stdout = new AsyncStreamReader(process.StandardOutput.BaseStream), 
@@ -132,8 +132,8 @@ namespace SciGit_Client
     }
 
     public static bool RebaseInProgress(string dir) {
-      return Directory.Exists(Path.Combine(dir, ".git", "rebase-merge")) ||
-             Directory.Exists(Path.Combine(dir, ".git", "rebase-apply"));
+      return Directory.Exists(Util.PathCombine(dir, ".git", "rebase-merge")) ||
+             Directory.Exists(Util.PathCombine(dir, ".git", "rebase-apply"));
     }
 
     public static ProcessReturn Reset(string dir, string options = "") {

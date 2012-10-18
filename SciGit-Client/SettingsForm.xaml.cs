@@ -58,7 +58,7 @@ namespace SciGit_Client
       dialog.ShowNewFolderButton = true;
       DialogResult result = dialog.ShowDialog();
       if (result == System.Windows.Forms.DialogResult.OK) {
-        folder.Text = System.IO.Path.Combine(dialog.SelectedPath, "SciGit");
+        folder.Text = Util.PathCombine(dialog.SelectedPath, "SciGit");
       }
     }
 

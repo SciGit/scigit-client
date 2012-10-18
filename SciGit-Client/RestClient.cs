@@ -34,6 +34,7 @@ namespace SciGit_Client
 
       try {
         WebRequest request = WebRequest.Create(uri);
+
         request.Method = "POST";
         request.Credentials = CredentialCache.DefaultCredentials;
         request.Timeout = Timeout;
@@ -192,13 +193,14 @@ namespace SciGit_Client
     }
 
     private static string GetQueryString(Dictionary<String, String> data) {
-      return String.Join("&", data.Select(pair => pair.Key + "=" + Uri.EscapeDataString(pair.Value)));
+      return String.Join("&", data.Select(pair => pair.Key + "=" + Uri.EscapeDataString(pair.Value)).ToArray());
     }
 
     private static void WriteData(WebRequest request, Dictionary<String, String> data) {
       Stream reqStream = request.GetRequestStream();
       byte[] encodedData = Encoding.UTF8.GetBytes(GetQueryString(data));
       reqStream.Write(encodedData, 0, encodedData.Length);
+      reqStream.Close();
     }
   }
 }

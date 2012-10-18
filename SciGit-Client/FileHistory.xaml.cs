@@ -24,7 +24,7 @@ namespace SciGit_Client
 
       project = p;
       this.filename = filename;
-      filenameText.Text = "File: " + Path.Combine(p.Name, filename);
+      filenameText.Text = "File: " + Util.PathCombine(p.Name, filename);
       gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');
 
       string dir = ProjectMonitor.GetProjectDirectory(p);
@@ -36,7 +36,7 @@ namespace SciGit_Client
 
       fileData = new Dictionary<string, string>();
       hashes = new List<string>();
-      fullpath = Path.Combine(dir, filename);
+      fullpath = Util.PathCombine(dir, filename);
       fileData[""] = File.ReadAllText(fullpath, Encoding.Default);
       hashes.Add("");
       var timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;

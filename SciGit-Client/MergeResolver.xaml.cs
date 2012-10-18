@@ -77,7 +77,7 @@ namespace SciGit_Client
       }
 
       if (unmerged.Count > 0) {
-        string msg = String.Join("\n", unmerged.Select(str => "- " + str));
+        string msg = String.Join("\n", unmerged.Select(str => "- " + str).ToArray());
         MessageBox.Show("The following files are still unmerged:\n" + msg, "Unmerged Changes");
       } else {
         var preview = new DiffPreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());

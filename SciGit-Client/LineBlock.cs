@@ -80,7 +80,7 @@ namespace SciGit_Client
     }
 
     public override string ToString() {
-      return String.Join("\n", lines);
+      return String.Join("\n", lines.Select(x => x.ToString()).ToArray());
     }
   }
 }

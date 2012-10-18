@@ -4,7 +4,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Animation;
-using System.Windows.Shell;
 using System.Windows.Threading;
 
 namespace SciGit_Client
@@ -26,7 +25,6 @@ namespace SciGit_Client
       InitializeComponent();
 
       detailTextBox.Visibility = Visibility.Collapsed;
-      TaskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
       
       bg = new BackgroundWorker();
       bg.WorkerReportsProgress = true;
@@ -63,7 +61,6 @@ namespace SciGit_Client
       var duration = new Duration(TimeSpan.FromSeconds(0.5));
       var anim = new DoubleAnimation(percentage, duration);
       progressBar.BeginAnimation(RangeBase.ValueProperty, anim);
-      TaskbarItemInfo.ProgressValue = (double)(percentage) / 100;
     }
 
     public void UpdateProgress(object sender, ProgressChangedEventArgs e) {
@@ -80,7 +77,6 @@ namespace SciGit_Client
     }
 
     public void Completed(object sender, RunWorkerCompletedEventArgs e) {
-      TaskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
       SetProgressValue(100);
       if (e.Cancelled) {
         status.Text = "Cancelled.";

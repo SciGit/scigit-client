@@ -103,7 +103,7 @@ namespace SciGit_Client
 
     private void OpenFileHistory(Project p, string filename) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
-      if (!File.Exists(Path.Combine(dir, filename))) {
+      if (!File.Exists(Util.PathCombine(dir, filename))) {
         MessageBox.Show("File does not exist.", "Error");
       } else {
         FileHistory fh = null;
@@ -122,7 +122,7 @@ namespace SciGit_Client
 
     private void OpenProjectHistory(Project p) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
-      if (!Directory.Exists(Path.Combine(dir))) {
+      if (!Directory.Exists(dir)) {
         MessageBox.Show("Project does not exist.", "Error");
       } else {
         ProjectHistory ph = null;
@@ -377,13 +377,13 @@ namespace SciGit_Client
     private void InitializeSSH() {
       // TODO: check Git/SSH installations
 
-      string appPath = Path.Combine(GitWrapper.GetAppDataPath(), RestClient.Username);
+      string appPath = Util.PathCombine(GitWrapper.GetAppDataPath(), RestClient.Username);
       Directory.CreateDirectory(appPath);
 
-      string sshDir = Path.Combine(appPath, ".ssh");
+      string sshDir = Util.PathCombine(appPath, ".ssh");
       Directory.CreateDirectory(sshDir);
 
-      string keyFile = Path.Combine(sshDir, "id_rsa");
+      string keyFile = Util.PathCombine(sshDir, "id_rsa");
       if (!File.Exists(keyFile + ".pub")) {
         GitWrapper.GenerateSSHKey(keyFile);
       }
@@ -402,7 +402,7 @@ namespace SciGit_Client
       }
 
       // Add scigit server to known_hosts
-      string knownHostsFile = Path.Combine(sshDir, "known_hosts");
+      string knownHostsFile = Util.PathCombine(sshDir, "known_hosts");
       GitWrapper.RemoveHostSSHKey(GitWrapper.ServerHost);
       string hostKey = GitWrapper.GetHostSSHKey(GitWrapper.ServerHost).Output;
       if (hostKey.Contains('\n')) {

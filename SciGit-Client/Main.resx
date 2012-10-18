@@ -112,12 +112,12 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="notifyIcon.TrayLocation" type="System.Drawing.Point, System.Drawing">
     <value>17, 17</value>
   </data>
@@ -144,35 +144,11 @@
         AAAAAAAA
 </value>
   </data>
-  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        AAABAAEAEBAAAAAAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAQAQAAAAAAAAAAAAAAAAAAAAA
-        AAD///8B////Af///wH///8B////Af///wH///9FzLOm0c21qM////9D////Af///wH///8B////Af//
-        /wH///8B////Af///wH///8B////Af///wH///8B////fayFbumshW7p////ff///wH///8B////Af//
-        /wH///8B////Af///wH///8B////Af///wH///9B////deLX0cG8oJDXuZuL2d7QyMP///9v////gf//
-        /5X///9L////Df///wH///8F////Tf///43///9vl5maz3p+gOWHdGnti39464eCgeltXFLvgnFo46iB
-        bOmhc1vzyK6f0/Tv7Ln///8N////TcesndWkeWHvs49644JkVffv493/yrCi/+jb1P/GqZr/ya2f//zu
-        5v+Bfn7vxLGnz59wV/XXxLrJ////M////0PNtqnPo3Ze8ezn47t3c3Hr3si8/5ZkSf+idl7/7+jk////
-        ////////g4SG7bmjl9O+no3b+PTyt////wn///8B////R+vh27+phG/ncWll8dC1pv+thnH/28rB/7iW
-        hP/h0sr//////4N9efmofGXr/v39tf///xX///8B////Af///wH///8v28m/x4xjTv/59vT/vZ6N//39
-        /P/6+Pb/xaqb/86yov9+dXH57+zquf///zf///8B////Af///wH///8V+vj3tbOQft91b2zx/////7yd
-        jP/7+ff////////////r3tf/jGxa+evn5Lv///8n////Af///wH///8V7+fju7+ejNva0cvDb3Jz6///
-        ///AopL/9vHu///////t7e3/+vz+/4J/ffWrh3Pj7uXgvf///zv///8B////VcKllteofGPv////i21u
-        b+v/////x6ye/+/n4v/n6Oj/l5eX/4aHh/+Aenbd9/Tyt6qAauvSvbHN////O////y3czMPHr4p15a2E
-        budtY173/////9bCuP/i0sr/3d/g/3N2d/2jlo/XvZmF3bONeeOdblX1v6CQ2f///1v///8B////Lf//
-        /3X59vW3q6moy35/gN+Kgn3hkHZp74qIh92PcGDp////ff///2X39PK3+vj3tf///1v///8R////Af//
-        /wH///8B////B////zf///9n////c7GLduXHr6PRxKaV1////1X///8B////Cf///wf///8B////Af//
-        /wH///8B////Af///wH///8B////Af///z/Quq3PmWdM+/Xw7bn///8N////Af///wH///8B////Af//
-        /wH///8B////Af///wH///8B////Af///wH///8B////Xf///6f///9d////Af///wH///8B////Af//
-        /wH///8BAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA
-        //8AAP//AAD//w==
-</value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="notifyIconLoading.Icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Images\icon_loading.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>Images\icon_loading.ico;System.Drawing.Icon, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="notifyIconUpdate.Icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Images\icon_update.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>Images\icon_update.ico;System.Drawing.Icon, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

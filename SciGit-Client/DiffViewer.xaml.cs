@@ -425,7 +425,7 @@ namespace SciGit_Client
       messageNew.Visibility = Visibility.Visible;
       string projectDir = ProjectMonitor.GetProjectDirectory(project);
       string winFilename = gitFilename.Replace('/', System.IO.Path.DirectorySeparatorChar);
-      fullpath = System.IO.Path.Combine(projectDir, winFilename);
+      fullpath = Util.PathCombine(projectDir, winFilename);
       string dir = System.IO.Path.GetDirectoryName(fullpath);
       string name = System.IO.Path.GetFileName(fullpath);
       if (myVersion != null) {
@@ -437,7 +437,7 @@ namespace SciGit_Client
       // Copy updated text into a new, temporary file.
       string newFilename = System.IO.Path.GetFileNameWithoutExtension(name) + ".sciGitUpdated" +
         System.IO.Path.GetExtension(name);
-      newFullpath = System.IO.Path.Combine(dir, newFilename);
+      newFullpath = Util.PathCombine(dir, newFilename);
       if (newVersion != null) {
         messageNew.Text = "This is a binary file. Please edit the file " + newFilename +
           " if you wish to edit the updated version.";
@@ -470,7 +470,8 @@ namespace SciGit_Client
       }
 
       var d = new Differ();
-      DiffResult diff = d.CreateLineDiffs(String.Join("\n", oldBlocks), String.Join("\n", newBlocks), false);
+      DiffResult diff = d.CreateLineDiffs(String.Join("\n", oldBlocks.Select(x => x.ToString()).ToArray()),
+        String.Join("\n", newBlocks.Select(x => x.ToString()).ToArray()), false);
 
       foreach (DiffBlock dblock in diff.DiffBlocks) {
         if (modifyOld) {
