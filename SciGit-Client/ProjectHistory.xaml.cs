@@ -21,7 +21,7 @@ namespace SciGit_Client
       InitializeComponent();
 
       project = p;
-      projectName.Text = "Project: " + project.Name;
+      projectName.Text = "Project: " + project.name;
 
       string dir = ProjectMonitor.GetProjectDirectory(project);
       ProcessReturn ret = GitWrapper.Log(dir);

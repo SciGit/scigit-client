@@ -51,8 +51,8 @@ namespace SciGit_Client
       bg.RunWorkerAsync();
     }
 
-    private void FinishLogin(Tuple<bool, RestClient.Error> result) {
-      if (result.Item1) {
+    private void FinishLogin(RestClient.Response<bool> result) {
+      if (result.Data) {
         if (rememberMe.IsChecked ?? false) {
           Settings.Default.RememberUser = true;
           Settings.Default.SavedUsername = emailValue.Text;
@@ -67,7 +67,7 @@ namespace SciGit_Client
         main.Show();
         main.Hide();
       } else {
-        MessageBox.Show(result.Item2 == RestClient.Error.Forbidden ?
+        MessageBox.Show(result.Error == RestClient.ErrorType.Forbidden ?
           "Incorrect username or password." :
           "Could not connect to the SciGit servers. Please try again later.", "Error");
         Reset();

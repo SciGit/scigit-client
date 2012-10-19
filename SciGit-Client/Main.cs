@@ -64,7 +64,7 @@ namespace SciGit_Client
 
     private void HandleCommand(string verb, string filename) {
       Project p = projectMonitor.GetProjectFromFilename(ref filename);
-      if (p.Id == 0) {
+      if (p.id == 0) {
         MessageBox.Show("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
       } else if (verb == "--versions") {
         this.Invoke(new Action(() => OpenFileHistory(p, filename)));
@@ -244,7 +244,7 @@ namespace SciGit_Client
     private void ProjectAdded(Project p) {
       if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyAddDelete) != 0) {
         QueueBalloonTip("Project Added",
-                        "Project " + p.Name + (p.CanWrite ? "" : " (read-only)") +
+                        "Project " + p.name + (p.can_write ? "" : " (read-only)") +
                           " has been added. Click to open the project folder...", CreateOpenDirectoryHandler(p));
       }
     }
@@ -252,7 +252,7 @@ namespace SciGit_Client
     private void ProjectRemoved(Project p) {
       if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyAddDelete) != 0) {
         QueueBalloonTip("Project Removed",
-                        "You are no longer receiving updates for project " + p.Name +
+                        "You are no longer receiving updates for project " + p.name +
                           ". Click to open the project folder...", CreateOpenDirectoryHandler(p));
       }
     }
@@ -260,7 +260,7 @@ namespace SciGit_Client
     private void ProjectUpdated(Project p) {
       if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpdate) != 0) {
         QueueBalloonTip("Project Updated",
-                        "Project " + p.Name + " has been updated. Click to update the local version...",
+                        "Project " + p.name + " has been updated. Click to update the local version...",
                         CreateUpdateProjectHandler(p));
       }
     }
@@ -268,7 +268,7 @@ namespace SciGit_Client
     private void ProjectEdited(Project p) {
       if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpload) != 0) {
         QueueBalloonTip("Project Edited",
-                        "You made changes to project " + p.Name + ". Click to upload your changes...",
+                        "You made changes to project " + p.name + ". Click to upload your changes...",
                         CreateUploadProjectHandler(p));
       }
     }
@@ -307,10 +307,10 @@ namespace SciGit_Client
       var update = notifyIcon.ContextMenu.MenuItems[3];
       var upload = notifyIcon.ContextMenu.MenuItems[4];      
       var curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
-      var newNames = new HashSet<string>(from p in projects select p.Name);
-      var updNames = new HashSet<string>(from p in updatedProjects select p.Name);
-      var editNames = new HashSet<string>(from p in editedProjects select p.Name);
-      var writeNames = new HashSet<string>(from p in projects where p.CanWrite select p.Name);
+      var newNames = new HashSet<string>(from p in projects select p.name);
+      var updNames = new HashSet<string>(from p in updatedProjects select p.name);
+      var editNames = new HashSet<string>(from p in editedProjects select p.name);
+      var writeNames = new HashSet<string>(from p in projects where p.can_write select p.name);
 
       for (int i = update.MenuItems.Count - 1; i >= 0; i--) {
         MenuItem item = update.MenuItems[i];
@@ -339,17 +339,17 @@ namespace SciGit_Client
       }
 
       foreach (var project in projects) {
-        if (!curNames.Contains(project.Name)) {
+        if (!curNames.Contains(project.name)) {
           var curProject = project; // closure issues
-          var item = new MenuItem(project.Name, CreateUpdateProjectHandler(curProject)) {
-            Checked = updNames.Contains(project.Name),
+          var item = new MenuItem(project.name, CreateUpdateProjectHandler(curProject)) {
+            Checked = updNames.Contains(project.name),
             RadioCheck = true
           };
           update.MenuItems.Add(item);
-          item = new MenuItem(project.Name + (project.CanWrite ? "" : readOnlySuffix),
+          item = new MenuItem(project.name + (project.can_write ? "" : readOnlySuffix),
                               CreateUploadProjectHandler(curProject)) {
-            Enabled = project.CanWrite,
-            Checked = project.CanWrite && editNames.Contains(project.Name),
+            Enabled = project.can_write,
+            Checked = project.can_write && editNames.Contains(project.name),
             RadioCheck = true
           };
           upload.MenuItems.Add(item);

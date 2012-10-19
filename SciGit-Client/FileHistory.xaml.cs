@@ -24,7 +24,7 @@ namespace SciGit_Client
 
       project = p;
       this.filename = filename;
-      filenameText.Text = "File: " + Util.PathCombine(p.Name, filename);
+      filenameText.Text = "File: " + Util.PathCombine(p.name, filename);
       gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');
 
       string dir = ProjectMonitor.GetProjectDirectory(p);

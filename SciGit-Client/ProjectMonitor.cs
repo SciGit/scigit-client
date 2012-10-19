@@ -13,11 +13,11 @@ namespace SciGit_Client
 {
   public struct Project
   {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public int CreatedTime { get; set; }
-    public string LastCommitHash { get; set; }
-    public bool CanWrite { get; set; }
+    public int id { get; set; }
+    public string name { get; set; }
+    public int created_ts { get; set; }
+    public string last_commit_hash { get; set; }
+    public bool can_write { get; set; }
   }
 
   class ProjectMonitor
@@ -128,7 +128,7 @@ namespace SciGit_Client
         }
 
         lock (projects) {
-          return projects.Find(p => String.Compare(p.Name, projectName, true) == 0);
+          return projects.Find(p => String.Compare(p.name, projectName, true) == 0);
         }
       }
 
@@ -145,26 +145,25 @@ namespace SciGit_Client
       bool loaded = false;
       while (true) {
         try {
-          var tuple = RestClient.GetProjects();
-          List<Project> newProjects = tuple.Item1;
-          RestClient.Error error = tuple.Item2;
-          if (error == RestClient.Error.Forbidden) {
+          var response = RestClient.GetProjects();
+          List<Project> newProjects = response.Data;
+          if (response.Error == RestClient.ErrorType.Forbidden) {
             failureCallbacks.ForEach(c => c.Invoke());
             break;
-          } else if (error != RestClient.Error.NoError) {
-            Logger.LogMessage(error.ToString() + " getting projects");
+          } else if (response.Error != RestClient.ErrorType.NoError) {
+            Logger.LogMessage(response.Error.ToString() + " getting projects");
           }
 
           if (newProjects != null && (!loaded || !newProjects.SequenceEqual(projects))) {
             Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
-            oldProjectDict = GetProjects().ToDictionary(p => p.Id);
-            newProjectDict = newProjects.ToDictionary(p => p.Id);
-            updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.Id);
-            editedProjectDict = GetEditedProjects().ToDictionary(p => p.Id);
+            oldProjectDict = GetProjects().ToDictionary(p => p.id);
+            newProjectDict = newProjects.ToDictionary(p => p.id);
+            updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.id);
+            editedProjectDict = GetEditedProjects().ToDictionary(p => p.id);
 
             var newUpdatedProjects = new List<Project>();
             foreach (var project in newProjects) {
-              if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.Id)) {
+              if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.id)) {
                 DispatchCallbacks(projectAddedCallbacks, project);
               }
               // This only needs to be done at load. Otherwise, the file watcher will catch it.
@@ -172,14 +171,14 @@ namespace SciGit_Client
                 lock (editedProjects) {
                   editedProjects.Add(project);
                 }
-                if (project.CanWrite && !editedProjectDict.ContainsKey(project.Id)) {
+                if (project.can_write && !editedProjectDict.ContainsKey(project.id)) {
                   DispatchCallbacks(projectEditedCallbacks, project);
                 }
               }
               if (HasUpdate(project)) {
                 newUpdatedProjects.Add(project);
-                if (!updatedProjectDict.ContainsKey(project.Id) ||
-                    updatedProjectDict[project.Id].LastCommitHash != project.LastCommitHash) {
+                if (!updatedProjectDict.ContainsKey(project.id) ||
+                    updatedProjectDict[project.id].last_commit_hash != project.last_commit_hash) {
                   DispatchCallbacks(projectUpdatedCallbacks, project);
                 }
               }
@@ -215,7 +214,7 @@ namespace SciGit_Client
 
     private bool InitializeProject(Project p) {
       string dir = GetProjectDirectory();
-      if (Directory.Exists(Util.PathCombine(dir, p.Name))) return false;
+      if (Directory.Exists(Util.PathCombine(dir, p.name))) return false;
       GitWrapper.Clone(dir, p);
       dir = GetProjectDirectory(p);
       File.WriteAllText(Util.PathCombine(dir, ".git", "info", "attributes"), "* -merge -diff");
@@ -240,7 +239,7 @@ namespace SciGit_Client
     }
 
     public bool UpdateProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
-      activeProjectId = p.Id;
+      activeProjectId = p.id;
 
       string dir = GetProjectDirectory(p);
       bool possibleCommit = false, rebaseStarted = false, success = false;
@@ -347,7 +346,7 @@ namespace SciGit_Client
         }
         if (success) {
           lock (updatedProjects) {
-            updatedProjects.RemoveAll(pr => pr.Id == p.Id);
+            updatedProjects.RemoveAll(pr => pr.id == p.id);
           }
           updateCallbacks.ForEach(c => c.Invoke());
         }
@@ -358,13 +357,13 @@ namespace SciGit_Client
     }
 
     public bool UploadProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
-      activeProjectId = p.Id;
+      activeProjectId = p.id;
 
       Project updatedProject;
       lock (projects) {
-        updatedProject = projects.Find(pr => pr.Id == p.Id);
+        updatedProject = projects.Find(pr => pr.id == p.id);
       }
-      if (!updatedProject.CanWrite) {
+      if (!updatedProject.can_write) {
         window.Dispatcher.Invoke(new Action(() =>
           MessageBox.Show(window, "You don't have write access to this project.", "Not authorized")
         ));
@@ -449,7 +448,7 @@ namespace SciGit_Client
       lock (projects) {
         for (int i = 0; i < projects.Count; i++) {
           var project = projects[i];
-          worker.ReportProgress(100 * (i + 1) / (projects.Count + 1), "Updating " + project.Name + "...");
+          worker.ReportProgress(100 * (i + 1) / (projects.Count + 1), "Updating " + project.name + "...");
           bool cancelled = false;
           if (HasUpdate(project)) {
             cancelled = !UpdateProject(project, window, worker, false);
@@ -467,8 +466,8 @@ namespace SciGit_Client
       lock (projects) {
         for (int i = 0; i < projects.Count; i++) {
           var project = projects[i];
-          if (!project.CanWrite) continue;
-          worker.ReportProgress(100 * (i + 1) / (projects.Count + 1), "Uploading " + project.Name + "...");
+          if (!project.can_write) continue;
+          worker.ReportProgress(100 * (i + 1) / (projects.Count + 1), "Uploading " + project.name + "...");
           bool cancelled = !UploadProject(project, window, worker, false);
           if (worker.CancellationPending && (i+1 != projects.Count || cancelled)) {
             return false;
@@ -486,7 +485,7 @@ namespace SciGit_Client
       if (ret.ReturnValue == 0) {
         lastHash = ret.Stdout.Trim();
       }
-      return lastHash != p.LastCommitHash;
+      return lastHash != p.last_commit_hash;
     }
 
     public bool HasUpload(Project p) {
@@ -498,20 +497,20 @@ namespace SciGit_Client
     private void FileChanged(object sender, FileSystemEventArgs e) {
       string filename = e.FullPath;
       Project p = GetProjectFromFilename(ref filename);
-      if (p.Id != 0) {
+      if (p.id != 0) {
         lock (editedProjects) {
-          bool contains = editedProjects.Find(pr => pr.Id == p.Id).Id != 0;
+          bool contains = editedProjects.Find(pr => pr.id == p.id).id != 0;
           if (HasUpload(p)) {
             if (!contains) {
               editedProjects.Add(p);
-              if (p.CanWrite && activeProjectId != p.Id) {
+              if (p.can_write && activeProjectId != p.id) {
                 DispatchCallbacks(projectEditedCallbacks, p);
                 updateCallbacks.ForEach(c => c.Invoke());
               }
             }
           } else if (contains) {
-            editedProjects.RemoveAll(pr => pr.Id == p.Id);
-            if (activeProjectId != p.Id) {
+            editedProjects.RemoveAll(pr => pr.id == p.id);
+            if (activeProjectId != p.id) {
               updateCallbacks.ForEach(c => c.Invoke());
             }
           }
@@ -544,7 +543,7 @@ namespace SciGit_Client
     }
 
     public static string GetProjectDirectory(Project p) {
-      return Util.PathCombine(GetProjectDirectory(), p.Name);
+      return Util.PathCombine(GetProjectDirectory(), p.name);
     }
   }
 }

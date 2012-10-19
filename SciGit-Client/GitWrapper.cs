@@ -92,7 +92,7 @@ namespace SciGit_Client
     }
 
     public static ProcessReturn Clone(string dir, Project p) {
-      return ExecuteCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.Id, EscapeShellArg(p.Name)), dir);
+      return ExecuteCommand(String.Format("clone git@{0}:r{1} {2}", ServerHost, p.id, EscapeShellArg(p.name)), dir);
     }
 
     public static ProcessReturn AddAll(string dir) {

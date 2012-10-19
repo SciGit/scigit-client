@@ -27,7 +27,7 @@ namespace SciGit_Client
     private void CheckForUpdates() {
       while (true) {
         var resp = RestClient.GetLatestClientVersion();
-        string newVersion = resp.Item1;
+        string newVersion = resp.Data;
         if (newVersion != null) {
           Assembly assembly = Assembly.GetExecutingAssembly();
           FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
