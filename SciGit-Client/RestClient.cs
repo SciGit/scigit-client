@@ -18,6 +18,17 @@ namespace SciGit_Client
     {
       public T Data { get; set; }
       public ErrorType Error { get; set; }
+      public Response(HttpStatusCode code) {
+        if (code == HttpStatusCode.Forbidden) {
+          Error = ErrorType.Forbidden;
+        } else if (code == HttpStatusCode.BadRequest) {
+          Error = ErrorType.InvalidRequest;
+        } else if (code != HttpStatusCode.OK) {
+          Error = ErrorType.ConnectionError;
+        } else {
+          Error = ErrorType.NoError;
+        }
+      }
       public Response(ErrorType error) {
         // Leave Data at default value
         Error = error;
@@ -47,12 +58,8 @@ namespace SciGit_Client
         request.AddParameter("username", username);
         request.AddParameter("password", password);
         var response = client.Execute<Dictionary<string, string>>(request);
-        if (response.StatusCode == HttpStatusCode.Forbidden) {
-          return new Response<bool>(ErrorType.Forbidden);
-        } else if (response.StatusCode == HttpStatusCode.BadRequest) {
-          return new Response<bool>(ErrorType.InvalidRequest);
-        } else if (response.StatusCode != HttpStatusCode.OK) {
-          return new Response<bool>(ErrorType.ConnectionError);
+        if (response.StatusCode != HttpStatusCode.OK) {
+          return new Response<bool>(response.StatusCode);
         }
         Username = username;
         AuthToken = response.Data["auth_token"];
@@ -72,12 +79,8 @@ namespace SciGit_Client
         request.AddParameter("username", Username);
         request.AddParameter("auth_token", AuthToken);
         var response = client.Execute<List<Project>>(request);
-        if (response.StatusCode == HttpStatusCode.Forbidden) {
-          return new Response<List<Project>>(ErrorType.Forbidden);
-        } else if (response.StatusCode == HttpStatusCode.BadRequest) {
-          return new Response<List<Project>>(ErrorType.InvalidRequest);
-        } else if (response.StatusCode != HttpStatusCode.OK) {
-          return new Response<List<Project>>(ErrorType.ConnectionError);
+        if (response.StatusCode != HttpStatusCode.OK) {
+          return new Response<List<Project>>(response.StatusCode);
         }
         return new Response<List<Project>>(response.Data);
       } catch (Exception e) {
@@ -93,12 +96,8 @@ namespace SciGit_Client
         request.AddParameter("username", Username);
         request.AddParameter("auth_token", AuthToken);
         var response = client.Execute<Dictionary<string, string>>(request);
-        if (response.StatusCode == HttpStatusCode.Forbidden) {
-          return new Response<string>(ErrorType.Forbidden);
-        } else if (response.StatusCode == HttpStatusCode.BadRequest) {
-          return new Response<string>(ErrorType.InvalidRequest);
-        } else if (response.StatusCode != HttpStatusCode.OK) {
-          return new Response<string>(ErrorType.ConnectionError);
+        if (response.StatusCode != HttpStatusCode.OK) {
+          return new Response<string>(response.StatusCode);
         }
         return new Response<string>(response.Data["version"]);
       } catch (Exception e) {
