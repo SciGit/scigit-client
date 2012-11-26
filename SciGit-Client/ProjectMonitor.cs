@@ -225,7 +225,7 @@ namespace SciGit_Client
     }
 
     private ProcessReturn CheckReturn(string command, ProcessReturn ret, BackgroundWorker worker) {
-      worker.ReportProgress(-1, ret.Output);
+      worker.ReportProgress(-1, command + ": " + ret.Output);
       if (ret.ReturnValue != 0) {
         throw new Exception(command + ": " + ret.Output);
       }
@@ -342,7 +342,7 @@ namespace SciGit_Client
         if (possibleCommit) {
           // Reset commits until we get to something in common with FETCH_HEAD.
           ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
-          GitWrapper.Reset(dir, ret.Stdout.Trim());
+          CheckReturn("reset", GitWrapper.Reset(dir, ret.Stdout.Trim()), worker);
         }
         if (success) {
           lock (updatedProjects) {

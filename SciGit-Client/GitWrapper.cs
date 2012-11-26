@@ -83,6 +83,7 @@ namespace SciGit_Client
       if (!process.WaitForExit(ProcessTimeout)) {
         return new ProcessReturn(-1, "", "Process timed out.");
       }
+      Thread.Sleep(50);
       return new ProcessReturn(process.ExitCode, stdout.GetData(), stderr.GetData());
     }
 

@@ -12,6 +12,9 @@ namespace SciGit_Client
     Project project;
     public string savedMessage;
 
+    // TODO: remove when doc support is implemented.
+    bool doc = false;
+
     public CommitForm(Project p) {
       InitializeComponent();
       project = p;
@@ -23,6 +26,7 @@ namespace SciGit_Client
       string status = GitWrapper.Status(dir, "-uno").Stdout;
       string changeText = "";
       bool isFilename = false;
+
       foreach (var line in status.Split(new[] {'\0'}, StringSplitOptions.RemoveEmptyEntries)) {
         if (isFilename) {
           isFilename = false;
@@ -36,6 +40,9 @@ namespace SciGit_Client
           mode = "modified";
         } else if (mode == "A") {
           mode = "added";
+          if (filename.Contains(".doc")) {
+            doc = true;
+          }
         } else if (mode == "D") {
           mode = "deleted";
         } else if (mode == "R") {
@@ -52,6 +59,18 @@ namespace SciGit_Client
       }
 
       changes.Text = changeText;
+    }
+
+    private void OnLoad(object sender, EventArgs e) {
+      if (doc) {
+        var res = MessageBox.Show(this,
+                                  "Word documents are not fully supported in this beta version (there is no automated merging). Do you wish to continue?",
+                                  "Confirm upload",
+                                  MessageBoxButton.YesNo);
+        if (res == MessageBoxResult.No) {
+          Close();
+        }
+      }
     }
 
     private void ClickUpload(object sender, RoutedEventArgs e) {
