@@ -109,5 +109,17 @@ namespace SciGit_Client.Properties {
                 return ((string)(this["StageHostname"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool Loaded {
+            get {
+                return ((bool)(this["Loaded"]));
+            }
+            set {
+                this["Loaded"] = value;
+            }
+        }
     }
 }

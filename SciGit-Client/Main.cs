@@ -60,6 +60,14 @@ namespace SciGit_Client
 
       updateChecker = new UpdateChecker();
       updateChecker.Start();
+
+      // Show the intro if it's the first load.
+      if (!Settings.Default.Loaded) {
+        GettingStarted gs = new GettingStarted();
+        gs.Show();
+        Settings.Default.Loaded = true;
+        Settings.Default.Save();
+      }
     }
 
     private void HandleCommand(string verb, string filename) {

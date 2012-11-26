@@ -26,5 +26,8 @@
     <Setting Name="StageHostname" Type="System.String" Scope="Application">
       <Value Profile="(Default)">stage.scigit.com</Value>
     </Setting>
+    <Setting Name="Loaded" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

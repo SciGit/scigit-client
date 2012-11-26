@@ -16,6 +16,7 @@ namespace SciGit_Client
 
     public Login() {
       InitializeComponent();
+
       registerLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/register");
       forgotPassLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/forgot_password");
 
