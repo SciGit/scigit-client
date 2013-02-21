@@ -251,7 +251,7 @@ namespace SciGit_Client
         }
         if (worker.CancellationPending) return false;
 
-        worker.ReportProgress(progress ? 25 : -1, "Fetching updates...");
+        worker.ReportProgress(progress ? 25 : -1, "Checking for updates...");
         ret = GitWrapper.Fetch(dir);
         worker.ReportProgress(-1, ret.Output);
         if (ret.ReturnValue != 0) {
@@ -370,7 +370,7 @@ namespace SciGit_Client
       }
       if (!updatedProject.can_write) {
         window.Dispatcher.Invoke(new Action(() =>
-          MessageBox.Show(window, "You don't have write access to this project.", "Not authorized")
+          MessageBox.Show(window, "You don't have write access to this project.", "Not Authorized")
         ));
         return false;
       }
@@ -380,14 +380,14 @@ namespace SciGit_Client
       string commitMsg = null;
       try {
         while (true) {
-          worker.ReportProgress(progress ? 25 : -1, "Checking for updates...");
+          worker.ReportProgress(progress ? 25 : -1, "First, checking for updates...");
           if (!UpdateProject(p, window, worker, false)) {
             return false;
           }
           if (worker.CancellationPending) return false;
 
           GitWrapper.AddAll(dir);
-          worker.ReportProgress(progress ? 50 : -1, "Committing...");
+          worker.ReportProgress(progress ? 50 : -1, "Saving your changes...");
           ProcessReturn ret = CheckReturn("status", GitWrapper.Status(dir), worker);
           if (worker.CancellationPending) return false;
           if (ret.Stdout.Trim() != "") {
@@ -406,7 +406,7 @@ namespace SciGit_Client
             committed = true;
             if (worker.CancellationPending) return false;
 
-            worker.ReportProgress(progress ? 75 : -1, "Pushing...");
+            worker.ReportProgress(progress ? 75 : -1, "Uploading...");
             ret = GitWrapper.Push(dir);
             worker.ReportProgress(-1, ret.Output);
             if (ret.ReturnValue == 0) {
@@ -420,12 +420,12 @@ namespace SciGit_Client
               window.Dispatcher.Invoke(new Action(() =>
                 resp = MessageBox.Show(window,
                   "Additional updates must be merged in. Continue?",
-                  "Additional updates", MessageBoxButton.OKCancel)));
+                  "Project Updated", MessageBoxButton.OKCancel)));
               if (resp == MessageBoxResult.Cancel) {
                 return false;
               }
             } else if (ret.Output.Contains("not authorized")) {
-              ShowError(window, "You don't have write access to this repository anymore.");
+              ShowError(window, "You don't have write access to this project anymore.");
               return false;
             } else {
               ShowError(window, "Could not connect to the SciGit servers. Please try again later.");

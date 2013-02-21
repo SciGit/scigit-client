@@ -35,7 +35,7 @@ namespace SciGit_Client
           if (version != newVersion) {
             var result = MessageBox.Show(
               String.Format("A new version ({0}) of the SciGit client is available. Would you like to update now?", newVersion),
-              "Update", MessageBoxButton.YesNo);
+              "Update Available", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes) {
               Process.Start("http://" + RestClient.ServerHost + "/download");
             }

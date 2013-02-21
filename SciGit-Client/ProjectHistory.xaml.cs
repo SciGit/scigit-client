@@ -65,7 +65,7 @@ namespace SciGit_Client
       if (projectHistory.SelectedIndex != 0) {
         MessageBoxResult res = MessageBox.Show(this,
           "You will lose any un-uploaded changes to your current files, as well as any new un-uploaded files. Are you sure?",
-          "Confirm", MessageBoxButton.YesNo);
+          "Confirm Revert", MessageBoxButton.YesNo);
         if (res == MessageBoxResult.Yes) {
           string hash = commitHashes[projectHistory.SelectedIndex - 1];
           string dir = ProjectMonitor.GetProjectDirectory(project);

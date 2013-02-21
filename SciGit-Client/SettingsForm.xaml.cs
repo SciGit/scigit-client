@@ -76,7 +76,7 @@ namespace SciGit_Client
       if (notifyAddDelete.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyAddDelete;
       if (notifyUpload.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyUpload;
       if (folder.Text != projectFolder) {
-        var result = MessageBox.Show(this, "Would you like to move your existing projects over?", "Move", MessageBoxButton.YesNoCancel);
+        var result = MessageBox.Show(this, "Would you like to move your existing projects over?", "Move Projects", MessageBoxButton.YesNoCancel);
         try {
           if (!Directory.Exists(folder.Text)) {
             Directory.CreateDirectory(folder.Text);

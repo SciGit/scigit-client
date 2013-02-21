@@ -168,25 +168,25 @@ namespace SciGit_Client
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm((form, bw) => projectMonitor.UpdateProject(p, form, bw));
+        var progressForm = new ProgressForm("Updating Project", (form, bw) => projectMonitor.UpdateProject(p, form, bw));
         progressForm.Show();
       };
     }
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm((form, bw) => projectMonitor.UploadProject(p, form, bw));
+        var progressForm = new ProgressForm("Uploading Project", (form, bw) => projectMonitor.UploadProject(p, form, bw));
         progressForm.Show();
       };
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
-      var progressForm = new ProgressForm(projectMonitor.UpdateAllProjects);
+      var progressForm = new ProgressForm("Updating Projects", projectMonitor.UpdateAllProjects);
       progressForm.Show();
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
-      var progressForm = new ProgressForm(projectMonitor.UploadAllProjects);
+      var progressForm = new ProgressForm("Uploading Projects", projectMonitor.UploadAllProjects);
       progressForm.Show();
     }
 
@@ -202,7 +202,7 @@ namespace SciGit_Client
 
       if (Settings.Default.ProjectDirectory != ProjectMonitor.GetProjectDirectory()) {
         MessageBox.Show("To complete the change, SciGit needs to be restarted. " +
-          "Please finish any remaining operations.", "Restart required");
+          "Please finish any remaining operations.", "Restart Required");
         Logout();
       }
     }

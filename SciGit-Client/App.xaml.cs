@@ -33,7 +33,7 @@ namespace SciGit_Client
               MessageBox.Show("Please wait for the SciGit client to connect.", "Error");
             }
           } else {
-            MessageBox.Show("An instance of SciGit is already open.", "Existing instance");
+            MessageBox.Show("An instance of SciGit is already open.", "Existing Instance");
           }
           Environment.Exit(0);
         }

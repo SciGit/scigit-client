@@ -21,9 +21,10 @@ namespace SciGit_Client
 
     BackgroundWorker bg;
 
-    public ProgressForm(BackgroundAction action) {
+    public ProgressForm(string title, BackgroundAction action) {
       InitializeComponent();
 
+      Title = title;
       detailTextBox.Visibility = Visibility.Collapsed;
       
       bg = new BackgroundWorker();
@@ -84,6 +85,10 @@ namespace SciGit_Client
       }
       cancel.IsEnabled = false;
       close.IsEnabled = true;
+
+      // Stop progress animation *hack*
+      var glow = progressBar.Template.FindName("Animation", progressBar) as FrameworkElement;
+      if (glow != null) glow.Visibility = Visibility.Hidden;
     }
 
     private void details_Click(object sender, EventArgs e) {

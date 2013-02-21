@@ -73,7 +73,7 @@ namespace SciGit_Client
 
     private void WindowClosing(object sender, CancelEventArgs e) {
       if (savedMessage == null) {
-        var res = MessageBox.Show(this, "This will cancel the upload process. Are you sure?", "Confirm cancel", MessageBoxButton.YesNo);
+        var res = MessageBox.Show(this, "This will cancel the upload process. Are you sure?", "Confirm Cancel", MessageBoxButton.YesNo);
         if (res == MessageBoxResult.No) {
           e.Cancel = true;
         }
