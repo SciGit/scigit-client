@@ -13,5 +13,9 @@
 			<Label Content="File:" Target="{Binding ElementName=fileDropdown}" />
 			<ComboBox Name="fileDropdown" IsEnabled="True" MinWidth="250" />
 		</WrapPanel>
-	</Grid>
+        <WrapPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button Content="Next file" Name="nextFile" Margin="0,0,10,0" Click="ClickNextFile" />
+            <Button Content="Preview and finalize..." Name="finish" Click="ClickFinish" IsDefault="True" />
+        </WrapPanel>
+    </Grid>
 </Window>

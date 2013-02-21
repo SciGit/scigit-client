@@ -289,7 +289,7 @@ namespace SciGit_Client
           if (ret.Output.Contains("CONFLICT")) {
             const string dialogMsg =
               "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
-              "Please save any remaining changes before continuing.";
+              "Please save any changes to open files before continuing.";
             MessageBoxResult resp = MessageBoxResult.Cancel;
             window.Dispatcher.Invoke(
               new Action(() => resp = MessageBox.Show(window, dialogMsg, "Merge Conflict", MessageBoxButton.OKCancel)));
@@ -328,6 +328,11 @@ namespace SciGit_Client
               success = true;
               rebaseStarted = false;
             }
+          } else if (ret.Output.Contains("Permission denied")) {
+            // One of the files is open.
+            MessageBox.Show("One of the project files is currently open and cannot be edited. "
+              + "Please save and close your changes before continuing.", "File Locked");
+            rebaseStarted = false;
           } else {
             throw new Exception("rebase: " + ret.Output);
           }

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using SciGit_Filter;
 
 namespace SciGit_Client
 {
@@ -34,14 +35,15 @@ namespace SciGit_Client
       project = p;
       unmergedFiles = GetUnmergedFiles();
 
-      /*
-      FileData test = new FileData();
-      test.filename = "test1";
+      /*FileData test = new FileData();
+      test.filename = "test.docx";
+      test.original = File.ReadAllText("C:\\Users\\Hanson\\paper_orig.docx", Encoding.Default);
+      test.myVersion = File.ReadAllText("C:\\Users\\Hanson\\paper_orig.docx", Encoding.Default);
+      test.newVersion = File.ReadAllText("C:\\Users\\Hanson\\paper.docx", Encoding.Default);
       test.original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n";
       test.myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n";
       test.newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n";
-      unmergedFiles.Add(test);
-       */
+      unmergedFiles.Add(test);*/
 
       diffViewers = new List<DiffViewer>();
       for (int i = 0; i < unmergedFiles.Count; i++) {
@@ -51,6 +53,9 @@ namespace SciGit_Client
       active = 0;
       diffViewers[active].Visibility = Visibility.Visible;
       fileDropdown.SelectedIndex = 0;
+      if (unmergedFiles.Count <= 1) {
+        nextFile.IsEnabled = false;
+      }
     }
 
     public bool Saved { get; private set; }
@@ -63,12 +68,12 @@ namespace SciGit_Client
       }
     }
 
-    void SelectNextFile() {
+    void ClickNextFile(object sender, RoutedEventArgs e) {
       SetActiveDiffViewer((active + 1) % diffViewers.Count);
       fileDropdown.SelectedIndex = active;
     }
 
-    void Finish() {
+    void ClickFinish(object sender, RoutedEventArgs e) {
       var unmerged = new List<string>();
       for (int i = 0; i < unmergedFiles.Count; i++) {
         if (!diffViewers[i].Finished()) {
@@ -134,11 +139,13 @@ namespace SciGit_Client
     }
 
     private DiffViewer CreateDiffViewer(FileData f) {
-      var dv = new DiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion) {
-        NextFileCallback = SelectNextFile,
-        FinishCallback = Finish,
-        Visibility = Visibility.Hidden
-      };
+      DiffViewer dv;
+      if (SentenceFilter.IsBinary(f.myVersion) || SentenceFilter.IsBinary(f.newVersion)) {
+        dv = new BinaryDiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
+      } else {
+        dv = new TextDiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
+      }
+      dv.Visibility = Visibility.Hidden;
       Grid.SetRow(dv, 1);
       grid.Children.Add(dv);
 
