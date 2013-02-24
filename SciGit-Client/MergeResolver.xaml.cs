@@ -24,35 +24,82 @@ namespace SciGit_Client
   /// </summary>
   public partial class MergeResolver : Window
   {
-    int active;
-    List<DiffViewer> diffViewers;
-    Project project;
-    List<FileData> unmergedFiles;
+    private int active;
+    private Project project;
+    private List<DiffViewer> diffViewers;
+    private List<FileData> unmergedFiles;
+    private Dictionary<string, DiffViewer> diffViewerMap;
+    private List<string> updated, created, deleted, combined;
 
     public MergeResolver(Project p) {
       InitializeComponent();
 
       project = p;
-      unmergedFiles = GetUnmergedFiles();
 
-      /*FileData test = new FileData();
-      test.filename = "test.docx";
-      test.original = File.ReadAllText("C:\\Users\\Hanson\\paper_orig.docx", Encoding.Default);
-      test.myVersion = File.ReadAllText("C:\\Users\\Hanson\\paper_orig.docx", Encoding.Default);
-      test.newVersion = File.ReadAllText("C:\\Users\\Hanson\\paper.docx", Encoding.Default);
-      test.original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n";
-      test.myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n";
-      test.newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n";
-      unmergedFiles.Add(test);*/
-
-      diffViewers = new List<DiffViewer>();
-      for (int i = 0; i < unmergedFiles.Count; i++) {
-        diffViewers.Add(CreateDiffViewer(unmergedFiles[i]));
+      if (p.id == 0) {
+        unmergedFiles = new List<FileData> {
+          new FileData {
+            filename = "file.txt",
+            original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
+            myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
+            newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
+          },
+          new FileData {
+            filename = "add-add file",
+            original = null,
+            myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
+            newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
+          },
+          new FileData {
+            filename = "my deletion",
+            original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
+            myVersion = null,
+            newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
+          },
+          new FileData {
+            filename = "their deletion",
+            original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
+            myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
+            newVersion = null
+          }
+        };
+      } else {
+        unmergedFiles = GetUnmergedFiles();
       }
+
+      diffViewerMap = new Dictionary<string, DiffViewer>();
+      updated = new List<string>();
+      created = new List<string>();
+      deleted = new List<string>();
+
+      for (int i = 0; i < unmergedFiles.Count; i++) {
+        CreateDiffViewer(unmergedFiles[i]);
+      }
+
+      updated.Sort();
+      created.Sort();
+      deleted.Sort();
+      combined = new List<string>(updated);
+      combined.AddRange(created);
+      combined.AddRange(deleted);
+      diffViewers = new List<DiffViewer>(combined.Select(name => diffViewerMap[name]));
+
+      foreach (var name in updated) {
+        updatedListing.AddFile(name);
+      }
+      foreach (var name in created) {
+        createdListing.AddFile(name);
+      }
+      foreach (var name in deleted) {
+        deletedListing.AddFile(name);
+      }
+      updatedListing.SelectionHandlers.Add(item => SelectFilename(updated, item));
+      createdListing.SelectionHandlers.Add(item => SelectFilename(created, item));
+      deletedListing.SelectionHandlers.Add(item => SelectFilename(deleted, item));
 
       active = 0;
       diffViewers[active].Visibility = Visibility.Visible;
-      fileDropdown.SelectedIndex = 0;
+      SetActiveFile(active);
       if (unmergedFiles.Count <= 1) {
         nextFile.IsEnabled = false;
       }
@@ -60,6 +107,21 @@ namespace SciGit_Client
 
     public bool Saved { get; private set; }
 
+    void SelectFilename(List<string> selectedList, string name) {
+      var lists = new List<string>[3]{updated, created, deleted};
+      var listings = new FileListing[3]{updatedListing, createdListing, deletedListing};
+      int index = 0, count = 0;
+      for (int i = 0; i < 3; i++) {
+        if (selectedList != lists[i]) {
+          listings[i].ClearSelection();
+        } else {
+          index = count + lists[i].BinarySearch(name);
+        }
+        count += lists[i].Count;
+      }
+      SetActiveDiffViewer(index);
+    }
+    
     void SetActiveDiffViewer(int dv) {
       if (active != dv) {
         diffViewers[active].Visibility = Visibility.Hidden;
@@ -68,9 +130,19 @@ namespace SciGit_Client
       }
     }
 
+    void SetActiveFile(int index) {
+      SetActiveDiffViewer(index);
+      if (index >= updated.Count + created.Count) {
+        deletedListing.Select(index - updated.Count - created.Count);
+      } else if (index >= updated.Count) {
+        createdListing.Select(index - updated.Count);
+      } else {
+        updatedListing.Select(index);
+      }
+    }
+
     void ClickNextFile(object sender, RoutedEventArgs e) {
-      SetActiveDiffViewer((active + 1) % diffViewers.Count);
-      fileDropdown.SelectedIndex = active;
+      SetActiveFile((active + 1) % diffViewers.Count);
     }
 
     void ClickFinish(object sender, RoutedEventArgs e) {
@@ -146,13 +218,19 @@ namespace SciGit_Client
         dv = new TextDiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
       }
       dv.Visibility = Visibility.Hidden;
-      Grid.SetRow(dv, 1);
+      Grid.SetRow(dv, 0);
+      Grid.SetRowSpan(dv, 2);
+      Grid.SetColumn(dv, 1);
       grid.Children.Add(dv);
+      diffViewerMap[f.filename] = dv;
 
-      var cbItem = new ComboBoxItem {Content = f.filename};
-      int cur = fileDropdown.Items.Count;
-      cbItem.Selected += (e, o) => SetActiveDiffViewer(cur);
-      fileDropdown.Items.Add(cbItem);
+      if (f.original == null && f.newVersion != null) {
+        created.Add(f.filename);
+      } else if (f.newVersion != null) {
+        updated.Add(f.filename);
+      } else {
+        deleted.Add(f.filename);
+      }
 
       return dv;
     }

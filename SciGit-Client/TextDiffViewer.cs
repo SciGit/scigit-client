@@ -42,7 +42,7 @@ namespace SciGit_Client
       conflictHover = new int[conflictBlocks.Count];
       conflictChoice = new int[conflictBlocks.Count];
       for (int i = 0; i < conflictChoice.Length; i++) {
-        conflictChoice[i] = -1;
+        conflictHover[i] = conflictChoice[i] = -1;
       }
       SelectConflict(0);
       if (conflictBlocks.Count > 1) {
@@ -482,6 +482,9 @@ namespace SciGit_Client
             }
             if (rangeEnd > curOriginalLine) {
               conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, rangeEnd - curOriginalLine));
+            }
+            if (conflictBlock.lines.Count == 0) {
+              conflictBlock.type = BlockType.ChangeDelete;
             }
             content[side].Add(conflictBlock);
             if (side == 0) {

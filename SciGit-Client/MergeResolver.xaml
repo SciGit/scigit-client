@@ -1,19 +1,21 @@
-﻿<Window x:Class="SciGit_Client.MergeResolver" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Merge Conflicts" Height="600" Width="1000" SnapsToDevicePixels="True" ShowInTaskbar="True" Icon="/SciGit-Client;component/Images/icon.ico" Background="#FFF1F1F1" MinWidth="1000" MinHeight="600" Closing="WindowClosing" Closed="WindowClosed">
+﻿<Window x:Class="SciGit_Client.MergeResolver" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:SciGit_Client="clr-namespace:SciGit_Client" Title="Merge Conflicts" Height="600" Width="1000" SnapsToDevicePixels="True" ShowInTaskbar="True" Icon="/SciGit-Client;component/Images/icon.ico" Background="#FFF1F1F1" MinWidth="1200" MinHeight="600" Closing="WindowClosing" Closed="WindowClosed">
 	<Grid Margin="10" Name="grid">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
 			<ColumnDefinition Width="*" />
 		</Grid.ColumnDefinitions>
 
-		<TextBlock Text="Resolve Conflicts" Grid.Row="0" Grid.Column="0" FontSize="20" FontWeight="Normal" Margin="0,0,0,5" />
-		<WrapPanel Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right">
-			<Label Content="File:" Target="{Binding ElementName=fileDropdown}" />
-			<ComboBox Name="fileDropdown" IsEnabled="True" MinWidth="250" />
-		</WrapPanel>
-        <WrapPanel Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+		<TextBlock Text="Resolve Conflicts" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" FontSize="20" FontWeight="Normal" Margin="0,0,0,5" />
+        <StackPanel Grid.RowSpan="3" Grid.Row="1" Margin="0,5,10,0">
+            <SciGit_Client:FileListing x:Name="updatedListing" Title="Updated Files" Color="#9999ff" Margin="0,0,0,10" />
+            <SciGit_Client:FileListing x:Name="createdListing" Title="Created Files" Color="#55ff55" Margin="0,0,0,10" />
+            <SciGit_Client:FileListing x:Name="deletedListing" Title="Deleted Files" Color="#ff5555" />
+        </StackPanel>
+        <WrapPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button Content="Next file" Name="nextFile" Margin="0,0,10,0" Click="ClickNextFile" />
             <Button Content="Preview and finalize..." Name="finish" Click="ClickFinish" IsDefault="True" />
         </WrapPanel>

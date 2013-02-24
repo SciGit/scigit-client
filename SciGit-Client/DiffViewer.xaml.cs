@@ -19,11 +19,22 @@ namespace SciGit_Client
       project = p;
 
       if (myVersion == null) {
-        titleMe.Text = "Your Version (file was deleted)";
+        titleMe.Text += " (file was deleted)";
         deletedSide = 0;
-      } else if (newVersion == null) {
-        titleNew.Text = "Updated Version (file was deleted)";
+      } else if (original == null) {
+        titleMe.Text += " (file was added)";
+      } else {
+        titleMe.Text += " (file was modified)";
+      }
+      
+      if (newVersion == null) {
+        titleNew.Text += " (file was deleted)";
         deletedSide = 1;
+        // Only one side can be deleted in a conflict, so deletedSide is either 0 or 1
+      } else if (original == null) {
+        titleNew.Text += " (file was added)";
+      } else {
+        titleNew.Text += " (file was modified)";
       }
     }
 
@@ -59,6 +70,10 @@ namespace SciGit_Client
     }
 
     protected virtual void ClickRevert(object sender, RoutedEventArgs e) {
+    }
+
+    private void UserControl_Loaded(object sender, RoutedEventArgs e) {
+
     }
   }
 }
