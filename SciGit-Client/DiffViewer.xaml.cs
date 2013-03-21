@@ -66,10 +66,16 @@ namespace SciGit_Client
       Accept(1);
     }
 
-    protected virtual void ClickEdit(object sender, RoutedEventArgs e) {
+    protected virtual void ClickEditMe(object sender, RoutedEventArgs e) {
     }
 
-    protected virtual void ClickRevert(object sender, RoutedEventArgs e) {
+    protected virtual void ClickEditThem(object sender, RoutedEventArgs e) {
+    }
+
+    protected virtual void ClickRevertMe(object sender, RoutedEventArgs e) {
+    }
+
+    protected virtual void ClickRevertThem(object sender, RoutedEventArgs e) {
     }
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e) {

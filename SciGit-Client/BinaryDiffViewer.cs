@@ -21,10 +21,20 @@ namespace SciGit_Client
 
     public BinaryDiffViewer(Project p, string filename, string original, string myVersion, string newVersion)
         : base(p, filename, original, myVersion, newVersion) {
-      edit.Visibility = revert.Visibility = Visibility.Collapsed;
+      editMe.Visibility = editThem.Visibility = Visibility.Collapsed;
+      revertMe.Visibility = revertThem.Visibility = Visibility.Collapsed;
+      grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+      Grid.SetRow(actionsMe, 1);
+      Grid.SetRow(actionsThem, 1);
+
       messageMe.Visibility = Visibility.Visible;
       messageNew.Visibility = Visibility.Visible;
-      string projectDir = ProjectMonitor.GetProjectDirectory(project);
+      string projectDir;
+      if (project.id == 0) { // for testing purposes only
+        projectDir = "C:\\temp";
+      } else {
+        projectDir = ProjectMonitor.GetProjectDirectory(project);
+      }
       string winFilename = gitFilename.Replace('/', System.IO.Path.DirectorySeparatorChar);
       fullpath = Util.PathCombine(projectDir, winFilename);
       dir = System.IO.Path.GetDirectoryName(fullpath);
@@ -45,6 +55,10 @@ namespace SciGit_Client
       } else {
         messageMe.Text = "This file was deleted in the updated version.";
       }
+
+      acceptMe.Content = "Accept " + filename;
+      acceptThem.Content = "Accept " + newFilename;
+      status.Text = "1 unresolved conflicts remaining.";
     }
 
     public override void Cleanup() {
@@ -68,6 +82,7 @@ namespace SciGit_Client
       selectedSide = side;
       acceptMe.IsChecked = side == 0;
       acceptThem.IsChecked = side == 1;
+      status.Text = "0 unresolved conflicts remaining.";
     }
 
     private void CreateMessage(ref TextBlock text, string filename, string path, string pronoun) {
@@ -87,7 +102,7 @@ namespace SciGit_Client
         };
         link.RequestNavigate += MergeInWord;
         text.Inlines.Add(link);
-        text.Inlines.Add(" the files in Word and save the result in the appropriate file.");
+        text.Inlines.Add(" the files in Word and save the result in the desired file.");
       } else {
         text.Inlines.Add(".");
       }

@@ -34,9 +34,17 @@ namespace SciGit_Client
     public MergeResolver(Project p) {
       InitializeComponent();
 
+      Title += " for " + p.name;
       project = p;
 
       if (p.id == 0) {
+        string orig_big = "", my_big = "", new_big = "";
+        for (int i = 0; i < 25; i++) {
+          orig_big += "a\na\n";
+          my_big += "b\na\n";
+          new_big += "c\na\n";
+        }
+
         unmergedFiles = new List<FileData> {
           new FileData {
             filename = "file.txt",
@@ -45,19 +53,37 @@ namespace SciGit_Client
             newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
           },
           new FileData {
-            filename = "add-add file",
+            filename = "bin_file.txt",
+            original = "\007Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
+            myVersion = "\007Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
+            newVersion = "\007Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
+          },
+          new FileData {
+            filename = "file.docx",
+            original = "\007Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
+            myVersion = "\007Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
+            newVersion = "\007Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
+          },
+          new FileData {
+            filename = "big_file.txt",
+            original = orig_big,
+            myVersion = my_big,
+            newVersion = new_big
+          },
+          new FileData {
+            filename = "added_file.txt",
             original = null,
             myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
             newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
           },
           new FileData {
-            filename = "my deletion",
+            filename = "my_deletion.txt",
             original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
             myVersion = null,
             newVersion = "Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
           },
           new FileData {
-            filename = "their deletion",
+            filename = "their_deletion.txt",
             original = "Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
             myVersion = "Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
             newVersion = null

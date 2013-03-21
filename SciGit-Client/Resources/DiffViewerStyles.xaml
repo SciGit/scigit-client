@@ -18,6 +18,16 @@
         <Setter Property="Foreground" Value="White" />
     </Style>
 
+    <Style x:Key="scrollBorder" TargetType="Border">
+        <Setter Property="Background" Value="#A884F3" />
+    </Style>
+    <Style x:Key="scrollBorderActive" TargetType="Border">
+        <Setter Property="Background" Value="#00FF00" />
+    </Style>
+    <Style x:Key="scrollBorderDone" TargetType="Border">
+        <Setter Property="Background" Value="#00CC00" />
+    </Style>
+
     <Style x:Key="numBackgroundNormal" TargetType="Border">
         <Setter Property="BorderBrush" Value="#999" />
         <Setter Property="BorderThickness" Value="1" />

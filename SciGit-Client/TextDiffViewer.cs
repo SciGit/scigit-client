@@ -25,6 +25,7 @@ namespace SciGit_Client
     private int[] lineCount;
     private List<TextBlock>[] lineNums;
     private List<Border>[] lineNumBackgrounds, lineTextBackgrounds;
+    private List<Border> scrollNavBorders;
     private List<RichTextBox>[] lineTexts;
     private LineBlock[][] origBlocks;
 
@@ -35,6 +36,7 @@ namespace SciGit_Client
         // Also, add-add conflicts don't need any special treatment.
       }
 
+      conflictNav.Visibility = Visibility.Visible;
       ProcessDiff(original, myVersion, newVersion);
       InitializeEditor();
 
@@ -48,6 +50,7 @@ namespace SciGit_Client
       if (conflictBlocks.Count > 1) {
         nextConflict.IsEnabled = prevConflict.IsEnabled = true;
       }
+      status.Text = conflictBlocks.Count + " unresolved conflicts remaining.";
     }
 
     public override bool Finished() {
@@ -108,7 +111,7 @@ namespace SciGit_Client
         textBackground.ClearValue(Border.BorderBrushProperty);
         if (border) {
           textBackground.BorderThickness = new Thickness(3);
-          textBackground.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+          textBackground.BorderBrush = new SolidColorBrush(Color.FromRgb(0, 0xdd, 0));
         }
 
         int startLine = lineCount.Take(block).Sum();
@@ -123,13 +126,26 @@ namespace SciGit_Client
           textBackground.Effect = null;
         }
       }
+
+      if (index == curConflict) {
+        scrollNavBorders[index].Style = GetStyle("scrollBorderActive");
+      } else if (conflictChoice[index] != -1) {
+        scrollNavBorders[index].Style = GetStyle("scrollBorderDone");
+      } else {
+        scrollNavBorders[index].Style = GetStyle("scrollBorder");
+      }
     }
 
-    private void SelectConflict(int index) {
+    private void SelectConflict(int index, bool scroll = true) {
       int newBlock = conflictBlocks[index];
       int line = lineCount.Take(newBlock).Sum();
-      Point p = lineNums[0][line].TransformToAncestor(grid).Transform(new Point(0, 0));
-      scrollViewer.ScrollToVerticalOffset(p.Y);
+      if (scroll) {
+        Point p = lineNums[0][line].TransformToAncestor(grid).Transform(new Point(0, 0));
+        scrollViewer.ScrollToVerticalOffset(p.Y - scrollViewer.ViewportHeight/2 + lineTextBackgrounds[0][newBlock].ActualHeight/2);
+      }
+
+      Grid.SetRow(actionsMe, 2*(line + lineCount[newBlock]) - 1);
+      Grid.SetRow(actionsThem, 2*(line + lineCount[newBlock]) - 1);
 
       conflictNumber.Text = "Conflict " + (index + 1) + "/" + conflictBlocks.Count;
       int lastConflict = curConflict;
@@ -139,8 +155,8 @@ namespace SciGit_Client
 
       acceptMe.IsChecked = conflictChoice[index] == 0;
       acceptThem.IsChecked = conflictChoice[index] == 1;
-      revert.IsEnabled = conflictChoice[index] == -1 ? false :
-        content[conflictChoice[index]][newBlock].type == BlockType.Edited;
+      revertMe.IsEnabled = content[0][newBlock].type == BlockType.Edited;
+      revertThem.IsEnabled = content[1][newBlock].type == BlockType.Edited;
     }
 
     private void HoverConflict(int index, int side, bool on) {
@@ -152,19 +168,23 @@ namespace SciGit_Client
       conflictChoice[index] = side;
       acceptMe.IsChecked = side == 0;
       acceptThem.IsChecked = side == 1;
+      status.Text = conflictChoice.Count(x => x == -1) + " unresolved conflicts remaining.";
       UpdateConflictBlock(index);
     }
 
-    private void EditConflict(int index) {
+    private void EditConflict(int index, int side) {
       int block = conflictBlocks[index];
-      LineBlock chosenBlock = conflictChoice[index] == -1 ? null : content[conflictChoice[index]][block];
+      LineBlock chosenBlock = content[side][block];
       var de = new DiffEditor(origBlocks[0][block], origBlocks[1][block], conflictOrigBlocks[index], chosenBlock);
       de.ShowDialog();
       if (de.newBlock != null) {
         ProcessBlockDiff(conflictOrigBlocks[index], de.newBlock, false);
-        if (conflictChoice[index] == -1) conflictChoice[index] = 0;
-        content[conflictChoice[index]][block] = de.newBlock;
-        revert.IsEnabled = true;
+        content[side][block] = de.newBlock;
+        if (side == 0) {
+          revertMe.IsEnabled = true;
+        } else {
+          revertThem.IsEnabled = true;
+        }
         ReloadEditor();
       }
     }
@@ -174,9 +194,6 @@ namespace SciGit_Client
         ChooseConflict(index, -1);
       } else {
         ChooseConflict(index, side);
-        if (index + 1 != conflictBlocks.Count) {
-          SelectConflict(index + 1);
-        }
       }
     }
 
@@ -194,26 +211,42 @@ namespace SciGit_Client
       SelectConflict((curConflict + 1) % numConflicts);
     }
 
-    protected override void ClickEdit(object sender, RoutedEventArgs e) {
-      EditConflict(curConflict);
+    protected override void ClickEditMe(object sender, RoutedEventArgs e) {
+      EditConflict(curConflict, 0);
     }
 
-    protected override void ClickRevert(object sender, RoutedEventArgs e) {
+    protected override void ClickEditThem(object sender, RoutedEventArgs e) {
+      EditConflict(curConflict, 1);
+    }
+
+    private void ClickRevert(int side) {
       int block = conflictBlocks[curConflict];
-      int side = conflictChoice[curConflict];
       content[side][block] = origBlocks[side][block];
-      revert.IsEnabled = false;
+      if (side == 0) {
+        revertMe.IsEnabled = false;
+      } else {
+        revertThem.IsEnabled = false;
+      }
       ReloadEditor();
+    }
+
+    protected override void ClickRevertMe(object sender, RoutedEventArgs e) {
+      ClickRevert(0);
+    }
+
+    protected override void ClickRevertThem(object sender, RoutedEventArgs e) {
+      ClickRevert(1);
     }
 
     private void ClearEditor() {
       grid.RowDefinitions.Clear();
       var rd = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
       grid.RowDefinitions.Add(rd);
+      conflictNav.RowDefinitions.Clear();
 
       var rects = new List<UIElement>();
       foreach (UIElement child in grid.Children) {
-        if (child.GetType() == typeof(Rectangle)) {
+        if (child.GetType() == typeof(Rectangle) || child.GetType() == typeof(WrapPanel)) {
           rects.Add(child);
         }
       }
@@ -245,8 +278,13 @@ namespace SciGit_Client
 
       int lines = lineCount.Sum();
       for (int i = 0; i < lines; i++) {
-        var rd = new RowDefinition { Height = GridLength.Auto };
-        grid.RowDefinitions.Insert(0, rd);
+        grid.RowDefinitions.Insert(0, new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Insert(0, new RowDefinition { Height = GridLength.Auto });
+        conflictNav.RowDefinitions.Insert(0, new RowDefinition());
+      }
+
+      if (lines < 25) {
+        conflictNav.Visibility = Visibility.Collapsed;
       }
 
       // Create grid cells for text blocks.
@@ -260,7 +298,7 @@ namespace SciGit_Client
         for (int j = 0; j < lines; j++) {
           var lineNum = new TextBlock { Style = GetStyle("lineNumber") };
           Panel.SetZIndex(lineNum, 5);
-          Grid.SetRow(lineNum, j);
+          Grid.SetRow(lineNum, 2 * j);
           Grid.SetColumn(lineNum, 2 * i);
           grid.Children.Add(lineNum);
           lineNums[i].Add(lineNum);
@@ -270,7 +308,7 @@ namespace SciGit_Client
             HorizontalAlignment = HorizontalAlignment.Stretch
           };
           Panel.SetZIndex(text, 5);
-          Grid.SetRow(text, j);
+          Grid.SetRow(text, 2 * j);
           Grid.SetColumn(text, 1 + 2 * i);
           var doc = new FlowDocument();
           var p = new Paragraph();
@@ -282,6 +320,7 @@ namespace SciGit_Client
       }
 
       // Draw the actual text blocks.
+      scrollNavBorders = new List<Border>();
       for (int side = 0; side < 2; side++) {
         int prevLine = 0;
         int lineNum = 1;
@@ -311,37 +350,48 @@ namespace SciGit_Client
 
           var numBorder = new Border();
           Panel.SetZIndex(numBorder, 3);
-          Grid.SetRow(numBorder, prevLine);
+          Grid.SetRow(numBorder, 2 * prevLine);
           Grid.SetColumn(numBorder, side * 2);
-          Grid.SetRowSpan(numBorder, lineCount[g]);
+          Grid.SetRowSpan(numBorder, 2 * lineCount[g]);
           grid.Children.Add(numBorder);
           lineNumBackgrounds[side].Add(numBorder);
 
           var textBorder = new Border();
           Panel.SetZIndex(textBorder, 2);
-          Grid.SetRow(textBorder, prevLine);
+          Grid.SetRow(textBorder, 2 * prevLine);
           Grid.SetColumn(textBorder, side * 2 + 1);
-          Grid.SetRowSpan(textBorder, lineCount[g]);
+          Grid.SetRowSpan(textBorder, 2 * lineCount[g]);
           grid.Children.Add(textBorder);
           lineTextBackgrounds[side].Add(textBorder);
 
           if (lblock.type != BlockType.Normal) {
             numBorder.Style = GetStyle("numBackground" + lblock.type);
             textBorder.Style = GetStyle("textBackground" + lblock.type);
+            int cIndex = conflictBlocks.BinarySearch(g);
             for (int line = 0; line < lineCount[g]; line++) {
               TextBlock num = lineNums[side][prevLine + line];
               RichTextBox text = lineTexts[side][prevLine + line];
               num.Style = GetStyle("lineNum" + lblock.type);
               text.Style = GetStyle("lineText" + lblock.type);
-              int cIndex = conflictBlocks.BinarySearch(g);
               if (cIndex >= 0) {
                 int mySide = side; // for lambda scoping
-                text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex); };
-                text.PreviewMouseDoubleClick += (o, e) => EditConflict(cIndex);
+                text.PreviewMouseLeftButtonUp += (o, e) => { ChooseConflict(cIndex, mySide); SelectConflict(cIndex, false); };
+                text.PreviewMouseDoubleClick += (o, e) => EditConflict(cIndex, mySide);
                 // text.ContextMenu = new ContextMenu();
                 text.MouseEnter += (o, e) => HoverConflict(cIndex, mySide, true);
                 text.MouseLeave += (o, e) => HoverConflict(cIndex, mySide, false);
               }
+            }
+
+            if (side == 0) {
+              var scrollBorder = new Border();
+              Grid.SetRow(scrollBorder, prevLine);
+              Grid.SetRowSpan(scrollBorder, lineCount[g]);
+              conflictNav.Children.Add(scrollBorder);
+              scrollBorder.Style = GetStyle("scrollBorder" + (scrollNavBorders.Count == 0 ? "Active" : ""));
+              scrollBorder.MouseUp += (o, e) => SelectConflict(cIndex);
+              scrollBorder.ToolTip = String.Format("Conflict {0}/{1}", cIndex+1, conflictBlocks.Count);
+              scrollNavBorders.Add(scrollBorder);
             }
           }
 
