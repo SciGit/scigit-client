@@ -30,13 +30,13 @@ namespace SciGit_Client
     private LineBlock[][] origBlocks;
 
     public TextDiffViewer(Project p, string filename, string original, string myVersion, string newVersion)
-        : base(p, filename, original, myVersion, newVersion) {
+        : base(p, filename, original, myVersion, newVersion)
+    {
       if (original == null) {
         original = ""; // We don't really have to display anything differently.
         // Also, add-add conflicts don't need any special treatment.
       }
 
-      conflictNav.Visibility = Visibility.Visible;
       ProcessDiff(original, myVersion, newVersion);
       InitializeEditor();
 
@@ -283,8 +283,9 @@ namespace SciGit_Client
         conflictNav.RowDefinitions.Insert(0, new RowDefinition());
       }
 
-      if (lines < 25) {
-        conflictNav.Visibility = Visibility.Collapsed;
+      // Only show the scroll helper if it's a long file.
+      if (lines > 25) {
+        conflictNav.Visibility = Visibility.Visible;
       }
 
       // Create grid cells for text blocks.

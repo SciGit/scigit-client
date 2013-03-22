@@ -15,7 +15,7 @@ namespace SciGit_Client
     private Main main;
 
     public Login() {
-      new MergeResolver(new Project {name="Test Project"}).Show(); Close(); return;
+      // new MergeResolver(new Project {name="Test Project"}).Show(); Close(); return;
       InitializeComponent();
 
       registerLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/register");

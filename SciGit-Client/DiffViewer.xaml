@@ -54,7 +54,7 @@
 		</ScrollViewer>
 
         <Rectangle Grid.Row="1" Grid.Column="3" Fill="#e1e1e1" />
-        <Grid Name="conflictNav" Grid.Row="1" Grid.Column="3" Margin="2,18,3,18" VerticalAlignment="Stretch">
+        <Grid Name="conflictNav" Grid.Row="1" Grid.Column="3" Margin="2,18,3,18" VerticalAlignment="Stretch" Visibility="Collapsed">
             <Grid.RowDefinitions>
             </Grid.RowDefinitions>
             
