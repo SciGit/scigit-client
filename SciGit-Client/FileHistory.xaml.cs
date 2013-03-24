@@ -56,7 +56,7 @@ namespace SciGit_Client
       fileHistory.SelectedIndex = 0;
     }
 
-    private void DisplayDiff(string old, string updated) {
+    private void DisplayDiff(string author, string old, string updated) {
       revert.IsEnabled = save.IsEnabled = true;
       grid.RowDefinitions.Clear();
       var rd = new RowDefinition {Height = new GridLength(1, GridUnitType.Star)};
@@ -75,7 +75,7 @@ namespace SciGit_Client
           message.Inlines.Add(" You can also ");
           var fakeUri = new Uri("http://asdf.com");
           var link = new Hyperlink(new Run("view the changes")) {NavigateUri = fakeUri};
-          link.RequestNavigate += (s, e) => CompareInWord(old, updated, filename, Path.GetDirectoryName(fullpath));
+          link.RequestNavigate += (s, e) => CompareInWord(old, updated, filename, Path.GetDirectoryName(fullpath), author);
           message.Inlines.Add(link);
           message.Inlines.Add(" in Word.");
         }
@@ -118,13 +118,13 @@ namespace SciGit_Client
       }
     }
 
-    private void CompareInWord(string old, string updated, string name, string fullpath) {
+    private void CompareInWord(string old, string updated, string name, string fullpath, string author) {
       string guid = Guid.NewGuid().ToString();
       string temp1 = Path.GetTempPath() + "scigit_compare1" + guid + ".docx";
       string temp2 = Path.GetTempPath() + "scigit_compare2" + guid + ".docx";
       File.WriteAllText(temp1, old, Encoding.Default);
       File.WriteAllText(temp2, updated, Encoding.Default);
-      Util.CompareInWord(temp1, temp2, name, fullpath);
+      Util.CompareInWord(temp1, temp2, name, fullpath, author);
     }
 
     private Style GetStyle(string name) {
@@ -242,7 +242,7 @@ namespace SciGit_Client
       sp.Margin = new Thickness(2, 5, 5, 5);
       item.Content = sp;
       string previous = hash == "" ? "HEAD" : hash + "^";
-      item.Selected += (s, e) => DisplayDiff(LoadFile(hash + "^"), LoadFile(hash));
+      item.Selected += (s, e) => DisplayDiff(author, LoadFile(hash + "^"), LoadFile(hash));
       return item;
     }
 

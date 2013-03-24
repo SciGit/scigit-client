@@ -27,12 +27,12 @@ namespace SciGit_Client
       return ret;
     }
 
-    public static void CompareInWord(string fullpath, string newFullpath, string saveName, string saveDir) {
+    public static void CompareInWord(string fullpath, string newFullpath, string saveName, string saveDir, string author = null) {
       Object missing = Type.Missing;
       var wordapp = new Microsoft.Office.Interop.Word.Application();
       try {
         var doc = wordapp.Documents.Open(fullpath, ReadOnly: true);
-        doc.Compare(newFullpath);
+        doc.Compare(newFullpath, author ?? missing);
         doc.Close(WdSaveOptions.wdDoNotSaveChanges); // Close the original document
         var dialog = wordapp.Dialogs[WdWordDialog.wdDialogFileSummaryInfo];
         // Pre-set the save destination by setting the Title in the save dialog.

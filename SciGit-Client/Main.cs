@@ -168,14 +168,14 @@ namespace SciGit_Client
 
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm("Updating Project", (form, bw) => projectMonitor.UpdateProject(p, form, bw));
+        var progressForm = new ProgressForm("Updating " + p.name, (form, bw) => projectMonitor.UpdateProject(p, form, bw));
         progressForm.Show();
       };
     }
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
-        var progressForm = new ProgressForm("Uploading Project", (form, bw) => projectMonitor.UploadProject(p, form, bw));
+        var progressForm = new ProgressForm("Uploading " + p.name, (form, bw) => projectMonitor.UploadProject(p, form, bw));
         progressForm.Show();
       };
     }
