@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Web;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using SciGit_Client.Properties;
@@ -70,10 +72,44 @@ namespace SciGit_Client
       }
     }
 
+    // Shows the message box on top.
+    private void ShowMessageBox(string content, string title) {
+      MessageBox.Show(content, title, MessageBoxButtons.OK, MessageBoxIcon.None,
+          MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+    }
+
+    private void HandleWebCommand(string url) {
+      var uri = new Uri(url);
+      try {
+        if (uri.Host == "view_change") {
+          NameValueCollection query = HttpUtility.ParseQueryString(uri.Query);
+          string project_id = query["project_id"];
+          Project p = projectMonitor.GetProjectById(int.Parse(project_id));
+          if (p.id == 0) {
+            ShowMessageBox("You don't seem to have access to that project.", "Invalid SciGit project");
+            return;
+          }
+          string hash = query["commit_hash"];
+          string filename = query["filename"];
+          this.Invoke(new Action(() => OpenFileHistory(p, filename, hash)));
+        } else {
+          ShowMessageBox("Invalid link provided.", "Invalid SciGit command");
+        }
+      } catch (Exception ex) {
+        Logger.LogException(ex);
+        ShowMessageBox("Invalid link provided.", "Invalid SciGit command");
+      }
+    }
+
     private void HandleCommand(string verb, string filename) {
+      if (verb == "--url") {
+        HandleWebCommand(filename);
+        return;
+      }
+
       Project p = projectMonitor.GetProjectFromFilename(ref filename);
       if (p.id == 0) {
-        MessageBox.Show("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
+        ShowMessageBox("This file does not belong to a valid SciGit project.", "Invalid SciGit file");
       } else if (verb == "--versions") {
         this.Invoke(new Action(() => OpenFileHistory(p, filename)));
       } else if (verb == "--update") {
@@ -104,23 +140,23 @@ namespace SciGit_Client
 
     private void OnProjectMonitorFailure() {
       this.Invoke(new Action(() => {
-        MessageBox.Show("Could not authenticate with the SciGit server. Please log in again.", "Error");
+        ShowMessageBox("Could not authenticate with the SciGit server. Please log in again.", "Error");
         Logout();
       }));
     }
 
-    private void OpenFileHistory(Project p, string filename) {
+    private void OpenFileHistory(Project p, string filename, string hash = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
       if (!File.Exists(Util.PathCombine(dir, filename))) {
-        MessageBox.Show("File does not exist.", "Error");
+        ShowMessageBox("File " + filename + " does not exist. You may have to update the project.", "SciGit error");
       } else {
         FileHistory fh = null;
         try {
-          fh = new FileHistory(p, filename);
+          fh = new FileHistory(p, filename, hash);
           fh.Show();
         } catch (InvalidRepositoryException) {
           if (fh != null) fh.Hide();
-          MessageBox.Show("This file does not belong to a valid SciGit project.", "Error");
+          ShowMessageBox("This file does not belong to a valid SciGit project.", "SciGit error");
         } catch (Exception e) {
           if (fh != null) fh.Hide();
           ErrorForm.Show(e);
@@ -131,7 +167,7 @@ namespace SciGit_Client
     private void OpenProjectHistory(Project p) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
       if (!Directory.Exists(dir)) {
-        MessageBox.Show("Project does not exist.", "Error");
+        ShowMessageBox("Project does not exist.", "Error");
       } else {
         ProjectHistory ph = null;
         try {
@@ -139,7 +175,7 @@ namespace SciGit_Client
           ph.Show();
         } catch (InvalidRepositoryException) {
           if (ph != null) ph.Hide();
-          MessageBox.Show("This file does not belong to a valid SciGit project.", "Error");
+          ShowMessageBox("This file does not belong to a valid SciGit project.", "Error");
         } catch (Exception e) {
           if (ph != null) ph.Hide();
           ErrorForm.Show(e);
@@ -201,7 +237,7 @@ namespace SciGit_Client
       sf.ShowDialog();
 
       if (Settings.Default.ProjectDirectory != ProjectMonitor.GetProjectDirectory()) {
-        MessageBox.Show("To complete the change, SciGit needs to be restarted. " +
+        ShowMessageBox("To complete the change, SciGit needs to be restarted. " +
           "Please finish any remaining operations.", "Restart Required");
         Logout();
       }
@@ -402,7 +438,7 @@ namespace SciGit_Client
       string key = File.ReadAllText(keyFile + ".pub").Trim();
       bool? uploadResult = RestClient.UploadPublicKey(key);
       if (uploadResult != true) {
-        MessageBox.Show(uploadResult == false ?
+        ShowMessageBox(uploadResult == false ?
           "It appears that your public key is invalid. Please remove or regenerate it." :
           "Could not connect to the SciGit server. Please try again later.", "Error");
         // TODO: add ability to regenerate

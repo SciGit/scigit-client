@@ -113,6 +113,12 @@ namespace SciGit_Client
       }
     }
 
+    public Project GetProjectById(int id) {
+      lock (projects) {
+        return projects.Find(x => x.id == id);
+      }
+    }
+
     public Project GetProjectFromFilename(ref string filename) {
       string dir = GetProjectDirectory() + Path.DirectorySeparatorChar;
       if (filename.StartsWith(dir)) {

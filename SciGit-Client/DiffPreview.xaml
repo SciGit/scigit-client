@@ -1,4 +1,4 @@
-﻿<Window x:Class="SciGit_Client.DiffPreview" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Preview" Height="700" Width="500" WindowStyle="ToolWindow" MinWidth="500" MinHeight="700" SnapsToDevicePixels="True" Background="#FFF1F1F1">
+﻿<Window x:Class="SciGit_Client.DiffPreview" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Preview" Height="700" Width="500" WindowStyle="ToolWindow" MinWidth="500" MinHeight="700" SnapsToDevicePixels="True" Background="#FFF1F1F1" Topmost="True">
 	<Window.Resources>
 		<Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
 			<Setter Property="FontFamily" Value="Consolas" />

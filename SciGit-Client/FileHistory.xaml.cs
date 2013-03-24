@@ -23,7 +23,7 @@ namespace SciGit_Client
     private Dictionary<string, string> fileData;
     private List<string> hashes;
 
-    public FileHistory(Project p, string filename) {
+    public FileHistory(Project p, string filename, string hash = null) {
       InitializeComponent();
 
       project = p;
@@ -45,15 +45,30 @@ namespace SciGit_Client
       hashes.Add("");
       var timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
       fileHistory.Items.Add(CreateListViewItem("", "Current Version", "", timestamp));
+      int cIndex = 1, hashIndex = -1;
       foreach (var commit in commits) {
         string[] data = commit.Split(new[] { ' ' }, 4);
         if (data.Length == 4) {
           hashes.Add(data[0]);
+          if (data[0] == hash) {
+            hashIndex = cIndex;
+          }
+          cIndex++;
           fileHistory.Items.Add(CreateListViewItem(data[0], data[3], data[1], int.Parse(data[2])));
         }
       }
 
-      fileHistory.SelectedIndex = 0;
+      if (hash != null) {
+        if (hashIndex == -1) {
+          MessageBox.Show("Could not find that version of the file. You may have to update the project.", "Version not found");
+          hashIndex = 0;
+        }
+      } else {
+        hashIndex = 0;
+      }
+
+      fileHistory.SelectedIndex = hashIndex;
+      fileHistory.Focus();
     }
 
     private void DisplayDiff(string author, string old, string updated) {
