@@ -450,16 +450,6 @@ namespace SciGit_Client
       }
     }
 
-
-    private string[] ArraySlice(string[] a, int start, int length) {
-      length = Math.Min(length, a.Length - start);
-      var ret = new string[length];
-      for (int i = 0; i < length; i++) {
-        ret[i] = a[start + i];
-      }
-      return ret;
-    }
-
     private void ProcessBlockDiff(LineBlock oldLineBlock, LineBlock newLineBlock, bool modifyOld = true) {
       // Do block-by-block diffs inside LineBlocks.
       var oldBlocks = new List<Block>();
@@ -530,7 +520,7 @@ namespace SciGit_Client
         // Add unchanged (original) lines.
         if (block.DeleteStartA > nextOriginalLine) {
           foreach (var lineBlocks in content) {
-            lineBlocks.Add(new LineBlock(ArraySlice(origLines, nextOriginalLine, block.DeleteStartA - nextOriginalLine)));
+            lineBlocks.Add(new LineBlock(Util.ArraySlice(origLines, nextOriginalLine, block.DeleteStartA - nextOriginalLine)));
           }
           nextOriginalLine = block.DeleteStartA;
         }
@@ -546,8 +536,8 @@ namespace SciGit_Client
 
         if (j == i + 1) {
           // A regular change.
-          var oldBlock = new LineBlock(ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
-          var newBlock = new LineBlock(ArraySlice(newPieces[owner], block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
+          var oldBlock = new LineBlock(Util.ArraySlice(diffs[owner].PiecesOld, block.DeleteStartA, block.DeleteCountA), BlockType.ChangeDelete);
+          var newBlock = new LineBlock(Util.ArraySlice(newPieces[owner], block.InsertStartB, block.InsertCountB), BlockType.ChangeAdd);
           if (block.DeleteCountA != 0 && block.InsertCountB != 0) {
             oldBlock.type = BlockType.Conflict;
             newBlock.type = BlockType.Conflict;
@@ -571,17 +561,17 @@ namespace SciGit_Client
               DiffBlock subBlock = dblocks[k].Item1;
               if (dblocks[k].Item2 != side) continue;
               if (subBlock.DeleteStartA > curOriginalLine) {
-                conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, subBlock.DeleteStartA - curOriginalLine));
+                conflictBlock.AddLines(Util.ArraySlice(origLines, curOriginalLine, subBlock.DeleteStartA - curOriginalLine));
               }
               curOriginalLine = subBlock.DeleteStartA + subBlock.DeleteCountA;
-              var oldBlock = new LineBlock(ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
-              var newBlock = new LineBlock(ArraySlice(newPieces[side], subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
+              var oldBlock = new LineBlock(Util.ArraySlice(diffs[side].PiecesOld, subBlock.DeleteStartA, subBlock.DeleteCountA), BlockType.ChangeDelete);
+              var newBlock = new LineBlock(Util.ArraySlice(newPieces[side], subBlock.InsertStartB, subBlock.InsertCountB), BlockType.ChangeAdd);
               ProcessBlockDiff(oldBlock, newBlock, false);
               origBlock.Append(oldBlock);
               conflictBlock.Append(newBlock);
             }
             if (rangeEnd > curOriginalLine) {
-              conflictBlock.AddLines(ArraySlice(origLines, curOriginalLine, rangeEnd - curOriginalLine));
+              conflictBlock.AddLines(Util.ArraySlice(origLines, curOriginalLine, rangeEnd - curOriginalLine));
             }
             if (conflictBlock.lines.Count == 0) {
               conflictBlock.type = BlockType.ChangeDelete;
@@ -614,7 +604,7 @@ namespace SciGit_Client
       // Add any remaining unchanged lines.
       if (origLines.Length > nextOriginalLine) {
         foreach (var lineBlocks in content) {
-          lineBlocks.Add(new LineBlock(ArraySlice(origLines, nextOriginalLine, origLines.Length - nextOriginalLine)));
+          lineBlocks.Add(new LineBlock(Util.ArraySlice(origLines, nextOriginalLine, origLines.Length - nextOriginalLine)));
         }
       }
 

@@ -9,8 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using Microsoft.Office.Interop.Word;
-using Hyperlink = System.Windows.Documents.Hyperlink;
 
 namespace SciGit_Client
 {
@@ -48,26 +46,7 @@ namespace SciGit_Client
     }
 
     protected override void MergeInWord(object sender, RequestNavigateEventArgs e) {
-      Object missing = Type.Missing;
-      var wordapp = new Microsoft.Office.Interop.Word.Application();
-      try {
-        var doc = wordapp.Documents.Open(fullpath, ReadOnly: true);
-        doc.Compare(newFullpath);
-        doc.Close(WdSaveOptions.wdDoNotSaveChanges); // Close the original document
-        var dialog = wordapp.Dialogs[WdWordDialog.wdDialogFileSummaryInfo];
-        // Pre-set the save destination by setting the Title in the save dialog.
-        // This must be done through reflection, since "dynamic" is only supported in .NET 4
-        dialog.GetType().InvokeMember("Title", BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty,
-            null, dialog, new object[] {e.Target});
-        dialog.Execute();
-        wordapp.ChangeFileOpenDirectory(dir);
-        wordapp.Visible = true;
-        wordapp.Activate();
-      } catch (Exception ex) {
-        Logger.LogException(ex);
-        MessageBox.Show("Word could not open these documents. Please edit each file manually.", "Error");
-        wordapp.Quit();
-      }
+      Util.CompareInWord(fullpath, newFullpath, e.Target, dir);
     }
   }
 }
