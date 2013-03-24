@@ -55,7 +55,7 @@ namespace SciGit_Client
           new FileData {
             filename = "bin_file.txt",
             original = "\007Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
-            myVersion = "\007Sentence one.\nSentence two. Sentence threea.\nPlus a newline. Sentence four.\nSome crap after\na change\netc\nanother disagreement\n",
+            myVersion = null,
             newVersion = "\007Sentence one.\nSentence two. Sentence threeb. Sentence four.\nSome crap after\na small change\netc\nanother difference\n"
           },
           new FileData {
@@ -109,6 +109,9 @@ namespace SciGit_Client
       combined.AddRange(created);
       combined.AddRange(deleted);
       diffViewers = new List<DiffViewer>(combined.Select(name => diffViewerMap[name]));
+
+      var unmergedMap = unmergedFiles.ToDictionary(x => x.filename);
+      unmergedFiles = new List<FileData>(combined.Select(name => unmergedMap[name]));
 
       foreach (var name in updated) {
         updatedListing.AddFile(name);

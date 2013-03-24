@@ -17,6 +17,8 @@ namespace SciGit_Client
 {
   public class TextDiffViewer : DiffViewer
   {
+    private string filename, myVersion, newVersion;
+
     private List<int> conflictBlocks;
     private int[] conflictChoice, conflictHover;
     private List<LineBlock> conflictOrigBlocks;
@@ -32,6 +34,10 @@ namespace SciGit_Client
     public TextDiffViewer(Project p, string filename, string original, string myVersion, string newVersion)
         : base(p, filename, original, myVersion, newVersion)
     {
+      this.filename = filename;
+      this.myVersion = myVersion;
+      this.newVersion = newVersion;
+
       if (original == null) {
         original = ""; // We don't really have to display anything differently.
         // Also, add-add conflicts don't need any special treatment.
@@ -50,15 +56,24 @@ namespace SciGit_Client
       if (conflictBlocks.Count > 1) {
         nextConflict.IsEnabled = prevConflict.IsEnabled = true;
       }
-      status.Text = conflictBlocks.Count + " unresolved conflicts remaining.";
+
+      UpdateStatus();
     }
 
     public override bool Finished() {
+      if (manual) {
+        return selectedSide != -1;
+      }
       return !conflictChoice.Contains(-1);
     }
 
     public override string GetMergeResult() {
       if (!Finished()) return null;
+
+      if (manual) {
+        if (selectedSide == deletedSide) return null;
+        return File.ReadAllText(selectedSide == 0 ? fullpath : newFullpath, Encoding.Default);
+      }
 
       int totalLines = 0;
       string result = "";
@@ -136,6 +151,11 @@ namespace SciGit_Client
       }
     }
 
+    private void UpdateStatus() {
+      int cnt = manual ? (selectedSide == -1 ? 1 : 0) : conflictChoice.Count(x => x == -1);
+      status.Text = cnt + " unresolved conflicts remaining.";
+    }
+
     private void SelectConflict(int index, bool scroll = true) {
       int newBlock = conflictBlocks[index];
       int line = lineCount.Take(newBlock).Sum();
@@ -168,7 +188,7 @@ namespace SciGit_Client
       conflictChoice[index] = side;
       acceptMe.IsChecked = side == 0;
       acceptThem.IsChecked = side == 1;
-      status.Text = conflictChoice.Count(x => x == -1) + " unresolved conflicts remaining.";
+      UpdateStatus();
       UpdateConflictBlock(index);
     }
 
@@ -190,6 +210,14 @@ namespace SciGit_Client
     }
 
     private void ClickAccept(int index, int side) {
+      if (manual) {
+        selectedSide = side;
+        acceptMe.IsChecked = side == 0;
+        acceptThem.IsChecked = side == 1;
+        UpdateStatus();
+        return;
+      }
+
       if (conflictChoice[index] == side) {
         ChooseConflict(index, -1);
       } else {
@@ -238,22 +266,43 @@ namespace SciGit_Client
       ClickRevert(1);
     }
 
+    protected override void ClickManualMerge(object sender, RoutedEventArgs e) {
+      if (manual == false) {
+        manual = true;
+        selectedSide = -1;
+        ClearEditor();
+        CreateFiles(filename, myVersion, newVersion);
+        acceptMe.IsChecked = acceptThem.IsChecked = false;
+        editMe.Visibility = editThem.Visibility = Visibility.Collapsed;
+        revertMe.Visibility = revertThem.Visibility = Visibility.Collapsed;
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        Grid.SetRow(actionsMe, 1);
+        Grid.SetRow(actionsThem, 1);
+      } else {
+        manual = false;
+        Cleanup();
+        ReloadEditor();
+        messageMe.Visibility = messageNew.Visibility = Visibility.Collapsed;
+        acceptMe.Content = "Accept _my version";
+        acceptThem.Content = "Accept _updated version";
+        editMe.Visibility = editThem.Visibility = Visibility.Visible;
+        revertMe.Visibility = revertThem.Visibility = Visibility.Visible;
+      }
+
+      UpdateStatus();
+    }
+
     private void ClearEditor() {
       grid.RowDefinitions.Clear();
       var rd = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
       grid.RowDefinitions.Add(rd);
       conflictNav.RowDefinitions.Clear();
 
-      var rects = new List<UIElement>();
-      foreach (UIElement child in grid.Children) {
-        if (child.GetType() == typeof(Rectangle) || child.GetType() == typeof(WrapPanel)) {
-          rects.Add(child);
-        }
-      }
-      grid.Children.Clear();
-      foreach (var elem in rects) {
-        grid.Children.Add(elem);
-      }
+      // Remove the line number blocks and such. actionsThem is the last item in the XAML
+      int x = grid.Children.IndexOf(actionsThem);
+      grid.Children.RemoveRange(x + 1, grid.Children.Count - x);
+
+      conflictNav.Visibility = Visibility.Collapsed;
     }
 
     private void ReloadEditor() {

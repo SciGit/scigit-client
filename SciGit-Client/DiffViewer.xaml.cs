@@ -1,5 +1,11 @@
-﻿using System.Windows;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Navigation;
 
 namespace SciGit_Client
 {
@@ -10,7 +16,9 @@ namespace SciGit_Client
   {
     protected Project project;
     protected string gitFilename;
-    protected int deletedSide = -1;
+    protected string dir, fullpath, newFullpath;
+    protected bool manual;
+    protected int selectedSide = -1, deletedSide = -1;
     
     public DiffViewer(Project p, string filename, string original, string myVersion, string newVersion) {
       InitializeComponent();
@@ -39,6 +47,9 @@ namespace SciGit_Client
     }
 
     public virtual void Cleanup() {
+      if (newFullpath != null && File.Exists(newFullpath)) {
+        File.Delete(newFullpath);
+      }
     }
 
     public virtual bool Finished() {
@@ -47,6 +58,75 @@ namespace SciGit_Client
 
     public virtual string GetMergeResult() {
       return null;
+    }
+
+    protected void CreateFiles(string filename, string myVersion, string newVersion) {
+      messageMe.Visibility = Visibility.Visible;
+      messageNew.Visibility = Visibility.Visible;
+      string projectDir;
+      projectDir = ProjectMonitor.GetProjectDirectory(project);
+      
+      string winFilename = gitFilename.Replace('/', System.IO.Path.DirectorySeparatorChar);
+      fullpath = Util.PathCombine(projectDir, winFilename);
+      dir = System.IO.Path.GetDirectoryName(fullpath);
+      string name = System.IO.Path.GetFileName(fullpath);
+      if (myVersion != null) {
+        CreateMessage(ref messageMe, name, fullpath, "your");
+        File.WriteAllText(fullpath, myVersion, Encoding.Default);
+        acceptMe.Content = "Accept " + filename;
+      } else {
+        messageMe.Text = "You deleted this file.";
+        acceptMe.Content = "Accept deletion";
+      }
+      // Copy updated text into a new, temporary file.
+      string newFilename = System.IO.Path.GetFileNameWithoutExtension(name) + ".sciGitUpdated" +
+          System.IO.Path.GetExtension(filename);
+      newFullpath = Util.PathCombine(dir, newFilename);
+      if (newVersion != null) {
+        CreateMessage(ref messageNew, newFilename, newFullpath, "the updated");
+        File.WriteAllText(newFullpath, newVersion, Encoding.Default);
+        acceptThem.Content = "Accept " + newFilename;
+      } else {
+        messageMe.Text = "This file was deleted in the updated version.";
+        acceptThem.Content = "Accept deletion";
+      }
+    }
+
+    protected void CreateMessage(ref TextBlock text, string filename, string path, string pronoun) {
+      string ext = System.IO.Path.GetExtension(filename);
+      text.Inlines.Clear();
+      if (manual) {
+        text.Inlines.Add("Manually merging files. ");
+      } else {
+        text.Inlines.Add("This is a ");
+        text.Inlines.Add(ext == ".doc" || ext == ".docx" ? "Word document" : "binary file");
+        text.Inlines.Add(". ");
+      }
+      text.Inlines.Add("Please open the file ");
+      var fakeUri = new Uri("http://asdf.com");
+      var link = new Hyperlink(new Run(filename)) { NavigateUri = fakeUri, TargetName = path };
+      link.RequestNavigate += OpenFile;
+      text.Inlines.Add(link);
+      text.Inlines.Add(" to edit " + pronoun + " version");
+      if (ext == ".doc" || ext == ".docx") {
+        text.Inlines.Add(" or ");
+        link = new Hyperlink(new Run("merge")) {
+          NavigateUri = fakeUri,
+          TargetName = System.IO.Path.GetFileNameWithoutExtension(path)
+        };
+        link.RequestNavigate += MergeInWord;
+        text.Inlines.Add(link);
+        text.Inlines.Add(" the files in Word and save the result in the desired file.");
+      } else {
+        text.Inlines.Add(".");
+      }
+    }
+
+    protected virtual void OpenFile(object sender, RequestNavigateEventArgs e) {
+      Process.Start(e.Target);
+    }
+
+    protected virtual void MergeInWord(object sender, RequestNavigateEventArgs e) {
     }
 
     protected virtual void Accept(int side) {
@@ -76,6 +156,9 @@ namespace SciGit_Client
     }
 
     protected virtual void ClickRevertThem(object sender, RoutedEventArgs e) {
+    }
+
+    protected virtual void ClickManualMerge(object sender, RoutedEventArgs e) {
     }
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e) {
