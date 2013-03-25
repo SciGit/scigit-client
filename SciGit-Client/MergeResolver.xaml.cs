@@ -26,9 +26,9 @@ namespace SciGit_Client
   {
     private int active;
     private Project project;
-    private List<DiffViewer> diffViewers;
+    private List<MergeViewer> diffViewers;
     private List<FileData> unmergedFiles;
-    private Dictionary<string, DiffViewer> diffViewerMap;
+    private Dictionary<string, MergeViewer> diffViewerMap;
     private List<string> updated, created, deleted, combined;
 
     public MergeResolver(Project p) {
@@ -93,7 +93,7 @@ namespace SciGit_Client
         unmergedFiles = GetUnmergedFiles();
       }
 
-      diffViewerMap = new Dictionary<string, DiffViewer>();
+      diffViewerMap = new Dictionary<string, MergeViewer>();
       updated = new List<string>();
       created = new List<string>();
       deleted = new List<string>();
@@ -108,7 +108,7 @@ namespace SciGit_Client
       combined = new List<string>(updated);
       combined.AddRange(created);
       combined.AddRange(deleted);
-      diffViewers = new List<DiffViewer>(combined.Select(name => diffViewerMap[name]));
+      diffViewers = new List<MergeViewer>(combined.Select(name => diffViewerMap[name]));
 
       var unmergedMap = unmergedFiles.ToDictionary(x => x.filename);
       unmergedFiles = new List<FileData>(combined.Select(name => unmergedMap[name]));
@@ -186,7 +186,7 @@ namespace SciGit_Client
         string msg = String.Join("\n", unmerged.Select(str => "- " + str).ToArray());
         MessageBox.Show("The following files are still unmerged:\n" + msg, "Unmerged Changes");
       } else {
-        var preview = new DiffPreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());
+        var preview = new MergePreview(unmergedFiles, diffViewers.Select(dv => dv.GetMergeResult()).ToList());
         preview.ShowDialog();
         if (preview.Saved) {
           Saved = true;
@@ -239,12 +239,12 @@ namespace SciGit_Client
       return files.Values.ToList();
     }
 
-    private DiffViewer CreateDiffViewer(FileData f) {
-      DiffViewer dv;
+    private MergeViewer CreateDiffViewer(FileData f) {
+      MergeViewer dv;
       if (SentenceFilter.IsBinary(f.myVersion) || SentenceFilter.IsBinary(f.newVersion)) {
-        dv = new BinaryDiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
+        dv = new BinaryMergeViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
       } else {
-        dv = new TextDiffViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
+        dv = new TextMergeViewer(project, f.filename, f.original, f.myVersion, f.newVersion);
       }
       dv.Visibility = Visibility.Hidden;
       Grid.SetRow(dv, 0);

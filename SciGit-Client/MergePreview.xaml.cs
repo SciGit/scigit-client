@@ -8,14 +8,14 @@ namespace SciGit_Client
   /// <summary>
   /// Interaction logic for DiffPreview.xaml
   /// </summary>
-  public partial class DiffPreview : Window
+  public partial class MergePreview : Window
   {
     int activeTextBlock;
     List<TextBox> textBoxes;
     private List<bool> special;
     private List<string> originalText;
 
-    public DiffPreview(List<FileData> files, List<string> fileContents) {
+    public MergePreview(List<FileData> files, List<string> fileContents) {
       InitializeComponent();
 
       textBoxes = new List<TextBox>();

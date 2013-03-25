@@ -26,6 +26,7 @@ namespace SciGit_Client
     public FileHistory(Project p, string filename, string hash = null) {
       InitializeComponent();
 
+      Title += " for " + filename;
       project = p;
       this.filename = filename;
       filenameText.Text = "File: " + Util.PathCombine(p.name, filename);

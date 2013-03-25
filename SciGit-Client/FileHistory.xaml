@@ -15,7 +15,7 @@
 		<TextBlock Grid.ColumnSpan="2" Text="File: " Name="filenameText" VerticalAlignment="Center" HorizontalAlignment="Right" />
 
 		<TextBlock Grid.Row="1" Text="Versions" Margin="0,0,0,5" />
-		<TextBlock Grid.Column="1" Grid.Row="1" Text="Contents" Margin="0,0,0,5" />
+		<TextBlock Grid.Column="1" Grid.Row="1" Text="Changes" Margin="0,0,0,5" />
 
 		<ListBox Grid.Column="0" Grid.Row="2" Name="fileHistory" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0,0,10,0" ScrollViewer.VerticalScrollBarVisibility="Visible" />
 

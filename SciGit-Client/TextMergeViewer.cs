@@ -15,7 +15,7 @@ using System.Text;
 
 namespace SciGit_Client
 {
-  public class TextDiffViewer : DiffViewer
+  public class TextMergeViewer : MergeViewer
   {
     private string filename, myVersion, newVersion;
 
@@ -31,7 +31,7 @@ namespace SciGit_Client
     private List<RichTextBox>[] lineTexts;
     private LineBlock[][] origBlocks;
 
-    public TextDiffViewer(Project p, string filename, string original, string myVersion, string newVersion)
+    public TextMergeViewer(Project p, string filename, string original, string myVersion, string newVersion)
         : base(p, filename, original, myVersion, newVersion)
     {
       this.filename = filename;
@@ -195,7 +195,7 @@ namespace SciGit_Client
     private void EditConflict(int index, int side) {
       int block = conflictBlocks[index];
       LineBlock chosenBlock = content[side][block];
-      var de = new DiffEditor(origBlocks[0][block], origBlocks[1][block], conflictOrigBlocks[index], chosenBlock);
+      var de = new MergeEditor(origBlocks[0][block], origBlocks[1][block], conflictOrigBlocks[index], chosenBlock);
       de.ShowDialog();
       if (de.newBlock != null) {
         ProcessBlockDiff(conflictOrigBlocks[index], de.newBlock, false);

@@ -12,9 +12,9 @@ using System.Windows.Navigation;
 
 namespace SciGit_Client
 {
-  public class BinaryDiffViewer : DiffViewer
+  public class BinaryMergeViewer : MergeViewer
   {
-    public BinaryDiffViewer(Project p, string filename, string original, string myVersion, string newVersion)
+    public BinaryMergeViewer(Project p, string filename, string original, string myVersion, string newVersion)
         : base(p, filename, original, myVersion, newVersion) {
       editMe.Visibility = editThem.Visibility = Visibility.Collapsed;
       revertMe.Visibility = revertThem.Visibility = Visibility.Collapsed;

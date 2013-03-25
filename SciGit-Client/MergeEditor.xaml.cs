@@ -8,14 +8,14 @@ namespace SciGit_Client
   /// <summary>
   /// Interaction logic for DiffEditor.xaml
   /// </summary>
-  public partial class DiffEditor : Window
+  public partial class MergeEditor : Window
   {
     string myStr;
     public LineBlock newBlock;
     string originalStr;
     string updatedStr;
 
-    public DiffEditor(LineBlock yourBlock, LineBlock updatedBlock, LineBlock originalBlock, LineBlock editBlock = null) {
+    public MergeEditor(LineBlock yourBlock, LineBlock updatedBlock, LineBlock originalBlock, LineBlock editBlock = null) {
       InitializeComponent();
 
       RenderLineBlock(yourBlock, yourText);

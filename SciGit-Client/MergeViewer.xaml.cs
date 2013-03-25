@@ -12,7 +12,7 @@ namespace SciGit_Client
   /// <summary>
   /// Interaction logic for DiffViewer.xaml
   /// </summary>
-  public partial class DiffViewer : UserControl
+  public partial class MergeViewer : UserControl
   {
     protected Project project;
     protected string gitFilename;
@@ -20,7 +20,7 @@ namespace SciGit_Client
     protected bool manual;
     protected int selectedSide = -1, deletedSide = -1;
     
-    public DiffViewer(Project p, string filename, string original, string myVersion, string newVersion) {
+    public MergeViewer(Project p, string filename, string original, string myVersion, string newVersion) {
       InitializeComponent();
 
       gitFilename = filename;

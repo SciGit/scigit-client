@@ -90,7 +90,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="BinaryDiffViewer.cs" />
+    <Compile Include="BinaryMergeViewer.cs" />
     <Compile Include="FileListing.xaml.cs">
       <DependentUpon>FileListing.xaml</DependentUpon>
     </Compile>
@@ -110,11 +110,11 @@
     <Compile Include="CommitForm.xaml.cs">
       <DependentUpon>CommitForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DiffEditor.xaml.cs">
-      <DependentUpon>DiffEditor.xaml</DependentUpon>
+    <Compile Include="MergeEditor.xaml.cs">
+      <DependentUpon>MergeEditor.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DiffPreview.xaml.cs">
-      <DependentUpon>DiffPreview.xaml</DependentUpon>
+    <Compile Include="MergePreview.xaml.cs">
+      <DependentUpon>MergePreview.xaml</DependentUpon>
     </Compile>
     <Compile Include="ErrorForm.xaml.cs">
       <DependentUpon>ErrorForm.xaml</DependentUpon>
@@ -154,11 +154,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DiffViewer.xaml.cs">
-      <DependentUpon>DiffViewer.xaml</DependentUpon>
+    <Compile Include="MergeViewer.xaml.cs">
+      <DependentUpon>MergeViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="StreamString.cs" />
-    <Compile Include="TextDiffViewer.cs" />
+    <Compile Include="TextMergeViewer.cs" />
     <Compile Include="Tuple.cs" />
     <Compile Include="UpdateChecker.cs" />
     <Compile Include="Util.cs" />
@@ -166,11 +166,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DiffEditor.xaml">
+    <Page Include="MergeEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DiffPreview.xaml">
+    <Page Include="MergePreview.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -222,7 +222,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DiffViewer.xaml">
+    <Page Include="MergeViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
