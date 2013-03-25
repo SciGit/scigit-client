@@ -20,6 +20,7 @@ namespace SciGit_Client
     public ProjectHistory(Project p) {
       InitializeComponent();
 
+      Title += " for " + p.name;
       project = p;
       projectName.Text = "Project: " + project.name;
 

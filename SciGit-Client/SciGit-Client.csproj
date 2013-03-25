@@ -91,6 +91,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BinaryMergeViewer.cs" />
+    <Compile Include="DiffViewer.xaml.cs">
+      <DependentUpon>DiffViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FileListing.xaml.cs">
       <DependentUpon>FileListing.xaml</DependentUpon>
     </Compile>
@@ -165,6 +168,10 @@
     <Page Include="CommitForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DiffViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="MergeEditor.xaml">
       <SubType>Designer</SubType>

@@ -160,9 +160,5 @@ namespace SciGit_Client
 
     protected virtual void ClickManualMerge(object sender, RoutedEventArgs e) {
     }
-
-    private void UserControl_Loaded(object sender, RoutedEventArgs e) {
-
-    }
   }
 }
