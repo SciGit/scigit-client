@@ -49,14 +49,12 @@ namespace SciGit_Client
         // Word document. So let the user open the doc in Word
         message.Visibility = Visibility.Visible;
         message.Text = "This is a Word document. Please save it to view its contents.";
-        if (old != null) {
-          message.Inlines.Add(" You can also ");
-          var fakeUri = new Uri("http://asdf.com");
-          var link = new Hyperlink(new Run("view the changes")) { NavigateUri = fakeUri };
-          link.RequestNavigate += (s, e) => CompareInWord(old, updated, filename, Path.GetDirectoryName(fullpath), author);
-          message.Inlines.Add(link);
-          message.Inlines.Add(" in Word.");
-        }
+        message.Inlines.Add(" You can also ");
+        var fakeUri = new Uri("http://asdf.com");
+        var link = new Hyperlink(new Run("view the changes")) { NavigateUri = fakeUri };
+        link.RequestNavigate += (s, e) => CompareInWord(old, updated, filename, Path.GetDirectoryName(fullpath), author);
+        message.Inlines.Add(link);
+        message.Inlines.Add(" in Word.");
       } else if (SentenceFilter.IsBinary(old) || SentenceFilter.IsBinary(updated)) {
         message.Visibility = Visibility.Visible;
         message.Text = "This file is in binary. Please save it to view its contents.";

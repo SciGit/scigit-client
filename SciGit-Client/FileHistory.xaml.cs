@@ -117,6 +117,12 @@ namespace SciGit_Client
     private void ClickSave(object sender, EventArgs e) {
       string hash = hashes[fileHistory.SelectedIndex];
       string text = LoadFile(hash);
+
+      if (text == null) {
+        MessageBox.Show(this, "The file was deleted in this revision.", "Deleted");
+        return;
+      }
+
       var dialog = new System.Windows.Forms.SaveFileDialog();
       dialog.FileName = this.filename;
       dialog.Filter = "All files (*.*)|*.*";

@@ -19,7 +19,7 @@ namespace SciGit_Client
     private List<string> commitHashes;
     private List<string> updated, created, deleted;
     private List<string> changedFiles;
-    private string curAuthor;
+    private string curFile, curAuthor;
     private Dictionary<string, Tuple<string, string>> fileData;
     private Dictionary<string, string> fullpath;
 
@@ -76,6 +76,7 @@ namespace SciGit_Client
 
     private void DisplayDiff(string name) {
       diffViewer.DisplayDiff(name, fullpath[name], curAuthor, fileData[name].Item1, fileData[name].Item2);
+      curFile = name;
     }
 
     private void ShowChanges(string hash, string author) {
@@ -99,7 +100,9 @@ namespace SciGit_Client
       // See what happened in each of these files.
       if (files.Count == 0) {
         diffViewer.DisplayEmpty();
+        save.IsEnabled = false;
       } else {
+        save.IsEnabled = true;
         updated = new List<string>();
         created = new List<string>();
         deleted = new List<string>();
@@ -141,6 +144,7 @@ namespace SciGit_Client
         changedFiles.AddRange(created);
         changedFiles.AddRange(deleted);
         fileListing.Select(0);
+        SelectFile(0);
       }
     }
 
@@ -166,6 +170,27 @@ namespace SciGit_Client
         }
       }
       Close();
+    }
+
+    private void ClickSave(object sender, EventArgs e) {
+      string text = fileData[curFile].Item2;
+
+      if (text == null) {
+        MessageBox.Show(this, "The file was deleted in this revision.", "Deleted");
+        return;
+      }
+
+      var dialog = new System.Windows.Forms.SaveFileDialog();
+      dialog.FileName = curFile;
+      dialog.Filter = "All files (*.*)|*.*";
+      dialog.FilterIndex = 0;
+      dialog.InitialDirectory = ProjectMonitor.GetProjectDirectory(project);
+      if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+        var file = dialog.OpenFile();
+        byte[] bytes = Encoding.Default.GetBytes(text);
+        file.Write(bytes, 0, bytes.Length);
+        file.Close();
+      }
     }
 
     private void ClickClose(object sender, EventArgs e) {
