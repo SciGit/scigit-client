@@ -22,6 +22,19 @@ namespace SciGit_Client
       InitializeComponent();
     }
 
+    public void DisplayEmpty() {
+      grid.RowDefinitions.Clear();
+      var rd = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
+      grid.RowDefinitions.Add(rd);
+      
+      // Remove the line number blocks and such. actionsThem is the last item in the XAML
+      int x = grid.Children.IndexOf(message);
+      grid.Children.RemoveRange(x + 1, grid.Children.Count - x);
+
+      message.Visibility = Visibility.Visible;
+      message.Text = "No files were changed.";
+    }
+
     public void DisplayDiff(string filename, string fullpath, string author, string old, string updated) {
       grid.RowDefinitions.Clear();
       var rd = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };

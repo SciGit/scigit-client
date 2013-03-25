@@ -114,17 +114,15 @@ namespace SciGit_Client
       unmergedFiles = new List<FileData>(combined.Select(name => unmergedMap[name]));
 
       foreach (var name in updated) {
-        updatedListing.AddFile(name);
+        fileListing.AddFile(0, name);
       }
       foreach (var name in created) {
-        createdListing.AddFile(name);
+        fileListing.AddFile(1, name);
       }
       foreach (var name in deleted) {
-        deletedListing.AddFile(name);
+        fileListing.AddFile(2, name);
       }
-      updatedListing.SelectionHandlers.Add(item => SelectFilename(updated, item));
-      createdListing.SelectionHandlers.Add(item => SelectFilename(created, item));
-      deletedListing.SelectionHandlers.Add(item => SelectFilename(deleted, item));
+      fileListing.SelectionHandlers.Add(SelectFilename);
 
       active = 0;
       diffViewers[active].Visibility = Visibility.Visible;
@@ -136,18 +134,7 @@ namespace SciGit_Client
 
     public bool Saved { get; private set; }
 
-    void SelectFilename(List<string> selectedList, string name) {
-      var lists = new List<string>[3]{updated, created, deleted};
-      var listings = new FileListing[3]{updatedListing, createdListing, deletedListing};
-      int index = 0, count = 0;
-      for (int i = 0; i < 3; i++) {
-        if (selectedList != lists[i]) {
-          listings[i].ClearSelection();
-        } else {
-          index = count + lists[i].BinarySearch(name);
-        }
-        count += lists[i].Count;
-      }
+    void SelectFilename(int index) {
       SetActiveDiffViewer(index);
     }
     
@@ -161,13 +148,7 @@ namespace SciGit_Client
 
     void SetActiveFile(int index) {
       SetActiveDiffViewer(index);
-      if (index >= updated.Count + created.Count) {
-        deletedListing.Select(index - updated.Count - created.Count);
-      } else if (index >= updated.Count) {
-        createdListing.Select(index - updated.Count);
-      } else {
-        updatedListing.Select(index);
-      }
+      fileListing.Select(index);
     }
 
     void ClickNextFile(object sender, RoutedEventArgs e) {

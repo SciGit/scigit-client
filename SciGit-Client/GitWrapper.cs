@@ -149,6 +149,10 @@ namespace SciGit_Client
       return ExecuteCommand("ls-files -u -z", dir);
     }
 
+    public static ProcessReturn ListChangedFiles(string dir, string hash) {
+      return ExecuteCommand("diff-tree --no-commit-id --name-only -z -r " + hash, dir);
+    }
+
     public static ProcessReturn ShowObject(string dir, string hash) {
       return ExecuteCommand("show " + hash, dir);
     }

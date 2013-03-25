@@ -43,7 +43,7 @@ namespace SciGit_Client
       set { SetValue(ColorProperty, value); }
     }
 
-    public List<Action<string>> SelectionHandlers = new List<Action<string>>();
+    public List<Action<int>> SelectionHandlers = new List<Action<int>>();
     private bool cleared = false;
 
     public FileListing() {
@@ -62,8 +62,18 @@ namespace SciGit_Client
       listBox.Items.Add(item);
     }
 
+    public int GetSize() {
+      return listBox.IsEnabled ? listBox.Items.Count : 0;
+    }
+
     public void Select(int index) {
       listBox.SelectedItem = listBox.Items[index];
+    }
+
+    public void Clear() {
+      listBox.Items.Clear();
+      listBox.IsEnabled = false;
+      listBox.Items.Add("None");
     }
 
     public void ClearSelection() {
@@ -76,7 +86,7 @@ namespace SciGit_Client
       // When an item becomes selected, notify the callbacks
       if (e.AddedItems.Count > 0) {
         foreach (var handler in SelectionHandlers) {
-          handler((e.AddedItems[0] as ListBoxItem).Content as string);
+          handler(listBox.SelectedIndex);
         } 
       }
 

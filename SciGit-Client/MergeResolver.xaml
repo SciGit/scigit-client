@@ -10,11 +10,7 @@
 		</Grid.ColumnDefinitions>
 
 		<TextBlock Text="Resolve Conflicts" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" FontSize="20" FontWeight="Normal" Margin="0,0,0,5" />
-        <StackPanel Grid.RowSpan="3" Grid.Row="1" Margin="0,5,10,0">
-            <SciGit_Client:FileListing x:Name="updatedListing" Title="Updated Files" Color="#9999ff" Margin="0,0,0,10" />
-            <SciGit_Client:FileListing x:Name="createdListing" Title="Created Files" Color="#55ff55" Margin="0,0,0,10" />
-            <SciGit_Client:FileListing x:Name="deletedListing" Title="Deleted Files" Color="#ff5555" />
-        </StackPanel>
+        <SciGit_Client:MultiFileListing x:Name="fileListing" Grid.RowSpan="3" Grid.Row="1" Margin="0,5,10,0" />
         <WrapPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
             <Button Content="Next file" Name="nextFile" Margin="0,0,10,0" Click="ClickNextFile" />
             <Button Content="Preview and finalize..." Name="finish" Click="ClickFinish" IsDefault="True" />
