@@ -23,7 +23,7 @@ namespace SciGit_Client
     private Dictionary<string, Tuple<string, string>> fileData;
     private Dictionary<string, string> fullpath;
 
-    public ProjectHistory(Project p) {
+    public ProjectHistory(Project p, string hash = null) {
       InitializeComponent();
 
       Title += " for " + p.name;
@@ -42,13 +42,25 @@ namespace SciGit_Client
       var timestamp = (int)(Directory.GetLastWriteTimeUtc(dir) - epoch).TotalSeconds;
       projectHistory.Items.Add(CreateListViewItem("", "Current Version", "", timestamp));
       commitHashes = new List<string>();
+
+      int cIndex = 1;
+      int? hashIndex = null;
       foreach (var commit in actualCommits) {
         string[] data = commit.Split(new[] { ' ' }, 4);
         commitHashes.Add(data[0]);
+        if (data[0] == hash) {
+          hashIndex = cIndex;
+        }
+        cIndex++;
         projectHistory.Items.Add(CreateListViewItem(data[0], data[3], data[1], int.Parse(data[2])));
       }
 
-      projectHistory.SelectedIndex = 0;
+      if (hash != null && hashIndex == null) {
+        MessageBox.Show("Could not find that revision. You may have to update the project.", "Version not found");
+      }
+      projectHistory.SelectedIndex = hashIndex ?? 0;
+      projectHistory.Focus();
+
       fileListing.SelectionHandlers.Add(SelectFile);
     }
 
@@ -98,6 +110,7 @@ namespace SciGit_Client
       }
       
       // See what happened in each of these files.
+      fileListing.Clear();
       if (files.Count == 0) {
         diffViewer.DisplayEmpty();
         save.IsEnabled = false;
@@ -108,7 +121,6 @@ namespace SciGit_Client
         deleted = new List<string>();
         files.Sort();
 
-        fileListing.Clear();
         fileData = new Dictionary<string, Tuple<string, string>>();
         fullpath = new Dictionary<string, string>();
         foreach (var file in files) {

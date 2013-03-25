@@ -91,7 +91,11 @@ namespace SciGit_Client
           }
           string hash = query["commit_hash"];
           string filename = query["filename"];
-          this.Invoke(new Action(() => OpenFileHistory(p, filename, hash)));
+          if (filename != null) {
+            this.Invoke(new Action(() => OpenFileHistory(p, filename, hash)));
+          } else {
+            this.Invoke(new Action(() => OpenProjectHistory(p, hash)));
+          }
         } else {
           ShowMessageBox("Invalid link provided.", "Invalid SciGit command");
         }
@@ -164,14 +168,14 @@ namespace SciGit_Client
       }
     }
 
-    private void OpenProjectHistory(Project p) {
+    private void OpenProjectHistory(Project p, string hash = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
       if (!Directory.Exists(dir)) {
         ShowMessageBox("Project does not exist.", "Error");
       } else {
         ProjectHistory ph = null;
         try {
-          ph = new ProjectHistory(p);
+          ph = new ProjectHistory(p, hash);
           ph.Show();
         } catch (InvalidRepositoryException) {
           if (ph != null) ph.Hide();

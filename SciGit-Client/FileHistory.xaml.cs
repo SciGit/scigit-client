@@ -43,7 +43,8 @@ namespace SciGit_Client
       hashes.Add("");
       var timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
       fileHistory.Items.Add(CreateListViewItem("", "Current Version", "", timestamp));
-      int cIndex = 1, hashIndex = -1;
+      int cIndex = 1;
+      int? hashIndex = null;
       foreach (var commit in commits) {
         string[] data = commit.Split(new[] { ' ' }, 4);
         if (data.Length == 4) {
@@ -56,16 +57,10 @@ namespace SciGit_Client
         }
       }
 
-      if (hash != null) {
-        if (hashIndex == -1) {
-          MessageBox.Show("Could not find that version of the file. You may have to update the project.", "Version not found");
-          hashIndex = 0;
-        }
-      } else {
-        hashIndex = 0;
+      if (hash != null && hashIndex == null) {
+        MessageBox.Show("Could not find that version of the file. You may have to update the project.", "Version not found");
       }
-
-      fileHistory.SelectedIndex = hashIndex;
+      fileHistory.SelectedIndex = hashIndex ?? 0;
       fileHistory.Focus();
     }
 
