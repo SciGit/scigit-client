@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using SciGit_Filter;
 using System.IO;
 using System.Diagnostics;
@@ -128,6 +129,11 @@ namespace SciGit_Client
         save.IsEnabled = true;
         sp.Children.Add(new TextBlock { Text = "Files changed:", FontSize = 10, Margin = new Thickness(5, 5, 0, 0) });
         var lb = new ListBox { HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(5, 2, 5, 0), BorderThickness = new Thickness(0) };
+        lb.Style = new Style() {
+          Resources = new ResourceDictionary {
+            {SystemColors.HighlightBrushKey, new SolidColorBrush(Color.FromRgb(100, 100, 100))}
+          }
+        };
         sp.Children.Add(lb);
 
         updated = new List<string>();

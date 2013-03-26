@@ -32,7 +32,7 @@ namespace SciGit_Client
       grid.Children.RemoveRange(x + 1, grid.Children.Count - x);
 
       message.Visibility = Visibility.Visible;
-      message.Text = "No files were changed.";
+      message.Text = "No files have been changed.";
     }
 
     public void DisplayDiff(string filename, string fullpath, string author, string old, string updated) {
