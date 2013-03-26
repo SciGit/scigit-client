@@ -345,6 +345,16 @@ namespace SciGit_Client
         } else {
           worker.ReportProgress(progress ? 100 : -1, ret.Output.Contains("up to date") ? "No changes." : "Changes merged without conflict.");
           success = true;
+          if (progress && !ret.Output.Contains("up to date")) {
+            var result = MessageBox.Show("Project " + p.name + " was successfully updated. Would you like to view the changes?",
+                "Project updated", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.Yes) {
+              window.Dispatcher.Invoke(new Action(() => {
+                var ph = new ProjectHistory(p, "HEAD");
+                ph.Show();
+              }));
+            }
+          }
         }
       } catch (Exception e) {
         throw new Exception("", e);

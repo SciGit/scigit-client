@@ -45,6 +45,10 @@ namespace SciGit_Client
 
       int cIndex = 1;
       int? hashIndex = null;
+      if (actualCommits.Count() > 0 && hash == "HEAD") {
+        hashIndex = 1;
+      }
+
       foreach (var commit in actualCommits) {
         string[] data = commit.Split(new[] { ' ' }, 4);
         commitHashes.Add(data[0]);

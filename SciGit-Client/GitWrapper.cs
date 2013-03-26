@@ -76,15 +76,24 @@ namespace SciGit_Client
         WorkingDirectory = dir
       };
       startInfo.EnvironmentVariables["HOME"] = Util.PathCombine(GetAppDataPath(), RestClient.Username);
-      var process = new Process {StartInfo = startInfo};
-      process.Start();
-      AsyncStreamReader stdout = new AsyncStreamReader(process.StandardOutput.BaseStream), 
-                        stderr = new AsyncStreamReader(process.StandardError.BaseStream);
-      if (!process.WaitForExit(ProcessTimeout)) {
-        return new ProcessReturn(-1, "", "Process timed out.");
+      for (int i = 0; i < 3; i++) {
+        var process = new Process {StartInfo = startInfo};
+        process.Start();
+        AsyncStreamReader stdout = new AsyncStreamReader(process.StandardOutput.BaseStream),
+                          stderr = new AsyncStreamReader(process.StandardError.BaseStream);
+        if (!process.WaitForExit(ProcessTimeout)) {
+          return new ProcessReturn(-1, "", "Process timed out.");
+        }
+        string stdoutStr = stdout.GetData(), stderrStr = stderr.GetData();
+        // Retry if the lock is in use.
+        if (i == 2 || !stderrStr.Contains("index.lock")) {
+          return new ProcessReturn(process.ExitCode, stdoutStr, stderrStr); 
+        }
+        Thread.Sleep(100);
       }
-      Thread.Sleep(50);
-      return new ProcessReturn(process.ExitCode, stdout.GetData(), stderr.GetData());
+
+      // should never actually happen
+      return new ProcessReturn(-1, "", "");
     }
 
     private static string EscapeShellArg(string s) {
