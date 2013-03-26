@@ -28,8 +28,8 @@ namespace SciGit_Client
       InitializeComponent();
 
       Title += " for " + p.name;
+      header.Text += " for " + p.name;
       project = p;
-      projectName.Text = "Project: " + project.name;
 
       string dir = ProjectMonitor.GetProjectDirectory(project);
       ProcessReturn ret = GitWrapper.Log(dir);
@@ -122,11 +122,11 @@ namespace SciGit_Client
       // See what happened in each of these files.
       if (files.Count == 0) {
         diffViewer.DisplayEmpty();
-        save.IsEnabled = false;
+        fileHistory.IsEnabled = save.IsEnabled = false;
         changesHeader.Text = "Changes";
         sp.Children.Add(new TextBlock { Text = "No files changed.", FontSize = 10, Margin = new Thickness(5, 5, 0, 0) });
       } else {
-        save.IsEnabled = true;
+        fileHistory.IsEnabled = save.IsEnabled = true;
         sp.Children.Add(new TextBlock { Text = "Files changed:", FontSize = 10, Margin = new Thickness(5, 5, 0, 0) });
         var lb = new ListBox { HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(5, 2, 5, 0), BorderThickness = new Thickness(0) };
         lb.Style = new Style() {
@@ -189,6 +189,10 @@ namespace SciGit_Client
         lb.SelectedIndex = 0;
         lb.Focus();
       }
+    }
+
+    private void ClickFileHistory(object sender, EventArgs e) {
+      new FileHistory(project, curFile).Show();
     }
 
     private void ClickRevert(object sender, EventArgs e) {

@@ -24,9 +24,9 @@ namespace SciGit_Client
       InitializeComponent();
 
       Title += " for " + filename;
+      header.Text += " for " + filename + " (" + p.name + ")";
       project = p;
       this.filename = filename;
-      filenameText.Text = "File: " + Util.PathCombine(p.name, filename);
       gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');
 
       string dir = ProjectMonitor.GetProjectDirectory(p);
@@ -94,6 +94,10 @@ namespace SciGit_Client
       string previous = hash == "" ? "HEAD" : hash + "^";
       item.Selected += (s, e) => diffViewer.DisplayDiff(filename, fullpath, author, LoadFile(hash + "^"), LoadFile(hash));
       return item;
+    }
+
+    private void ClickProjectHistory(object sender, EventArgs e) {
+      new ProjectHistory(project).Show();
     }
 
     private void ClickRevert(object sender, EventArgs e) {

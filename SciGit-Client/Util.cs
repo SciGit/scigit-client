@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable 0467 // disable interop method ambiguity warnings
+
+using System;
 using System.IO;
 using System.Reflection;
 using System.Windows;
