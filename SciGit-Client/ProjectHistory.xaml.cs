@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,7 +19,6 @@ namespace SciGit_Client
     private Project project;
     private List<string> commitHashes;
     private List<string> updated, created, deleted;
-    private List<string> changedFiles;
     private string curFile, curAuthor;
     private Dictionary<string, Tuple<string, string>> fileData;
     private Dictionary<string, string> fullpath;
@@ -60,13 +60,11 @@ namespace SciGit_Client
       }
       projectHistory.SelectedIndex = hashIndex ?? 0;
       projectHistory.Focus();
-
-      fileListing.SelectionHandlers.Add(SelectFile);
     }
 
-    private ListViewItem CreateListViewItem(string hash, string message, string author, int time) {
-      var item = new ListViewItem();
-      var sp = new StackPanel { Orientation = Orientation.Vertical };
+    private ListBoxItem CreateListViewItem(string hash, string message, string author, int time) {
+      var item = new ListBoxItem { HorizontalAlignment = HorizontalAlignment.Stretch };
+      var sp = new StackPanel { Orientation = Orientation.Vertical, HorizontalAlignment = HorizontalAlignment.Stretch };
       var tb = new TextBlock { Text = message, FontSize = 12, FontWeight = FontWeights.Bold };
       sp.Children.Add(tb);
       DateTime date = epoch.AddSeconds(time);
@@ -78,20 +76,27 @@ namespace SciGit_Client
       sp.Children.Add(tb);
       sp.Margin = new Thickness(2, 5, 5, 5);
       item.Content = sp;
-      item.Selected += (s, e) => ShowChanges(hash, author);
+      item.Unselected += DeselectItem;
+      item.Selected += (s, e) => ShowChanges(item, hash, author);
       return item;
     }
 
-    private void SelectFile(int index) {
-      DisplayDiff(changedFiles[index]);
+    private void DeselectItem(object sender, RoutedEventArgs e) {
+      var item = sender as ListBoxItem;
+      var sp = item.Content as StackPanel;
+      // Remove everything but the first 2 items (i.e. remove the file listing)
+      sp.Children.RemoveRange(2, sp.Children.Count - 2);
     }
 
     private void DisplayDiff(string name) {
+      changesHeader.Text = "Changes to " + name;
       diffViewer.DisplayDiff(name, fullpath[name], curAuthor, fileData[name].Item1, fileData[name].Item2);
       curFile = name;
     }
 
-    private void ShowChanges(string hash, string author) {
+    private void ShowChanges(ListBoxItem lvItem, string hash, string author) {
+      var sp = lvItem.Content as StackPanel;
+
       var dir = ProjectMonitor.GetProjectDirectory(project);
       ProcessReturn ret;
       List<string> files;
@@ -110,12 +115,17 @@ namespace SciGit_Client
       }
       
       // See what happened in each of these files.
-      fileListing.Clear();
       if (files.Count == 0) {
         diffViewer.DisplayEmpty();
         save.IsEnabled = false;
+        changesHeader.Text = "Changes";
+        sp.Children.Add(new TextBlock { Text = "No files changed.", FontSize = 10, Margin = new Thickness(5, 5, 0, 0) });
       } else {
         save.IsEnabled = true;
+        sp.Children.Add(new TextBlock { Text = "Files changed:", FontSize = 10, Margin = new Thickness(5, 5, 0, 0) });
+        var lb = new ListBox { HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(5, 2, 5, 0), BorderThickness = new Thickness(0) };
+        sp.Children.Add(lb);
+
         updated = new List<string>();
         created = new List<string>();
         deleted = new List<string>();
@@ -141,22 +151,33 @@ namespace SciGit_Client
           fileData[file] = new Tuple<string, string>(data1, data2);
           if (data1 == null) {
             created.Add(file);
-            fileListing.AddFile(1, file);
           } else if (data2 == null) {
             deleted.Add(file);
-            fileListing.AddFile(2, file);
           } else {
             updated.Add(file);
-            fileListing.AddFile(0, file);
           }
         }
 
-        changedFiles = new List<string>();
-        changedFiles.AddRange(updated);
-        changedFiles.AddRange(created);
-        changedFiles.AddRange(deleted);
-        fileListing.Select(0);
-        SelectFile(0);
+        foreach (var file in updated) {
+          var item = new ListBoxItem {Content = file};
+          item.Selected += (s, e) => DisplayDiff(file);
+          lb.Items.Add(item);
+        }
+
+        foreach (var file in created) {
+          var item = new ListBoxItem {Content = file + " (added)"};
+          item.Selected += (s, e) => DisplayDiff(file);
+          lb.Items.Add(item);
+        }
+
+        foreach (var file in deleted) {
+          var item = new ListBoxItem {Content = file + " (deleted)"};
+          item.Selected += (s, e) => DisplayDiff(file);
+          lb.Items.Add(item);
+        }
+
+        lb.SelectedIndex = 0;
+        lb.Focus();
       }
     }
 
