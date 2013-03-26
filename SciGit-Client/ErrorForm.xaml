@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Error"
         Icon="/SciGit-Client;component/Images/icon.ico" 
-        Height="300" Width="400" Background="#FFF1F1F1" MinHeight="300" MinWidth="400   " Topmost="False">
+        Height="300" Width="400" Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}" MinHeight="300" MinWidth="400   " Topmost="False">
     <Grid Margin="10" Name="grid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />

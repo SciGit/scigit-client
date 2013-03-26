@@ -32,8 +32,8 @@
 				<Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Right" />
 				<Rectangle Grid.Row="0" Grid.Column="2" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Left" />
 				<Rectangle Grid.Row="0" Grid.Column="2" Grid.RowSpan="2147000000" Fill="#999" Panel.ZIndex="1" Width="1" HorizontalAlignment="Right" />
-				<Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
-				<Rectangle Grid.Row="0" Grid.Column="2" Grid.RowSpan="2147000000" Fill="#f1f1f1" />
+                <Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="2147000000" Fill="{StaticResource {x:Static SystemColors.ControlBrushKey}}" />
+                <Rectangle Grid.Row="0" Grid.Column="2" Grid.RowSpan="2147000000" Fill="{StaticResource {x:Static SystemColors.ControlBrushKey}}" />
                 
                 <TextBlock Grid.Column="1" Name="messageMe" Margin="10" Panel.ZIndex="1"
                            TextWrapping="Wrap" Visibility="Collapsed" />
