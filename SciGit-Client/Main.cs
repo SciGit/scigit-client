@@ -10,9 +10,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Web;
+using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using SciGit_Client.Properties;
+using MessageBox = System.Windows.Forms.MessageBox;
+using MessageBoxOptions = System.Windows.Forms.MessageBoxOptions;
 
 namespace SciGit_Client
 {
@@ -66,7 +69,7 @@ namespace SciGit_Client
       // Show the intro if it's the first load.
       if (!Settings.Default.Loaded) {
         GettingStarted gs = new GettingStarted();
-        gs.Show();
+        ShowTop(gs);
         Settings.Default.Loaded = true;
         Settings.Default.Save();
       }
@@ -76,6 +79,13 @@ namespace SciGit_Client
     private void ShowMessageBox(string content, string title) {
       MessageBox.Show(content, title, MessageBoxButtons.OK, MessageBoxIcon.None,
           MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+    }
+
+    // Simple hack to bring a window to the front.
+    private void ShowTop(Window w) {
+      w.Show();
+      w.Topmost = true;
+      w.Topmost = false;
     }
 
     private void HandleWebCommand(string url) {
@@ -157,7 +167,7 @@ namespace SciGit_Client
         FileHistory fh = null;
         try {
           fh = new FileHistory(p, filename, hash);
-          fh.Show();
+          ShowTop(fh);
         } catch (InvalidRepositoryException) {
           if (fh != null) fh.Hide();
           ShowMessageBox("This file does not belong to a valid SciGit project.", "SciGit error");
@@ -176,7 +186,7 @@ namespace SciGit_Client
         ProjectHistory ph = null;
         try {
           ph = new ProjectHistory(p, hash);
-          ph.Show();
+          ShowTop(ph);
         } catch (InvalidRepositoryException) {
           if (ph != null) ph.Hide();
           ShowMessageBox("This file does not belong to a valid SciGit project.", "Error");
@@ -209,25 +219,25 @@ namespace SciGit_Client
     private EventHandler CreateUpdateProjectHandler(Project p) {
       return (s, e) => {
         var progressForm = new ProgressForm("Updating " + p.name, (form, bw) => projectMonitor.UpdateProject(p, form, bw));
-        progressForm.Show();
+        ShowTop(progressForm);
       };
     }
 
     private EventHandler CreateUploadProjectHandler(Project p) {
       return (s, e) => {
         var progressForm = new ProgressForm("Uploading " + p.name, (form, bw) => projectMonitor.UploadProject(p, form, bw));
-        progressForm.Show();
+        ShowTop(progressForm);
       };
     }
 
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
       var progressForm = new ProgressForm("Updating Projects", projectMonitor.UpdateAllProjects);
-      progressForm.Show();
+      ShowTop(progressForm);
     }
 
     private void CreateUploadAllHandler(object sender, EventArgs e) {
       var progressForm = new ProgressForm("Uploading Projects", projectMonitor.UploadAllProjects);
-      progressForm.Show();
+      ShowTop(progressForm);
     }
 
     private void Logout() {
