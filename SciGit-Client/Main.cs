@@ -230,6 +230,13 @@ namespace SciGit_Client
       };
     }
 
+    private EventHandler CreateViewProjectHistoryHandler(Project p) {
+      return (s, e) => {
+        var ph = new ProjectHistory(p);
+        ShowTop(ph);
+      };
+    }
+
     private void CreateUpdateAllHandler(object sender, EventArgs e) {
       var progressForm = new ProgressForm("Updating Projects", projectMonitor.UpdateAllProjects);
       ShowTop(progressForm);
@@ -342,6 +349,7 @@ namespace SciGit_Client
       notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Update Project").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("Upload Project").Enabled = false;
+      notifyIcon.ContextMenu.MenuItems.Add("View Project History").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Update All", CreateUpdateAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
@@ -353,7 +361,7 @@ namespace SciGit_Client
 
       // Just show the loading indicator for now
       notifyIcon.Icon = notifyIconLoading;
-      for (int i = 3; i <= 7; i++) {
+      for (int i = 3; i <= 8; i++) {
         notifyIcon.ContextMenu.MenuItems[i].Visible = false;
       }
     }
@@ -363,7 +371,8 @@ namespace SciGit_Client
       var updatedProjects = projectMonitor.GetUpdatedProjects();
       var editedProjects = projectMonitor.GetEditedProjects();
       var update = notifyIcon.ContextMenu.MenuItems[3];
-      var upload = notifyIcon.ContextMenu.MenuItems[4];      
+      var upload = notifyIcon.ContextMenu.MenuItems[4];
+      var view = notifyIcon.ContextMenu.MenuItems[5];      
       var curNames = new HashSet<string>(from item in update.MenuItems.Cast<MenuItem>() select item.Text);
       var newNames = new HashSet<string>(from p in projects select p.name);
       var updNames = new HashSet<string>(from p in updatedProjects select p.name);
@@ -376,6 +385,13 @@ namespace SciGit_Client
           update.MenuItems.Remove(item);
         } else {
           item.Checked = updNames.Contains(item.Text);
+        }
+      }
+
+      for (int i = view.MenuItems.Count - 1; i >= 0; i--) {
+        MenuItem item = view.MenuItems[i];
+        if (!newNames.Contains(item.Text)) {
+          view.MenuItems.Remove(item);
         }
       }
 
@@ -411,25 +427,27 @@ namespace SciGit_Client
             RadioCheck = true
           };
           upload.MenuItems.Add(item);
+          item = new MenuItem(project.name, CreateViewProjectHistoryHandler(curProject));
+          view.MenuItems.Add(item);
         }
       }
 
-      var updateAll = notifyIcon.ContextMenu.MenuItems[6];
+      var updateAll = notifyIcon.ContextMenu.MenuItems[7];
       updateAll.Text = "Update All" + (updNames.Count > 0 ? String.Format(" ({0})", updNames.Count) : "");
 
-      var uploadAll = notifyIcon.ContextMenu.MenuItems[7];
+      var uploadAll = notifyIcon.ContextMenu.MenuItems[8];
       int uploadable = writeNames.Intersect(editNames).Count();
       uploadAll.Text = "Upload All" + (uploadable > 0 ? String.Format(" ({0})", uploadable) : "");
       uploadAll.Enabled = writeNames.Count > 0;
 
-      update.Enabled = upload.Enabled = updateAll.Enabled = projects.Count > 0;
+      update.Enabled = upload.Enabled = updateAll.Enabled = view.Enabled = projects.Count > 0;
 
       // Hide the loading indicator and show others
       notifyIcon.Icon = updNames.Count > 0 || uploadable > 0 ? notifyIconUpdate : notifyIconBase;
-      for (int i = 3; i <= 7; i++) {
+      for (int i = 3; i <= 8; i++) {
         notifyIcon.ContextMenu.MenuItems[i].Visible = true;
       }
-      notifyIcon.ContextMenu.MenuItems[8].Visible = false;
+      notifyIcon.ContextMenu.MenuItems[9].Visible = false;
     }
 
     private void InitializeSSH() {
