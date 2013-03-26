@@ -13,8 +13,9 @@
             <RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
 
-        <Border Background="#4a5b75" Height="100" />
-
+        <Border Background="#4a5b75" Height="100">
+            <Image Height="64" Name="image1" Source="/SciGit-Client;component/Images/login_banner.png" />
+        </Border>
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="20">
             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
 			    <Label Content="Email:" Padding="0,0,5,0" VerticalAlignment="Center" Target="{Binding ElementName=emailValue}" />

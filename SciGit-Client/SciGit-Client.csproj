@@ -270,9 +270,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\scigit2-logo.png" />
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
@@ -296,9 +293,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\scigit2-logo-bg.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\scigit2-logo-text.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\icon_16.png" />
@@ -341,6 +335,9 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\login_banner.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
