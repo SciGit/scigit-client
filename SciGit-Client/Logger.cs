@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using log4net;
 
 namespace SciGit_Client
@@ -10,7 +11,7 @@ namespace SciGit_Client
       var pattern = "%date %level - %message %exception";
       var appender = new log4net.Appender.RollingFileAppender {
         Layout = new log4net.Layout.PatternLayout(pattern),
-        File = "error.log",
+        File = Util.PathCombine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SciGit", "error.log"),
         AppendToFile = true,
         RollingStyle = log4net.Appender.RollingFileAppender.RollingMode.Composite,
         MaxSizeRollBackups = 1,
