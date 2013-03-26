@@ -14,7 +14,7 @@
 		</Grid.RowDefinitions>
 
         <Border Background="#4a5b75" Height="100">
-            <Image Height="64" Name="image1" Source="/SciGit-Client;component/Images/login_banner.png" />
+            <Image Stretch="None" Name="image1" Source="/SciGit-Client;component/Images/login_banner.png" />
         </Border>
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="20">
             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
