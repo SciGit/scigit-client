@@ -71,7 +71,7 @@ namespace SciGit_Client
       } else {
         MessageBox.Show(result.Error == RestClient.ErrorType.Forbidden ?
           "Incorrect username or password." :
-          "Could not connect to the SciGit servers. Please try again later.", "Error");
+          "Could not connect to the SciGit servers. Please try again later.", "Login error");
         Reset();
       }
     }
