@@ -42,7 +42,7 @@ namespace SciGit_Client
         if (i > 0) {
           textBox.Visibility = Visibility.Hidden;
         }
-        Grid.SetRow(textBox, 2);
+        Grid.SetRow(textBox, 1);
         grid.Children.Add(textBox);
         textBoxes.Add(textBox);
 
