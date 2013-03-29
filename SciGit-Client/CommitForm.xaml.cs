@@ -58,6 +58,10 @@ namespace SciGit_Client
     private void OnLoad(object sender, EventArgs e) {
     }
 
+    private void ClickViewChanges(object sender, RoutedEventArgs e) {
+      new ProjectHistory(project).Show();
+    }
+
     private void ClickUpload(object sender, RoutedEventArgs e) {
       if (message.Text.Trim() == "") {
         MessageBox.Show("You must provide a message.", "Error");

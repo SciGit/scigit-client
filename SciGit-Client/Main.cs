@@ -198,7 +198,10 @@ namespace SciGit_Client
     }
 
     private void OpenDirectoryHandler(object sender, EventArgs e) {
-      Process.Start(ProjectMonitor.GetProjectDirectory());
+      string dir = ProjectMonitor.GetProjectDirectory();
+      if (dir != null) {
+        Process.Start(dir);
+      }
     }
 
     private void ManageProjectsHandler(object sender, EventArgs e) {

@@ -1,5 +1,5 @@
-﻿<Window x:Class="SciGit_Client.CommitForm" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Upload Changes" Height="360" Width="508" WindowStyle="SingleBorderWindow"
-        Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}" Icon="/SciGit-Client;component/Images/icon.ico" SnapsToDevicePixels="True" Closing="WindowClosing" FocusManager.FocusedElement="{Binding ElementName=message}" ContentRendered="OnLoad" Topmost="False">
+﻿<Window x:Class="SciGit_Client.CommitForm" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Upload Changes" Height="350" Width="500" WindowStyle="SingleBorderWindow"
+        Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}" Icon="/SciGit-Client;component/Images/icon.ico" SnapsToDevicePixels="True" Closing="WindowClosing" FocusManager.FocusedElement="{Binding ElementName=message}" ContentRendered="OnLoad" Topmost="False" MinWidth="500" MinHeight="350">
 	<Grid Margin="10" Name="grid">
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*" />
@@ -22,6 +22,7 @@
 		<TextBox Grid.Row="3" Name="changes" VerticalAlignment="Stretch" IsReadOnly="True" IsEnabled="False" Margin="0,0,0,10" BorderThickness="1" BorderBrush="#999" VerticalScrollBarVisibility="Visible" IsTabStop="False" />
 
 		<StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="viewChanges" Content="View Changes..." Margin="0,0,10,0" Click="ClickViewChanges" />
 			<Button Name="upload" Content="Upload" Click="ClickUpload" Margin="0,0,10,0" IsDefault="True" />
 			<Button Name="cancel" Content="Cancel" Click="ClickCancel" IsCancel="True" />
 		</StackPanel>

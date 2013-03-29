@@ -148,7 +148,7 @@ namespace SciGit_Client
           string winFile = Path.Combine(dir, file.Replace('/', Path.PathSeparator));
           fullpath[file] = winFile;
           if (hash == "") {
-            ret = GitWrapper.ShowObject(dir, String.Format("{0}:\"{1}\"", hash, file));
+            ret = GitWrapper.ShowObject(dir, String.Format("{0}:\"{1}\"", "HEAD", file));
             data1 = ret.ReturnValue == 0 ? ret.Stdout : null;
             data2 = File.Exists(winFile) ? File.ReadAllText(winFile, Encoding.Default) : null;
           } else {

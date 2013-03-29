@@ -92,7 +92,7 @@ namespace SciGit_Client
       sp.Margin = new Thickness(2, 5, 5, 5);
       item.Content = sp;
       string previous = hash == "" ? "HEAD" : hash + "^";
-      item.Selected += (s, e) => diffViewer.DisplayDiff(filename, fullpath, author, LoadFile(hash + "^"), LoadFile(hash));
+      item.Selected += (s, e) => diffViewer.DisplayDiff(filename, fullpath, author, LoadFile(previous), LoadFile(hash));
       return item;
     }
 

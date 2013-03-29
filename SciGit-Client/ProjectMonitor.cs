@@ -558,6 +558,7 @@ namespace SciGit_Client
     }
 
     public static string GetProjectDirectory() {
+      if (projectDirectory == null) return null;
       lock (projectDirectory) {
         return projectDirectory;
       }
