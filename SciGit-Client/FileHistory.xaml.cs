@@ -23,8 +23,7 @@ namespace SciGit_Client
     public FileHistory(Project p, string filename, string hash = null) {
       InitializeComponent();
 
-      Title += " for " + filename;
-      header.Text += " for " + filename + " (" + p.name + ")";
+      Title += " for " + filename + " (" + p.name + ")";
       project = p;
       this.filename = filename;
       gitFilename = filename.Replace(Path.DirectorySeparatorChar, '/');

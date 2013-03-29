@@ -7,22 +7,19 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="Auto" />
-			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
-
-		<TextBlock FontSize="20" Text="Upload Changes" Margin="0,0,0,5" />
-		<StackPanel Grid.Row="1">
-			<TextBlock Grid.Row="1" Text="Changelog message:" Margin="0,0,0,5" />
+        <StackPanel Grid.Row="0">
+			<TextBlock Text="Briefly describe the changes made for your collaborators:" Margin="0,0,0,5" />
 			<TextBox Name="message" Margin="0,0,0,10" />
 		</StackPanel>
 
-		<TextBlock Grid.Row="2" Text="Files changed:" Margin="0,0,0,5" />
-		<TextBox Grid.Row="3" Name="changes" VerticalAlignment="Stretch" IsReadOnly="True" IsEnabled="False" Margin="0,0,0,10" BorderThickness="1" BorderBrush="#999" VerticalScrollBarVisibility="Visible" IsTabStop="False" />
+		<TextBlock Grid.Row="1" Text="Files changed:" Margin="0,0,0,5" />
+		<TextBox Grid.Row="2" Name="changes" VerticalAlignment="Stretch" IsReadOnly="True" IsEnabled="False" Margin="0,0,0,10" BorderThickness="1" BorderBrush="#999" VerticalScrollBarVisibility="Visible" IsTabStop="False" />
 
-		<StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="viewChanges" Content="View Changes..." Margin="0,0,10,0" Click="ClickViewChanges" />
+		<StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="viewChanges" Content="View changes..." Margin="0,0,10,0" Click="ClickViewChanges" />
 			<Button Name="upload" Content="Upload" Click="ClickUpload" Margin="0,0,10,0" IsDefault="True" />
 			<Button Name="cancel" Content="Cancel" Click="ClickCancel" IsCancel="True" />
 		</StackPanel>

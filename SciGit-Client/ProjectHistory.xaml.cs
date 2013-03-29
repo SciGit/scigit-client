@@ -28,7 +28,6 @@ namespace SciGit_Client
       InitializeComponent();
 
       Title += " for " + p.name;
-      header.Text += " for " + p.name;
       project = p;
 
       string dir = ProjectMonitor.GetProjectDirectory(project);
