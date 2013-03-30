@@ -150,7 +150,7 @@ namespace SciGit_Client
           if (hash == "") {
             ret = GitWrapper.ShowObject(dir, String.Format("{0}:\"{1}\"", "HEAD", file));
             data1 = ret.ReturnValue == 0 ? ret.Stdout : null;
-            data2 = File.Exists(winFile) ? File.ReadAllText(winFile, Encoding.Default) : null;
+            data2 = File.Exists(winFile) ? Util.ReadFile(winFile) : null;
           } else {
             ret = GitWrapper.ShowObject(dir, String.Format("{0}:\"{1}\"", hash + "^", file));
             data1 = ret.ReturnValue == 0 ? ret.Stdout : null;

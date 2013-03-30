@@ -72,7 +72,7 @@ namespace SciGit_Client
 
       if (manual) {
         if (selectedSide == deletedSide) return null;
-        return File.ReadAllText(selectedSide == 0 ? fullpath : newFullpath, Encoding.Default);
+        return Util.ReadFile(selectedSide == 0 ? fullpath : newFullpath);
       }
 
       int totalLines = 0;

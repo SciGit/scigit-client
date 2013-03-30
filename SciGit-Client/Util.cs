@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Windows;
 using Microsoft.Office.Interop.Word;
 
@@ -54,6 +55,27 @@ namespace SciGit_Client
       } catch (Exception ex) {
         Logger.LogException(ex);
         MessageBox.Show("Could not start Microsoft Word. Office 2003 or higher is required.", "Could not start Word");
+      }
+    }
+
+    // Read the file, accounting for cases where the file doesn't exist or the file is in use.
+    public static string ReadFile(string filename) {
+      while (true) {
+        try {
+          string str = File.ReadAllText(filename, Encoding.Default);
+          return str;
+        } catch (IOException ex) {
+          if (ex.Message.Contains("is being used by another process")) {
+            MessageBoxResult res = 
+              MessageBox.Show("The file '" + filename + "' is in use and cannot be opened by SciGit. Please close the file and press OK to retry.",
+                              "File in use", MessageBoxButton.OKCancel);
+            if (res == MessageBoxResult.Cancel) {
+              return null;
+            }
+          } else {
+            return null;
+          }
+        }
       }
     }
   }

@@ -287,7 +287,8 @@ namespace SciGit_Client
 
         // Reset commits until we get to something in common with FETCH_HEAD.
         ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
-        GitWrapper.Reset(dir, ret.Stdout.Trim());
+        string baseCommit = ret.Stdout.Trim();
+        GitWrapper.Reset(dir, baseCommit);
         if (worker.CancellationPending) return false;
 
         // Make a temporary commit to facilitate merging.
@@ -302,7 +303,17 @@ namespace SciGit_Client
         ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
         worker.ReportProgress(-1, ret.Output);
 
-        if (ret.ReturnValue != 0) {
+        if (ret.Output.Contains("Permission denied")) {
+          // One of the files is open.
+          MessageBox.Show("One of the project files is currently open and cannot be edited. "
+            + "Please save and close your changes before continuing.", "File Locked");
+          // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
+          if (ret.ReturnValue == 0) {
+            GitWrapper.Reset(dir, baseCommit);
+          } else {
+            rebaseStarted = true;
+          }
+        } else if (ret.ReturnValue != 0) {
           rebaseStarted = true;
           if (worker.CancellationPending) return false;
           if (ret.Output.Contains("CONFLICT")) {
@@ -347,11 +358,6 @@ namespace SciGit_Client
               success = true;
               rebaseStarted = false;
             }
-          } else if (ret.Output.Contains("Permission denied")) {
-            // One of the files is open.
-            MessageBox.Show("One of the project files is currently open and cannot be edited. "
-              + "Please save and close your changes before continuing.", "File Locked");
-            rebaseStarted = false;
           } else {
             throw new Exception("rebase: " + ret.Output);
           }

@@ -38,7 +38,7 @@ namespace SciGit_Client
       fileData = new Dictionary<string, string>();
       hashes = new List<string>();
       fullpath = Util.PathCombine(dir, filename);
-      fileData[""] = File.ReadAllText(fullpath, Encoding.Default);
+      fileData[""] = Util.ReadFile(fullpath);
       hashes.Add("");
       var timestamp = (int)(File.GetLastWriteTimeUtc(fullpath) - epoch).TotalSeconds;
       fileHistory.Items.Add(CreateListViewItem("", "Current Version", "", timestamp));

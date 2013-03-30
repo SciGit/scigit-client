@@ -35,7 +35,7 @@ namespace SciGit_Client
       if (!Finished()) return null;
 
       if (selectedSide == deletedSide) return null;
-      return File.ReadAllText(selectedSide == 0 ? fullpath : newFullpath, Encoding.Default);
+      return Util.ReadFile(selectedSide == 0 ? fullpath : newFullpath);
     }
 
     protected override void Accept(int side) {
