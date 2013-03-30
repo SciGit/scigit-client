@@ -141,6 +141,19 @@ namespace SciGit_Client
       return new Project();
     }
 
+    public bool CheckProject(Project p) {
+      string dir = GetProjectDirectory(p);
+      if (!Directory.Exists(dir) || !Directory.Exists(Path.Combine(dir, ".git"))) {
+        var result = Util.ShowMessageBox("Project " + p.name + " seems to be corrupted. Do you want SciGit to repair it?\r\n" +
+              "You may want to back up your files first.", "Project corrupted", MessageBoxButton.YesNo);
+        if (result == MessageBoxResult.Yes) {
+          return InitializeProject(p);
+        }
+        return false;
+      }
+      return true;
+    }
+
     private void DispatchCallbacks(List<ProjectCallback> callbacks, Project p) {
       foreach (var callback in callbacks) {
         callback(p);
@@ -233,14 +246,43 @@ namespace SciGit_Client
 
     private bool InitializeProject(Project p) {
       string dir = GetProjectDirectory();
-      if (Directory.Exists(Util.PathCombine(dir, p.name))) return false;
-      GitWrapper.Clone(dir, p);
-      dir = GetProjectDirectory(p);
-      File.WriteAllText(Util.PathCombine(dir, ".git", "info", "attributes"), "* -merge -diff");
-      // Ignore some common temporary files.
-      string[] exclude = new string[] {"*~", "~*", "*.tmp", "*.scigitUpdated*", "*.swp"};
-      File.WriteAllText(Util.PathCombine(dir, ".git", "info", "exclude"), String.Join("\n", exclude));
-      return true;
+      string pdir = Util.PathCombine(dir, p.name);
+      ProcessReturn ret;
+
+      int oldActive = activeProjectId;
+      activeProjectId = p.id;
+
+      try {
+        if (Directory.Exists(pdir)) {
+          if (!Directory.Exists(Util.PathCombine(pdir, ".git"))) {
+            // Re-generate the .git directory only. Make a clone in a temp directory:
+            string tempPath = Path.Combine(Util.GetTempPath(), p.name);
+            if (Directory.Exists(tempPath)) {
+              Directory.Delete(tempPath, true);
+            }
+            ret = GitWrapper.Clone(Util.GetTempPath(), p, "-n");
+            if (ret.ReturnValue != 0) return false;
+            Directory.Move(Path.Combine(tempPath, ".git"), Path.Combine(pdir, ".git"));
+            return true;
+          } else {
+            return false;
+          }
+        }
+
+        ret = GitWrapper.Clone(dir, p);
+        if (ret.ReturnValue != 0) return false;
+        dir = GetProjectDirectory(p);
+        File.WriteAllText(Util.PathCombine(dir, ".git", "info", "attributes"), "* -merge -diff");
+        // Ignore some common temporary files.
+        string[] exclude = new string[] {"*~", "~*", "*.tmp", "*.scigitUpdated*", "*.swp"};
+        File.WriteAllText(Util.PathCombine(dir, ".git", "info", "exclude"), String.Join("\n", exclude));
+        return true;
+      } catch (Exception ex) {
+        Logger.LogException(ex);
+        return false;
+      } finally {
+        activeProjectId = oldActive;
+      }
     }
 
     private ProcessReturn CheckReturn(string command, ProcessReturn ret, BackgroundWorker worker) {
@@ -262,7 +304,17 @@ namespace SciGit_Client
 
       string dir = GetProjectDirectory(p);
       if (!Directory.Exists(dir)) {
-        ShowError(window, "Project " + p.name + " seems to be corrupted. Delete the folder to allow SciGit to re-create it.");
+        worker.ReportProgress(progress ? 25 : -1, "Repairing project...");
+        MessageBoxResult result = Util.ShowMessageBox("Project " + p.name + " does not exist. Would you like to re-create it?",
+                                                      "Project does not exist", MessageBoxButton.YesNo);
+        if (result == MessageBoxResult.Yes) {
+          if (!InitializeProject(p)) {
+            ShowError(window, "Could not obtain project from the SciGit servers. Please try again later.");
+          } else {
+            worker.ReportProgress(progress ? 100 : -1, "Repair successful.");
+            return true;
+          }
+        }
         return false;
       }
 
@@ -280,9 +332,26 @@ namespace SciGit_Client
         worker.ReportProgress(-1, ret.Output);
         if (ret.ReturnValue != 0) {
           if (ret.Output.Contains("Not a git")) {
-            ShowError(window, "Project " + p.name + " seems to be corrupted. Delete the folder to allow SciGit to re-create it.");
-            return false;
-          } else {
+            MessageBoxResult res = Util.ShowMessageBox("Project " + p.name + " seems to be corrupted. Do you want SciGit to repair it?\r\n" +
+              "You may want to back up your files first.", "Project corrupted", MessageBoxButton.YesNo);
+            if (res == MessageBoxResult.Yes) {
+              string gitDir = Path.Combine(dir, ".git");
+              if (Directory.Exists(gitDir)) {
+                Directory.Delete(gitDir, true);
+              }
+              worker.ReportProgress(progress ? 30 : -1, "Repairing project...");
+              if (!InitializeProject(p)) {
+                ShowError(window, "Could not obtain project from the SciGit servers. Please try again later.");
+                return false;
+              }
+              worker.ReportProgress(progress ? 35 : -1, "Checking for updates...");
+              ret = GitWrapper.Fetch(dir);
+              worker.ReportProgress(-1, ret.Output);
+            } else {
+              return false;
+            }
+          }
+          if (ret.ReturnValue != 0) {
             ShowError(window, "Could not connect to the SciGit servers. Please try again later.");
             return false;
           }
@@ -494,10 +563,7 @@ namespace SciGit_Client
         for (int i = 0; i < projects.Count; i++) {
           var project = projects[i];
           worker.ReportProgress(100 * (i + 1) / (projects.Count + 1), "Updating " + project.name + "...");
-          bool cancelled = false;
-          if (HasUpdate(project)) {
-            cancelled = !UpdateProject(project, window, worker, false);
-          }
+          bool cancelled = !UpdateProject(project, window, worker, false);
           if (worker.CancellationPending && (i+1 != projects.Count || cancelled)) {
             return false;
           }
@@ -525,6 +591,8 @@ namespace SciGit_Client
 
     public bool HasUpdate(Project p) {
       string dir = GetProjectDirectory(p);
+      if (!Directory.Exists(dir)) return false;
+
       ProcessReturn ret = GitWrapper.GetLastCommit(dir);
       string lastHash = "";
       if (ret.ReturnValue == 0) {
@@ -535,6 +603,8 @@ namespace SciGit_Client
 
     public bool HasUpload(Project p) {
       string dir = GetProjectDirectory(p);
+      if (!Directory.Exists(dir)) return false;
+
       ProcessReturn ret = GitWrapper.Status(dir);
       return ret.Stdout.Trim() != "";
     }

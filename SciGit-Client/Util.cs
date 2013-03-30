@@ -25,6 +25,10 @@ namespace SciGit_Client
       return s;
     }
 
+    public static string GetTempPath() {
+      return PathCombine(Path.GetTempPath(), "SciGit");
+    }
+
     public static string[] ArraySlice(string[] a, int start, int length) {
       length = Math.Min(length, a.Length - start);
       var ret = new string[length];

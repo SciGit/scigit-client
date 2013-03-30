@@ -96,8 +96,8 @@ namespace SciGit_Client
 
     private void CompareInWord(string old, string updated, string name, string fullpath, string author) {
       string guid = Guid.NewGuid().ToString();
-      string temp1 = Path.GetTempPath() + "scigit_compare1" + guid + ".docx";
-      string temp2 = Path.GetTempPath() + "scigit_compare2" + guid + ".docx";
+      string temp1 = Util.GetTempPath() + "scigit_compare1" + guid + ".docx";
+      string temp2 = Util.GetTempPath() + "scigit_compare2" + guid + ".docx";
       File.WriteAllText(temp1, old, Encoding.Default);
       File.WriteAllText(temp2, updated, Encoding.Default);
       Util.CompareInWord(temp1, temp2, name, fullpath, author);

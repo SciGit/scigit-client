@@ -162,6 +162,8 @@ namespace SciGit_Client
     }
 
     private void OpenFileHistory(Project p, string filename, string hash = null) {
+      if (!projectMonitor.CheckProject(p)) return;
+
       string dir = ProjectMonitor.GetProjectDirectory(p);
       if (!File.Exists(Util.PathCombine(dir, filename))) {
         Util.ShowMessageBox("File " + filename + " does not exist. You may have to update the project.", "SciGit error");
@@ -181,6 +183,8 @@ namespace SciGit_Client
     }
 
     private void OpenProjectHistory(Project p, string hash = null) {
+      if (!projectMonitor.CheckProject(p)) return;
+
       string dir = ProjectMonitor.GetProjectDirectory(p);
       if (!Directory.Exists(dir)) {
         Util.ShowMessageBox("Project does not exist.", "Error");
@@ -237,6 +241,7 @@ namespace SciGit_Client
 
     private EventHandler CreateViewProjectHistoryHandler(Project p) {
       return (s, e) => {
+        if (!projectMonitor.CheckProject(p)) return;
         var ph = new ProjectHistory(p);
         ShowTop(ph);
       };
