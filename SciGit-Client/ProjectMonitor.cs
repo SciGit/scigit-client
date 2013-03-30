@@ -261,6 +261,11 @@ namespace SciGit_Client
       activeProjectId = p.id;
 
       string dir = GetProjectDirectory(p);
+      if (!Directory.Exists(dir)) {
+        ShowError(window, "Project " + p.name + " seems to be corrupted. Delete the folder to allow SciGit to re-create it.");
+        return false;
+      }
+
       bool possibleCommit = false, rebaseStarted = false, success = false;
       ProcessReturn ret;
 
@@ -275,7 +280,7 @@ namespace SciGit_Client
         worker.ReportProgress(-1, ret.Output);
         if (ret.ReturnValue != 0) {
           if (ret.Output.Contains("Not a git")) {
-            ShowError(window, "This project seems to be corrupted. Delete the folder to allow SciGit to re-create it.");
+            ShowError(window, "Project " + p.name + " seems to be corrupted. Delete the folder to allow SciGit to re-create it.");
             return false;
           } else {
             ShowError(window, "Could not connect to the SciGit servers. Please try again later.");
@@ -305,7 +310,7 @@ namespace SciGit_Client
 
         if (ret.Output.Contains("Permission denied")) {
           // One of the files is open.
-          MessageBox.Show("One of the project files is currently open and cannot be edited. "
+          Util.ShowMessageBox("One of the project files is currently open and cannot be edited. "
             + "Please save and close your changes before continuing.", "File Locked");
           // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
           if (ret.ReturnValue == 0) {
@@ -365,7 +370,7 @@ namespace SciGit_Client
           worker.ReportProgress(progress ? 100 : -1, ret.Output.Contains("up to date") ? "No changes." : "Changes merged without conflict.");
           success = true;
           if (progress && !ret.Output.Contains("up to date")) {
-            var result = MessageBox.Show("Project " + p.name + " was successfully updated. Would you like to view the changes?",
+            var result = Util.ShowMessageBox("Project " + p.name + " was successfully updated. Would you like to view the changes?",
                 "Project updated", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes) {
               window.Dispatcher.Invoke(new Action(() => {
@@ -567,7 +572,7 @@ namespace SciGit_Client
         Directory.CreateDirectory(GetProjectDirectory());
       } catch (Exception) {
         Settings.Default.ProjectDirectory = projectDirectory = DefaultProjectDirectory();
-        MessageBox.Show("Invalid project directory. Reverting to default (" + 
+        Util.ShowMessageBox("Invalid project directory. Reverting to default (" + 
           projectDirectory + ")", "Error");
         Settings.Default.Save();
         if (!Directory.Exists(projectDirectory)) {

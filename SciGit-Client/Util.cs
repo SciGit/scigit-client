@@ -5,7 +5,11 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows;
+using System.Windows.Forms;
 using Microsoft.Office.Interop.Word;
+using MessageBox = System.Windows.MessageBox;
+using MessageBoxOptions = System.Windows.MessageBoxOptions;
+using Window = System.Windows.Window;
 
 namespace SciGit_Client
 {
@@ -30,6 +34,11 @@ namespace SciGit_Client
       return ret;
     }
 
+    // Shows the message box on top.
+    public static MessageBoxResult ShowMessageBox(string content, string title, MessageBoxButton buttons = MessageBoxButton.OK) {
+      return MessageBox.Show(content, title, buttons, MessageBoxImage.None, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+    }
+
     public static void CompareInWord(string fullpath, string newFullpath, string saveName, string saveDir, string author = null) {
       Object missing = Type.Missing;
       try {
@@ -49,12 +58,12 @@ namespace SciGit_Client
           wordapp.Activate();
         } catch (Exception ex) {
           Logger.LogException(ex);
-          MessageBox.Show("Word could not open these documents. Please edit the file manually.", "Error");
+          ShowMessageBox("Word could not open these documents. Please edit the file manually.", "Error");
           wordapp.Quit();
         }
       } catch (Exception ex) {
         Logger.LogException(ex);
-        MessageBox.Show("Could not start Microsoft Word. Office 2003 or higher is required.", "Could not start Word");
+        ShowMessageBox("Could not start Microsoft Word. Office 2003 or higher is required.", "Could not start Word");
       }
     }
 
@@ -67,8 +76,8 @@ namespace SciGit_Client
         } catch (IOException ex) {
           if (ex.Message.Contains("is being used by another process")) {
             MessageBoxResult res = 
-              MessageBox.Show("The file '" + filename + "' is in use and cannot be opened by SciGit. Please close the file and press OK to retry.",
-                              "File in use", MessageBoxButton.OKCancel);
+              ShowMessageBox("The file '" + filename + "' is in use and cannot be opened by SciGit. Please close the file and press OK to retry.",
+                             "File in use", MessageBoxButton.OKCancel);
             if (res == MessageBoxResult.Cancel) {
               return null;
             }
