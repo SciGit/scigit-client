@@ -61,6 +61,7 @@ namespace SciGit_Client
       projectMonitor.projectEditedCallbacks.Add(ProjectEdited);
       projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
       projectMonitor.failureCallbacks.Add(OnProjectMonitorFailure);
+      projectMonitor.disconnectCallbacks.Add(OnProjectMonitorDisconnect);
       projectMonitor.StartMonitoring();
 
       updateChecker = new UpdateChecker();
@@ -159,6 +160,13 @@ namespace SciGit_Client
       }));
     }
 
+    private void OnProjectMonitorDisconnect() {
+      this.Invoke(new Action(() => {
+        notifyIcon.Text = "SciGit\nWaiting for connection...";
+        notifyIcon.Icon = notifyIconLoading;
+      }));
+    }
+
     private void OpenFileHistory(Project p, string filename, string hash = null) {
       string dir = ProjectMonitor.GetProjectDirectory(p);
       if (!File.Exists(Util.PathCombine(dir, filename))) {
@@ -253,6 +261,8 @@ namespace SciGit_Client
     private void Logout() {
       loginWindow.Reset();
       loginWindow.Show();
+      loginWindow.Topmost = true;
+      loginWindow.Topmost = false;
       Close();
     }
 
@@ -364,6 +374,7 @@ namespace SciGit_Client
 
       // Just show the loading indicator for now
       notifyIcon.Icon = notifyIconLoading;
+      notifyIcon.Text = "SciGit\nLoading...";
       for (int i = 3; i <= 8; i++) {
         notifyIcon.ContextMenu.MenuItems[i].Visible = false;
       }
@@ -447,6 +458,15 @@ namespace SciGit_Client
 
       // Hide the loading indicator and show others
       notifyIcon.Icon = updNames.Count > 0 || uploadable > 0 ? notifyIconUpdate : notifyIconBase;
+      notifyIcon.Text = "SciGit\n";
+      if (updNames.Count > 0) {
+        notifyIcon.Text += "Project updates available.";
+      } else if (uploadable > 0) {
+        notifyIcon.Text += "Local changes awaiting upload.";
+      } else {
+        notifyIcon.Text += "All projects up to date.";
+      }
+
       for (int i = 3; i <= 8; i++) {
         notifyIcon.ContextMenu.MenuItems[i].Visible = true;
       }

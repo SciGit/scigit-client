@@ -30,15 +30,14 @@ namespace SciGit_Client
 
     #endregion
 
-    public List<Action> loadedCallbacks;
-    public List<Action> updateCallbacks;
-    public List<Action> failureCallbacks;
+    public List<Action> loadedCallbacks, updateCallbacks, failureCallbacks, disconnectCallbacks;
 
     public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks;
     public List<ProjectCallback> projectUpdatedCallbacks, projectEditedCallbacks;
 
     private Thread monitorThread;
     private const int monitorDelay = 5 * 1000;
+    private bool connected = true;
 
     private List<Project> projects, updatedProjects, editedProjects;
     private static string projectDirectory;
@@ -71,6 +70,7 @@ namespace SciGit_Client
       monitorThread = new Thread(MonitorProjects);
       updateCallbacks = new List<Action>();
       loadedCallbacks = new List<Action>();
+      disconnectCallbacks = new List<Action>();
       projectUpdatedCallbacks = new List<ProjectCallback>();
       projectEditedCallbacks = new List<ProjectCallback>();
       projectAddedCallbacks = new List<ProjectCallback>();
@@ -154,61 +154,74 @@ namespace SciGit_Client
           var response = RestClient.GetProjects();
           List<Project> newProjects = response.Data;
           if (response.Error == RestClient.ErrorType.Forbidden) {
-            failureCallbacks.ForEach(c => c.Invoke());
-            break;
+            // Try to log in again.
+            Logger.LogMessage("Authentication token expired, trying to log in again...");
+            var loginResponse = RestClient.Relogin();
+            if (loginResponse.Error != RestClient.ErrorType.NoError) {
+              failureCallbacks.ForEach(c => c.Invoke());
+            }
+            continue;
           } else if (response.Error != RestClient.ErrorType.NoError) {
             Logger.LogMessage(response.Error.ToString() + " getting projects");
+            disconnectCallbacks.ForEach(c => c.Invoke());
+            connected = false;
           }
 
-          if (newProjects != null && (!loaded || !newProjects.SequenceEqual(projects))) {
-            Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
-            oldProjectDict = GetProjects().ToDictionary(p => p.id);
-            newProjectDict = newProjects.ToDictionary(p => p.id);
-            updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.id);
-            editedProjectDict = GetEditedProjects().ToDictionary(p => p.id);
+          if (newProjects != null) {
+            if (!loaded || !newProjects.SequenceEqual(projects)) {
+              Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
+              oldProjectDict = GetProjects().ToDictionary(p => p.id);
+              newProjectDict = newProjects.ToDictionary(p => p.id);
+              updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.id);
+              editedProjectDict = GetEditedProjects().ToDictionary(p => p.id);
 
-            var newUpdatedProjects = new List<Project>();
-            foreach (var project in newProjects) {
-              if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.id)) {
-                DispatchCallbacks(projectAddedCallbacks, project);
-              }
-              // This only needs to be done at load. Otherwise, the file watcher will catch it.
-              if (!loaded && HasUpload(project)) {
-                lock (editedProjects) {
-                  editedProjects.Add(project);
+              var newUpdatedProjects = new List<Project>();
+              foreach (var project in newProjects) {
+                if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.id)) {
+                  DispatchCallbacks(projectAddedCallbacks, project);
                 }
-                if (project.can_write && !editedProjectDict.ContainsKey(project.id)) {
-                  DispatchCallbacks(projectEditedCallbacks, project);
+                // This only needs to be done at load. Otherwise, the file watcher will catch it.
+                if (!loaded && HasUpload(project)) {
+                  lock (editedProjects) {
+                    editedProjects.Add(project);
+                  }
+                  if (project.can_write && !editedProjectDict.ContainsKey(project.id)) {
+                    DispatchCallbacks(projectEditedCallbacks, project);
+                  }
                 }
-              }
-              if (HasUpdate(project)) {
-                newUpdatedProjects.Add(project);
-                if (!updatedProjectDict.ContainsKey(project.id) ||
+                if (HasUpdate(project)) {
+                  newUpdatedProjects.Add(project);
+                  if (!updatedProjectDict.ContainsKey(project.id) ||
                     updatedProjectDict[project.id].last_commit_hash != project.last_commit_hash) {
-                  DispatchCallbacks(projectUpdatedCallbacks, project);
+                    DispatchCallbacks(projectUpdatedCallbacks, project);
+                  }
                 }
               }
-            }
 
-            lock (updatedProjects) {
-              updatedProjects = newUpdatedProjects;
-            }
-
-            foreach (var project in oldProjectDict) {
-              if (!newProjectDict.ContainsKey(project.Key)) {
-                DispatchCallbacks(projectRemovedCallbacks, project.Value);
+              lock (updatedProjects) {
+                updatedProjects = newUpdatedProjects;
               }
+
+              foreach (var project in oldProjectDict) {
+                if (!newProjectDict.ContainsKey(project.Key)) {
+                  DispatchCallbacks(projectRemovedCallbacks, project.Value);
+                }
+              }
+
+              lock (projects) {
+                projects = newProjects;
+              }
+              updateCallbacks.ForEach(c => c.Invoke());
+            } else if (!connected) {
+              // Need to send an update even if nothing changed (to update the tray icon)
+              connected = true;
+              updateCallbacks.ForEach(c => c.Invoke());
             }
 
-            lock (projects) {
-              projects = newProjects;
+            if (!loaded) {
+              loaded = true;
+              loadedCallbacks.ForEach(c => c.Invoke());
             }
-            updateCallbacks.ForEach(c => c.Invoke());
-          }
-
-          if (newProjects != null && !loaded) {
-            loaded = true;
-            loadedCallbacks.ForEach(c => c.Invoke());
           }
         } catch (Exception e) {
           Logger.LogException(e);
@@ -524,14 +537,14 @@ namespace SciGit_Client
           if (HasUpload(p)) {
             if (!contains) {
               editedProjects.Add(p);
-              if (p.can_write && activeProjectId != p.id) {
+              if (connected && p.can_write && activeProjectId != p.id) {
                 DispatchCallbacks(projectEditedCallbacks, p);
                 updateCallbacks.ForEach(c => c.Invoke());
               }
             }
           } else if (contains) {
             editedProjects.RemoveAll(pr => pr.id == p.id);
-            if (activeProjectId != p.id) {
+            if (connected && activeProjectId != p.id) {
               updateCallbacks.ForEach(c => c.Invoke());
             }
           }

@@ -42,6 +42,7 @@ namespace SciGit_Client
     public static readonly string ServerHost = App.Hostname;
     public static int Timeout = 10000;
     public static string Username = "";
+    private static string Password = "";
     private static string AuthToken = "";
     private static int ExpiryTime;
 
@@ -62,6 +63,7 @@ namespace SciGit_Client
           return new Response<bool>(response.StatusCode);
         }
         Username = username;
+        Password = password;
         AuthToken = response.Data["auth_token"];
         ExpiryTime = int.Parse(response.Data["expiry_ts"]);
         return new Response<bool>(true);
@@ -70,6 +72,10 @@ namespace SciGit_Client
       }
 
       return new Response<bool>(ErrorType.ConnectionError);
+    }
+
+    public static Response<bool> Relogin() {
+      return Login(Username, Password);
     }
 
     public static Response<List<Project>> GetProjects() {
