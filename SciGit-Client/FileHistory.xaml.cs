@@ -60,6 +60,7 @@ namespace SciGit_Client
         MessageBox.Show("Could not find that version of the file. You may have to update the project.", "Version not found");
       }
       fileHistory.SelectedIndex = hashIndex ?? 0;
+      fileHistory.ScrollIntoView(fileHistory.Items[fileHistory.SelectedIndex]);
       fileHistory.Focus();
     }
 
