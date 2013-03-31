@@ -591,7 +591,8 @@ namespace SciGit_Client
               content[1].RemoveAt(last);
             } else {
               // Make them normal blocks.
-              content[0][last] = content[1][last] = conflictOrigBlocks.Last();
+              content[0][last] = new LineBlock(content[0][last].lines.Select(x => x.ToString()).ToArray());
+              content[1][last] = new LineBlock(content[1][last].lines.Select(x => x.ToString()).ToArray());
             }
             conflictOrigBlocks.RemoveAt(conflictOrigBlocks.Count - 1);
           }

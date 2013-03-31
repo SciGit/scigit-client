@@ -112,6 +112,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SentenceFilter.cs" />
     <Compile Include="SettingsForm.xaml.cs">
       <DependentUpon>SettingsForm.xaml</DependentUpon>
     </Compile>
@@ -306,10 +307,6 @@
     <ProjectReference Include="..\DiffPlex\DiffPlex\DiffPlex.csproj">
       <Project>{42ED3F62-53C5-4880-B9B8-F8B78F575353}</Project>
       <Name>DiffPlex</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SciGit-Filter\SciGit-Filter.csproj">
-      <Project>{7A73AD70-359A-479C-A6DD-F65490077846}</Project>
-      <Name>SciGit-Filter</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
