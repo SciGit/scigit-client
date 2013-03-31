@@ -1,5 +1,5 @@
 ﻿<Window x:Class="SciGit_Client.MergeEditor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Edit Block" Height="500" Width="700"
-        Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}" WindowStyle="ToolWindow" MinWidth="700" MinHeight="500" SnapsToDevicePixels="True" Topmost="False">
+        WindowStyle="ToolWindow" MinWidth="700" MinHeight="500" SnapsToDevicePixels="True" Topmost="False">
 	<Window.Resources>
 		<Style TargetType="{x:Type Paragraph}">
 			<Setter Property="Margin" Value="0" />

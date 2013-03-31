@@ -17,6 +17,7 @@ namespace SciGit_Client
     public Login() {
       // new MergeResolver(new Project {name="Test Project"}).Show(); Close(); return;
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       registerLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/register");
       forgotPassLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/forgot_password");

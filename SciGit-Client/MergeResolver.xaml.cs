@@ -33,6 +33,7 @@ namespace SciGit_Client
 
     public MergeResolver(Project p) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       Title += " for " + p.name;
       project = p;

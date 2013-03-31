@@ -12,6 +12,7 @@ namespace SciGit_Client
   {
     public ErrorForm(Exception e) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       while (e.InnerException != null) e = e.InnerException;
       errorDetails.Text = e.GetType().Name + ": " + e.Message + "\n" + e.StackTrace;

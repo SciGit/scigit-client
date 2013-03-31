@@ -36,6 +36,7 @@ namespace SciGit_Client
 
     public SettingsForm() {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       int notifyMask = Settings.Default.NotifyMask;
       projectFolder = Settings.Default.ProjectDirectory;

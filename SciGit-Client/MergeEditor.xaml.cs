@@ -17,6 +17,7 @@ namespace SciGit_Client
 
     public MergeEditor(LineBlock yourBlock, LineBlock updatedBlock, LineBlock originalBlock, LineBlock editBlock = null) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       RenderLineBlock(yourBlock, yourText);
       myStr = yourBlock.ToString();

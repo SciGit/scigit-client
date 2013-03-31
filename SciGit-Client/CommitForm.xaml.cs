@@ -14,6 +14,8 @@ namespace SciGit_Client
 
     public CommitForm(Project p) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
+
       Title += " for " + p.name;
       project = p;
       GetChanges();

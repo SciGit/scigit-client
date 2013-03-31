@@ -26,6 +26,7 @@ namespace SciGit_Client
 
     public ProjectHistory(Project p, string hash = null) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       Title += " for " + p.name;
       project = p;

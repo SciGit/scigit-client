@@ -1,5 +1,5 @@
 ﻿<Window x:Class="SciGit_Client.ProjectHistory" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:SciGit_Client="clr-namespace:SciGit_Client" Title="Project History" Height="600" Width="800" Icon="/SciGit;component/Images/icon.ico"
-        Background="{StaticResource {x:Static SystemColors.ControlBrushKey}}" MinHeight="600" MinWidth="1000" Topmost="False" SnapsToDevicePixels="True">
+        MinHeight="600" MinWidth="1000" Topmost="False" SnapsToDevicePixels="True">
     <Grid Margin="10" Name="grid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" MinWidth="250" MaxWidth="400" />

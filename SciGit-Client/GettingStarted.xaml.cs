@@ -21,6 +21,7 @@ namespace SciGit_Client
   {
     public GettingStarted() {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
     }
 
     private void ClickDone(object sender, EventArgs e) {

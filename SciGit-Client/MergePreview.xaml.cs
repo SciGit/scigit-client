@@ -17,6 +17,7 @@ namespace SciGit_Client
 
     public MergePreview(List<FileData> files, List<string> fileContents) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       textBoxes = new List<TextBox>();
       special = new List<bool>();

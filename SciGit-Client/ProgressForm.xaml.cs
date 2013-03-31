@@ -23,6 +23,7 @@ namespace SciGit_Client
 
     public ProgressForm(string title, BackgroundAction action) {
       InitializeComponent();
+      Style = (Style)FindResource(typeof(Window));
 
       Title = title;
       detailTextBox.Visibility = Visibility.Collapsed;
