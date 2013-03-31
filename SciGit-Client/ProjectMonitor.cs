@@ -660,7 +660,7 @@ namespace SciGit_Client
 
     public static string GetProjectDirectory(Project p) {
       if (p.id == 0) {
-        return "C:\\temp\\"; // for testing
+        return Path.GetTempPath(); // for testing
       }
       return Util.PathCombine(GetProjectDirectory(), p.name);
     }

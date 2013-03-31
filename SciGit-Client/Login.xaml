@@ -19,12 +19,12 @@
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="20">
             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
 			    <Label Content="Email:" Padding="0,0,5,0" VerticalAlignment="Center" Target="{Binding ElementName=emailValue}" />
-			    <TextBox Name="emailValue" Width="175" TabIndex="0" />
+			    <TextBox Name="emailValue" Width="175" TabIndex="0" Padding="2" />
 		    </WrapPanel>
 
 		    <WrapPanel HorizontalAlignment="Right" Margin="0,5,0,0">
 			    <Label Content="Password:" Padding="0,0,5,0" VerticalAlignment="Center" Target="{Binding ElementName=passwordValue}" />
-			    <PasswordBox Name="passwordValue" Width="175" TabIndex="1" />
+			    <PasswordBox Name="passwordValue" Width="175" TabIndex="1" Padding="2" />
 		    </WrapPanel>
 
 		    <TextBlock Margin="0,5,0,0" HorizontalAlignment="Right" FontSize="11">

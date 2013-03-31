@@ -1,6 +1,6 @@
 ﻿<Window x:Class="SciGit_Client.ProgressForm" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Working..." Width="400"
-        ResizeMode="NoResize" Icon="/SciGit;component/icon.ico" VerticalAlignment="Stretch" WindowStyle="SingleBorderWindow" SizeToContent="Height" Topmost="False">
-	<Grid Margin="10" VerticalAlignment="Top">
+        ResizeMode="NoResize" Icon="/SciGit;component/icon.ico" WindowStyle="SingleBorderWindow" SizeToContent="Height" Topmost="False" SnapsToDevicePixels="True">
+	<Grid Margin="10">
 		<StackPanel Orientation="Vertical">
 			<TextBlock Margin="0,0,0,10" HorizontalAlignment="Left" Name="status" Text="Working..." />
 			<ProgressBar Margin="0,0,0,10" Height="23" Name="progressBar" HorizontalAlignment="Stretch" />

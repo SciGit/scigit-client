@@ -41,14 +41,14 @@
                            TextWrapping="Wrap" Visibility="Collapsed" />
 
                 <WrapPanel Grid.Column="1" Name="actionsMe" Orientation="Horizontal" Panel.ZIndex="999" Background="#50000000">
-                    <ToggleButton Content="Accept _my version" Name="acceptMe" Margin="5" Click="ClickAcceptMe" />
-                    <Button Content="_Edit..." Name="editMe" Margin="5" Click="ClickEditMe" />
-                    <Button Content="U_ndo edit" Name="revertMe" Margin="5" Click="ClickRevertMe" IsEnabled="False" />
+                    <ToggleButton Height="20" Padding="4,0" Content="Accept _my version" Name="acceptMe" Margin="5" Click="ClickAcceptMe" />
+                    <Button Height="20" Padding="4,0" Content="_Edit..." Name="editMe" Margin="5" Click="ClickEditMe" />
+                    <Button Height="20" Padding="4,0" Content="U_ndo edit" Name="revertMe" Margin="5" Click="ClickRevertMe" IsEnabled="False" />
                 </WrapPanel>
                 <WrapPanel Grid.Column="3" Name="actionsThem" Orientation="Horizontal" Panel.ZIndex="999" Background="#50000000">
-                    <ToggleButton Content="Accept _updated version" Name="acceptThem" Margin="5" Click="ClickAcceptThem" />
-                    <Button Content="_Edit..." Name="editThem" Margin="5" Click="ClickEditThem" />
-                    <Button Content="U_ndo edit" Name="revertThem" Margin="5" Click="ClickRevertThem" IsEnabled="False" />
+                    <ToggleButton Height="20" Padding="4,0" Content="Accept _updated version" Name="acceptThem" Margin="5" Click="ClickAcceptThem" />
+                    <Button Height="20" Padding="4,0" Content="_Edit..." Name="editThem" Margin="5" Click="ClickEditThem" />
+                    <Button Height="20" Padding="4,0" Content="U_ndo edit" Name="revertThem" Margin="5" Click="ClickRevertThem" IsEnabled="False" />
                 </WrapPanel>
             </Grid>
 		</ScrollViewer>
@@ -64,7 +64,7 @@
         </Grid>
 
 		<WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,10,0,0" VerticalAlignment="Top">
-            <Border Name="Border" Height="22" Grid.Row="0" Background="{StaticResource LightBrush}" BorderBrush="#FF707070" BorderThickness="1" CornerRadius="2" Margin="0,0,10,0">
+            <Border Name="Border" Height="24" Grid.Row="0" Background="{StaticResource LightBrush}" BorderBrush="#FF707070" BorderThickness="1" CornerRadius="2" Margin="0,0,10,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="20" />
@@ -72,8 +72,8 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Name="nextConflict" IsEnabled="False" Click="SelectPreviousConflict" Template="{StaticResource UpArrowButton}" />
-                    <Button Name="prevConflict" IsEnabled="False" Click="SelectNextConflict" Grid.Column="1" Template="{StaticResource DownArrowButton}" />
+                    <Button Name="nextConflict" IsEnabled="False" Click="SelectPreviousConflict" Template="{StaticResource UpArrowButton}" Padding="2,0" MinWidth="0" />
+                    <Button Name="prevConflict" IsEnabled="False" Click="SelectNextConflict" Grid.Column="1" Template="{StaticResource DownArrowButton}" Padding="2,0" MinWidth="0" />
                     <TextBlock Grid.Column="2" Name="conflictNumber" Text="Conflict 1/1" Margin="10,0" VerticalAlignment="Center" />
                 </Grid>
             </Border>

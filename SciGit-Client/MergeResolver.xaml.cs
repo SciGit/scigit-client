@@ -62,8 +62,8 @@ namespace SciGit_Client
           new FileData {
             filename = "file.docx",
             original = "\007Sentence one.\nSentence two. Sentence three. Sentence four.\nSome crap after\na change\netc\nanother conflict\n",
-            myVersion = File.ReadAllText("C:\\temp\\a.docx", Encoding.Default),
-            newVersion = File.ReadAllText("C:\\temp\\b.docx", Encoding.Default)
+            myVersion = "\007x", //File.ReadAllText("C:\\temp\\a.docx", Encoding.Default),
+            newVersion = "\007y" //File.ReadAllText("C:\\temp\\b.docx", Encoding.Default)
           },
           new FileData {
             filename = "big_file.txt",
