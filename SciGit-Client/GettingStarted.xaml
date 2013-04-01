@@ -1,8 +1,8 @@
 ﻿<Window x:Class="SciGit_Client.GettingStarted"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Getting Started" Height="389" Width="451" Icon="/SciGit;component/icon.ico" 
-        ResizeMode="NoResize" Topmost="False">
+        Title="Getting Started" Height="375" Width="550" Icon="/SciGit;component/icon.ico" 
+        ResizeMode="NoResize" SnapsToDevicePixels="True">
     <Grid Margin="10" Name="grid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -11,47 +11,74 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
-        <TextBlock FontSize="20" Text="Welcome!" Margin="0,0,0,10" />
-        <StackPanel Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Margin="0,0,0,10">
-                Welcome to SciGit!
-            </TextBlock>
-            <DockPanel LastChildFill="True">
-                <TextBlock Margin="0,0,0,10" DockPanel.Dock="Left" TextWrapping="WrapWithOverflow">
-                    Click on the SciGit icon to the right to open your projects folder.
-                    <LineBreak />
-                    In the future, you can click on the tray icon instead.
-                </TextBlock>
-                <Image Source="/SciGit;component/icon.ico" Width="32" Height="32"
-                       DockPanel.Dock="Right" VerticalAlignment="Top" Cursor="Hand" MouseUp="IconClick" />
-            </DockPanel>
-            <TextBlock Margin="0,0,0,10" ClipToBounds="False" TextWrapping="WrapWithOverflow">
-                Your projects will be shown as subdirectories. Any changes you make there can be
-                uploaded for your collaborators. Projects can be created and managed on our
-                <Hyperlink NavigateUri="http://beta.scigit.com/projects" RequestNavigate="HyperlinkNavigate">website</Hyperlink>.
-            </TextBlock>
-            <TextBlock Margin="0,0,0,10" TextWrapping="WrapWithOverflow">
-                Use the tray menu to upload changes and sync projects to the latest version.
+        
+        <TextBlock FontSize="20" Text="Welcome to SciGit!" Margin="0,0,0,10" />
+        <StackPanel Name="step1" Grid.Row="1" Margin="0,0,0,10" Visibility="Collapsed">
+            <TextBlock TextWrapping="WrapWithOverflow" LineHeight="16">
+                SciGit is an easy way to share and collaborate on documents and papers. <LineBreak />
+                You can start by creating <Italic>projects</Italic> that can be shared with collaborators through our website:
                 <LineBreak />
-                Notifications will appear automatically when updates are available.
-            </TextBlock>
-            <TextBlock Margin="0,0,0,10" TextWrapping="WrapWithOverflow">
-                As an example, try adding a file to the provided Sample Project.
+                <Button Click="ClickManageProjects" Content="Manage your projects..." Margin="0,10,10,10" /> 
+                <Button Click="ClickManageAccount" Content="Manage your account..." Margin="0,10,10,10" />
                 <LineBreak />
-                A notification should appear allowing you to upload the change, which will then be
-                visible on the SciGit website. Anyone else you add to the project will also
-                be able to see the change.
-            </TextBlock>
-            <TextBlock Margin="0,0,0,10" TextWrapping="WrapWithOverflow">
-                Have fun collaborating! Be sure to email any feedback to 
-                <Hyperlink NavigateUri="mailto:eric@scigit.com" RequestNavigate="HyperlinkNavigate">eric@scigit.com.</Hyperlink>
+                You can also join an existing project, or subscribe to a public project.<LineBreak />
+                <LineBreak />
+                Once added, projects are synced into a local directory (<Hyperlink NavigateUri="http://asdf.com" Name="linkDirectory" RequestNavigate="ClickDirectory" />). <LineBreak />
+                Projects appear as subdirectories. You should already have a sample project available - you can try adding files to it, just as you would a regular directory.<LineBreak />
+                <LineBreak />
+                Changes made to your local project directory can be synced back to SciGit, where your collaborators will also receive your changes.
             </TextBlock>
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Name="cancel" Content="Done" Click="ClickDone" IsDefault="True" IsCancel="True" />
+        <StackPanel Name="step2" Grid.Row="1" Margin="0,0,0,10" Visibility="Collapsed">
+            <TextBlock TextWrapping="WrapWithOverflow" LineHeight="16">
+                After you make any changes, a notification in the system tray will prompt you to upload them. <LineBreak />
+                Changes will only be uploaded once you manually do so; collaborators will not see your changes until you do this. For example:<LineBreak />
+                <LineBreak />
+                <Image Source="/SciGit;component/Images/notify_upload.png" Stretch="None" /> <LineBreak />
+                <LineBreak />
+                A similar notification appears when collaborators have finished uploading their changes. <LineBreak />
+                Again, updates to projects are not synced to your local directory until you confirm them.
+            </TextBlock>
+        </StackPanel>
+
+        <StackPanel Name="step3" Grid.Row="1" Margin="0,0,0,10" Visibility="Collapsed">
+            <TextBlock TextWrapping="WrapWithOverflow" LineHeight="16">
+                You can upload, update, or view the history of a project at any time by right-clicking on any file or folder within
+                your project directory. <LineBreak />
+                <LineBreak />
+                <Border BorderBrush="#777" BorderThickness="1">
+                    <Image Stretch="None" Source="/SciGit;component/Images/file_contextmenu.png" />
+                </Border>
+            </TextBlock>
+        </StackPanel>
+
+        <DockPanel LastChildFill="True" Name="step4" Grid.Row="1" Margin="0,0,0,10" Visibility="Visible">
+            <Border BorderBrush="#777" BorderThickness="1" DockPanel.Dock="Right">
+                <Image Stretch="None" Source="/SciGit;component/Images/tray_contextmenu.png" VerticalAlignment="Bottom" />
+            </Border>
+            <TextBlock TextWrapping="WrapWithOverflow" LineHeight="16" Margin="0,0,10,0">
+                Alternatively, you can use the tray icon. For convenience, we recommend that you set the icon to stay in the tray area.<LineBreak />
+                <LineBreak />
+                This concludes the tutorial - you can return here at any time through the tray icon menu. <LineBreak />
+                <LineBreak />
+                Have fun collaborating, and remember to send any feedback to
+                <Hyperlink NavigateUri="mailto:eric@scigit.com" RequestNavigate="HyperlinkNavigate">
+                    eric@scigit.com
+                </Hyperlink>!
+            </TextBlock>
+        </DockPanel>
+
+        <Separator Grid.Row="2" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="0,0,0,10" />
+
+        <TextBlock Name="status" Grid.Row="3" Text="Step 1/3" VerticalAlignment="Center" Foreground="#777" />
+        
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="cancel" Content="Skip" Click="ClickClose" IsCancel="True" Margin="0,0,10,0" />
+            <Button Name="prev" Content="&lt; Previous" Click="ClickPrevious" Margin="0,0,10,0" />
+            <Button Name="next" Content="Next >" Click="ClickNext" IsDefault="True" />
         </StackPanel>
     </Grid>
 </Window>

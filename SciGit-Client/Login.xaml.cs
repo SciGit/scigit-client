@@ -15,6 +15,7 @@ namespace SciGit_Client
     private Main main;
 
     public Login() {
+      // new GettingStarted().Show(); Close(); return;
       // new MergeResolver(new Project {name="Test Project"}).Show(); Close(); return;
       InitializeComponent();
       Style = (Style)FindResource(typeof(Window));

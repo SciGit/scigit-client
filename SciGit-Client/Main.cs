@@ -276,6 +276,11 @@ namespace SciGit_Client
       }
     }
 
+    private void GettingStartedClick(object sender, EventArgs e) {
+      var gs = new GettingStarted();
+      gs.Show();
+    }
+
     private void LogoutClick(object sender, EventArgs e) {
       Logout();
     }
@@ -367,8 +372,10 @@ namespace SciGit_Client
       notifyIcon.ContextMenu.MenuItems.Add("Upload All", CreateUploadAllHandler).Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("Loading...").Enabled = false;
       notifyIcon.ContextMenu.MenuItems.Add("-");
-      notifyIcon.ContextMenu.MenuItems.Add("Settings...", SettingsClick);
+      notifyIcon.ContextMenu.MenuItems.Add("Getting started...", GettingStartedClick);
+      notifyIcon.ContextMenu.MenuItems.Add("Settings...", SettingsClick);      
       notifyIcon.ContextMenu.MenuItems.Add("Logout...", LogoutClick);
+      notifyIcon.ContextMenu.MenuItems.Add("-");
       notifyIcon.ContextMenu.MenuItems.Add("Exit", ExitClick);
 
       // Just show the loading indicator for now
