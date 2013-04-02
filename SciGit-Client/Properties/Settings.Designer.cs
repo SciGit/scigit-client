@@ -121,5 +121,17 @@ namespace SciGit_Client.Properties {
                 this["Loaded"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool NewInstall {
+            get {
+                return ((bool)(this["NewInstall"]));
+            }
+            set {
+                this["NewInstall"] = value;
+            }
+        }
     }
 }

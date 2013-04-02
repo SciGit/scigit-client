@@ -38,6 +38,13 @@ namespace SciGit_Client
           Environment.Exit(0);
         }
 
+        // Should the settings be upgraded?
+        if (Settings.Default.NewInstall) {
+          Settings.Default.Upgrade();
+          Settings.Default.NewInstall = false;
+          Settings.Default.Save();
+        }
+
         // See if the user provided a custom hostname.
         for (int i = 1; i < args.Length; i++) {
           if (args[i] == "--hostname" && i+1 < args.Length) {
