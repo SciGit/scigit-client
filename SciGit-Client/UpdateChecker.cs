@@ -50,6 +50,8 @@ namespace SciGit_Client
             Thread.Sleep(retryIntervalMs);
           }
         }
+      } catch (ThreadAbortException ex) {
+        // just ignore, this is normal
       } catch (Exception ex) {
         exHandler(ex);
       }

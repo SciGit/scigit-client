@@ -82,6 +82,7 @@ namespace SciGit_Client
 
     private void HandleException(Exception ex) {
       Thread.Sleep(2000);
+      Logger.LogException(ex);
       this.Invoke(new Action(() => Util.HandleException(ex)));
     }
 
