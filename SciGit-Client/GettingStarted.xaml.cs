@@ -26,7 +26,7 @@ namespace SciGit_Client
       InitializeComponent();
       Style = (Style)FindResource(typeof(Window));
 
-      linkDirectory.Inlines.Add(new Run(ProjectMonitor.GetProjectDirectory()));
+      linkDirectory.Inlines.Add(new Run(ProjectMonitor.GetProjectDirectory() ?? "C:\\Users\\some user\\Documents\\SciGit"));
 
       panels = new List<Panel>();
       foreach (var elem in grid.Children) {
@@ -52,7 +52,7 @@ namespace SciGit_Client
 
       prev.IsEnabled = (panel > 0);
       if (panel+1 == panels.Count) {
-        next.Content = "Done";
+        next.Content = "Create a project...";
       } else {
         next.Content = "Next >";
       }
@@ -64,16 +64,9 @@ namespace SciGit_Client
       Process.Start(ProjectMonitor.GetProjectDirectory());
     }
 
-    private void ClickManageProjects(object sender, EventArgs e) {
-      Process.Start("http://" + App.Hostname + "/projects");
-    }
-
-    private void ClickManageAccount(object sender, EventArgs e) {
-      Process.Start("http://" + App.Hostname + "/users/profile");
-    }
-
     private void ClickNext(object sender, EventArgs e) {
       if (curPanel + 1 == panels.Count) {
+        Process.Start("http://" + App.Hostname + "/projects");
         Close();
       }
       SelectPanel(curPanel + 1);

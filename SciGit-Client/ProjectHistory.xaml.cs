@@ -170,20 +170,23 @@ namespace SciGit_Client
         }
 
         foreach (var file in updated) {
+          var localFile = file;
           var item = new ListBoxItem {Content = file};
-          item.Selected += (s, e) => DisplayDiff(file);
+          item.Selected += (s, e) => DisplayDiff(localFile);
           lb.Items.Add(item);
         }
 
         foreach (var file in created) {
+          var localFile = file;
           var item = new ListBoxItem {Content = file + " (added)"};
-          item.Selected += (s, e) => DisplayDiff(file);
+          item.Selected += (s, e) => DisplayDiff(localFile);
           lb.Items.Add(item);
         }
 
         foreach (var file in deleted) {
+          var localFile = file;
           var item = new ListBoxItem {Content = file + " (deleted)"};
-          item.Selected += (s, e) => DisplayDiff(file);
+          item.Selected += (s, e) => DisplayDiff(localFile);
           lb.Items.Add(item);
         }
 

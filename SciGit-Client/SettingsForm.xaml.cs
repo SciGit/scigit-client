@@ -87,7 +87,8 @@ namespace SciGit_Client
           } else if (result == MessageBoxResult.Cancel) {
             return;
           }
-        } catch (Exception) {
+        } catch (Exception ex) {
+          Logger.LogException(ex);
           MessageBox.Show("Error creating project directory.");
           return;
         }
