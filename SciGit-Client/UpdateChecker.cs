@@ -31,8 +31,8 @@ namespace SciGit_Client
         if (newVersion != null) {
           Assembly assembly = Assembly.GetExecutingAssembly();
           FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-          string version = fvi.ProductVersion;
-          if (version != newVersion) {
+          Version x = new Version(fvi.ProductVersion), y = new Version(newVersion);
+          if (x < y) {
             var result = MessageBox.Show(
               String.Format("A new version ({0}) of the SciGit client is available. Would you like to update now?", newVersion),
               "Update Available", MessageBoxButton.YesNo);
