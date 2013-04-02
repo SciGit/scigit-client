@@ -32,7 +32,7 @@ namespace SciGit_Client
 
     public static void LogMessage(string message) {
       if (log.IsErrorEnabled) {
-        log.Error(message);
+        log.Error(message + "\n");
       }
     }
   }

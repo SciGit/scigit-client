@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using SciGit_Client.Properties;
+using Application = System.Windows.Forms.Application;
 using MessageBox = System.Windows.Forms.MessageBox;
 using MessageBoxOptions = System.Windows.Forms.MessageBoxOptions;
 
@@ -46,6 +47,9 @@ namespace SciGit_Client
       notifyIconLoading = (Icon)resources.GetObject("notifyIconLoading.Icon");
       notifyIconUpdate = (Icon)resources.GetObject("notifyIconUpdate.Icon");
 
+      Application.ThreadException += (sender, ex) =>
+          Util.HandleException(ex.Exception);
+
       InitializeContextMenu();
       InitializeSSH();
       
@@ -53,7 +57,7 @@ namespace SciGit_Client
       notifyIcon.BalloonTipClosed += BalloonTipClosed;
       notifyIcon.BalloonTipClicked += BalloonTipClicked;
 
-      projectMonitor = new ProjectMonitor();
+      projectMonitor = new ProjectMonitor(HandleException);
       projectMonitor.updateCallbacks.Add(UpdateContextMenu);
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
       projectMonitor.projectRemovedCallbacks.Add(ProjectRemoved);
@@ -64,7 +68,7 @@ namespace SciGit_Client
       projectMonitor.disconnectCallbacks.Add(OnProjectMonitorDisconnect);
       projectMonitor.StartMonitoring();
 
-      updateChecker = new UpdateChecker();
+      updateChecker = new UpdateChecker(HandleException);
       updateChecker.Start();
 
       // Show the intro if it's the first load.
@@ -74,6 +78,11 @@ namespace SciGit_Client
         Settings.Default.Loaded = true;
         Settings.Default.Save();
       }
+    }
+
+    private void HandleException(Exception ex) {
+      Thread.Sleep(2000);
+      this.Invoke(new Action(() => Util.HandleException(ex)));
     }
 
     // Simple hack to bring a window to the front.

@@ -43,9 +43,11 @@ namespace SciGit_Client
     private static string projectDirectory;
     private FileSystemWatcher fileWatcher;
     private int activeProjectId;
+    private Action<Exception> exceptionHandler;
 
     [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-    public ProjectMonitor(List<Project> projects = null) {
+    public ProjectMonitor(Action<Exception> exHandler) {
+      exceptionHandler = exHandler;
       projectDirectory = Settings.Default.ProjectDirectory;
       if (String.IsNullOrEmpty(projectDirectory)) {
         projectDirectory = DefaultProjectDirectory();
@@ -56,14 +58,7 @@ namespace SciGit_Client
         CreateProjectDirectory();
       }
 
-      if (projects != null) {
-        this.projects = projects;
-        foreach (var project in projects) {
-          InitializeProject(project);
-        }
-      } else {
-        this.projects = new List<Project>();
-      }
+      this.projects = new List<Project>();
       updatedProjects = new List<Project>();
       editedProjects = new List<Project>();
 
@@ -161,86 +156,90 @@ namespace SciGit_Client
     }
 
     private void MonitorProjects() {
-      bool loaded = false;
-      while (true) {
-        try {
-          var response = RestClient.GetProjects();
-          List<Project> newProjects = response.Data;
-          if (response.Error == RestClient.ErrorType.Forbidden) {
-            // Try to log in again.
-            Logger.LogMessage("Authentication token expired, trying to log in again...");
-            var loginResponse = RestClient.Relogin();
-            if (loginResponse.Error != RestClient.ErrorType.NoError) {
-              failureCallbacks.ForEach(c => c.Invoke());
+      try {
+        bool loaded = false;
+        while (true) {
+          try {
+            var response = RestClient.GetProjects();
+            List<Project> newProjects = response.Data;
+            if (response.Error == RestClient.ErrorType.Forbidden) {
+              // Try to log in again.
+              Logger.LogMessage("Authentication token expired, trying to log in again...");
+              var loginResponse = RestClient.Relogin();
+              if (loginResponse.Error != RestClient.ErrorType.NoError) {
+                failureCallbacks.ForEach(c => c.Invoke());
+              }
+              continue;
+            } else if (response.Error != RestClient.ErrorType.NoError) {
+              Logger.LogMessage(response.Error.ToString() + " getting projects");
+              disconnectCallbacks.ForEach(c => c.Invoke());
+              connected = false;
             }
-            continue;
-          } else if (response.Error != RestClient.ErrorType.NoError) {
-            Logger.LogMessage(response.Error.ToString() + " getting projects");
-            disconnectCallbacks.ForEach(c => c.Invoke());
-            connected = false;
+
+            if (newProjects != null) {
+              if (!loaded || !newProjects.SequenceEqual(projects)) {
+                Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
+                oldProjectDict = GetProjects().ToDictionary(p => p.id);
+                newProjectDict = newProjects.ToDictionary(p => p.id);
+                updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.id);
+                editedProjectDict = GetEditedProjects().ToDictionary(p => p.id);
+
+                var newUpdatedProjects = new List<Project>();
+                foreach (var project in newProjects) {
+                  if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.id)) {
+                    DispatchCallbacks(projectAddedCallbacks, project);
+                  }
+                  // This only needs to be done at load. Otherwise, the file watcher will catch it.
+                  if (!loaded && HasUpload(project)) {
+                    lock (editedProjects) {
+                      editedProjects.Add(project);
+                    }
+                    if (project.can_write && !editedProjectDict.ContainsKey(project.id)) {
+                      DispatchCallbacks(projectEditedCallbacks, project);
+                    }
+                  }
+                  if (HasUpdate(project)) {
+                    newUpdatedProjects.Add(project);
+                    if (!updatedProjectDict.ContainsKey(project.id) ||
+                      updatedProjectDict[project.id].last_commit_hash != project.last_commit_hash) {
+                      DispatchCallbacks(projectUpdatedCallbacks, project);
+                    }
+                  }
+                }
+
+                lock (updatedProjects) {
+                  updatedProjects = newUpdatedProjects;
+                }
+
+                foreach (var project in oldProjectDict) {
+                  if (!newProjectDict.ContainsKey(project.Key)) {
+                    DispatchCallbacks(projectRemovedCallbacks, project.Value);
+                  }
+                }
+
+                lock (projects) {
+                  projects = newProjects;
+                }
+                updateCallbacks.ForEach(c => c.Invoke());
+              } else if (!connected) {
+                // Need to send an update even if nothing changed (to update the tray icon)
+                connected = true;
+                updateCallbacks.ForEach(c => c.Invoke());
+              }
+
+              if (!loaded) {
+                loaded = true;
+                loadedCallbacks.ForEach(c => c.Invoke());
+              }
+            }
+          } catch (Exception e) {
+            Logger.LogException(e);
           }
 
-          if (newProjects != null) {
-            if (!loaded || !newProjects.SequenceEqual(projects)) {
-              Dictionary<int, Project> oldProjectDict, newProjectDict, updatedProjectDict, editedProjectDict;
-              oldProjectDict = GetProjects().ToDictionary(p => p.id);
-              newProjectDict = newProjects.ToDictionary(p => p.id);
-              updatedProjectDict = GetUpdatedProjects().ToDictionary(p => p.id);
-              editedProjectDict = GetEditedProjects().ToDictionary(p => p.id);
-
-              var newUpdatedProjects = new List<Project>();
-              foreach (var project in newProjects) {
-                if (InitializeProject(project) || loaded && !oldProjectDict.ContainsKey(project.id)) {
-                  DispatchCallbacks(projectAddedCallbacks, project);
-                }
-                // This only needs to be done at load. Otherwise, the file watcher will catch it.
-                if (!loaded && HasUpload(project)) {
-                  lock (editedProjects) {
-                    editedProjects.Add(project);
-                  }
-                  if (project.can_write && !editedProjectDict.ContainsKey(project.id)) {
-                    DispatchCallbacks(projectEditedCallbacks, project);
-                  }
-                }
-                if (HasUpdate(project)) {
-                  newUpdatedProjects.Add(project);
-                  if (!updatedProjectDict.ContainsKey(project.id) ||
-                    updatedProjectDict[project.id].last_commit_hash != project.last_commit_hash) {
-                    DispatchCallbacks(projectUpdatedCallbacks, project);
-                  }
-                }
-              }
-
-              lock (updatedProjects) {
-                updatedProjects = newUpdatedProjects;
-              }
-
-              foreach (var project in oldProjectDict) {
-                if (!newProjectDict.ContainsKey(project.Key)) {
-                  DispatchCallbacks(projectRemovedCallbacks, project.Value);
-                }
-              }
-
-              lock (projects) {
-                projects = newProjects;
-              }
-              updateCallbacks.ForEach(c => c.Invoke());
-            } else if (!connected) {
-              // Need to send an update even if nothing changed (to update the tray icon)
-              connected = true;
-              updateCallbacks.ForEach(c => c.Invoke());
-            }
-
-            if (!loaded) {
-              loaded = true;
-              loadedCallbacks.ForEach(c => c.Invoke());
-            }
-          }
-        } catch (Exception e) {
-          Logger.LogException(e);
+          Thread.Sleep(monitorDelay);
         }
-
-        Thread.Sleep(monitorDelay);
+      } catch (Exception ex) {
+        exceptionHandler(ex);
       }
     }
 
