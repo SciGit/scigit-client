@@ -49,10 +49,8 @@ namespace SciGit_Client
     public static Response<bool> Login(string username, string password) {
       try {
         ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3;
-#if STAGE
         // allows for validation of invalid SSL certificates
         ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, errors) => true;
-#endif
 
         var client = new RestSharp.RestClient("https://" + ServerHost) {Timeout = Timeout};
         var request = new RestSharp.RestRequest("api/auth/login", RestSharp.Method.POST);

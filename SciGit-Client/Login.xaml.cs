@@ -20,15 +20,15 @@ namespace SciGit_Client
       InitializeComponent();
       Style = (Style)FindResource(typeof(Window));
 
-      registerLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/register");
-      forgotPassLink.NavigateUri = new Uri("https://" + Settings.Default.SciGitHostname + "/auth/forgot_password");
+      registerLink.NavigateUri = new Uri("https://" + App.Hostname + "/auth/register");
+      forgotPassLink.NavigateUri = new Uri("https://" + App.Hostname + "/auth/forgot_password");
 
       if (Settings.Default.RememberUser) {
         rememberMe.IsChecked = true;
         emailValue.Text = Settings.Default.SavedUsername;
         passwordValue.Password = Settings.Default.SavedPassword;
         string[] args = Environment.GetCommandLineArgs();
-        if (args.Length == 2 && args[1] == "-autologin") {
+        if (Array.FindIndex(args, x => x.Contains("autologin")) != -1) {
           BeginLogin();
         }
       }

@@ -64,11 +64,11 @@ namespace SciGit_Client
     }
 
     private void ClickManageProjects(object sender, EventArgs e) {
-      Process.Start("http://" + RestClient.ServerHost + "/projects");
+      Process.Start("http://" + App.Hostname + "/projects");
     }
 
     private void ClickManageAccount(object sender, EventArgs e) {
-      Process.Start("http://" + RestClient.ServerHost + "/users/profile");
+      Process.Start("http://" + App.Hostname + "/users/profile");
     }
 
     private void ClickOK(object sender, EventArgs e) {

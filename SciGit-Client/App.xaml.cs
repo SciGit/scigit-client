@@ -21,7 +21,7 @@ namespace SciGit_Client
         // Process context menu commands (of the form --{command} {file})
         // If there is no instance open, then process the arguments after everything has loaded.
         if (!owned) {
-          if (args.Length == 3) {
+          if (args.Length == 3 && args[1] != "--hostname") {
             var pipeClient = new NamedPipeClientStream(".", "sciGitPipe", PipeDirection.Out);
             try {
               pipeClient.Connect(1000);
@@ -36,6 +36,14 @@ namespace SciGit_Client
             MessageBox.Show("An instance of SciGit is already open.", "Existing Instance");
           }
           Environment.Exit(0);
+        }
+
+        // See if the user provided a custom hostname.
+        for (int i = 1; i < args.Length; i++) {
+          if (args[i] == "--hostname" && i+1 < args.Length) {
+            Hostname = args[i + 1];
+            return;
+          }
         }
 
 #if STAGE

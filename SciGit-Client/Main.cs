@@ -139,7 +139,7 @@ namespace SciGit_Client
       }
 
       string[] args = Environment.GetCommandLineArgs();
-      if (args.Length == 3) {
+      if (args.Length == 3 && args[1] != "--hostname") {
         HandleCommand(args[1], args[2]);
       }
 
@@ -211,7 +211,7 @@ namespace SciGit_Client
     }
 
     private void ManageProjectsHandler(object sender, EventArgs e) {
-      Process.Start("http://" + RestClient.ServerHost + "/projects");
+      Process.Start("http://" + App.Hostname + "/projects");
     }
 
     private void NotifyClick(object sender, EventArgs e) {
