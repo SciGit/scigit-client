@@ -12,7 +12,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="SciGitHostname" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">beta.scigit.com</Value>
+      <Value Profile="(Default)">www.scigit.com</Value>
     </Setting>
     <Setting Name="SciGitEmail" Type="System.String" Scope="Application">
       <Value Profile="(Default)">eric@scigit.com</Value>

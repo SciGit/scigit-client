@@ -61,7 +61,7 @@ namespace SciGit_Client.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("beta.scigit.com")]
+        [global::System.Configuration.DefaultSettingValueAttribute("www.scigit.com")]
         public string SciGitHostname {
             get {
                 return ((string)(this["SciGitHostname"]));
