@@ -53,6 +53,12 @@ namespace SciGit_Client
           }
         }
 
+        AppDomain.CurrentDomain.UnhandledException += (sender, ex) => {
+          var form = new ErrorForm(ex.ExceptionObject as Exception);
+          form.ShowDialog();
+          Environment.Exit(1);
+        };
+
 #if STAGE
         Hostname = Settings.Default.StageHostname;
 #else
