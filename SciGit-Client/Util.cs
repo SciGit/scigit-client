@@ -43,7 +43,7 @@ namespace SciGit_Client
       return MessageBox.Show(content, title, buttons, MessageBoxImage.None, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
     }
 
-    public static void CompareInWord(string fullpath, string newFullpath, string saveName, string saveDir, string author = null) {
+    public static void CompareInWord(string fullpath, string newFullpath, string saveName, string saveDir, string author, bool save = false) {
       Object missing = Type.Missing;
       try {
         var wordapp = new Microsoft.Office.Interop.Word.Application();
@@ -58,8 +58,16 @@ namespace SciGit_Client
                                         null, dialog, new object[] {saveName});
           dialog.Execute();
           wordapp.ChangeFileOpenDirectory(saveDir);
+          if (!save) {
+            wordapp.ActiveDocument.Saved = true;
+          }
+
           wordapp.Visible = true;
           wordapp.Activate();
+
+          // Simple hack to bring the window to the front.
+          wordapp.ActiveWindow.WindowState = WdWindowState.wdWindowStateMinimize;
+          wordapp.ActiveWindow.WindowState = WdWindowState.wdWindowStateMaximize;
         } catch (Exception ex) {
           Logger.LogException(ex);
           ShowMessageBox("Word could not open these documents. Please edit the file manually.", "Error");
@@ -75,19 +83,12 @@ namespace SciGit_Client
     public static string ReadFile(string filename) {
       while (true) {
         try {
-          string str = File.ReadAllText(filename, Encoding.Default);
-          return str;
-        } catch (IOException ex) {
-          if (ex.Message.Contains("is being used by another process")) {
-            MessageBoxResult res = 
-              ShowMessageBox("The file '" + filename + "' is in use and cannot be opened by SciGit. Please close the file and press OK to retry.",
-                             "File in use", MessageBoxButton.OKCancel);
-            if (res == MessageBoxResult.Cancel) {
-              return null;
-            }
-          } else {
-            return null;
-          }
+          var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+          var sr = new StreamReader(fs, Encoding.Default);
+          return sr.ReadToEnd();
+        } catch (Exception ex) {
+          Logger.LogException(ex);
+          return null;
         }
       }
     }

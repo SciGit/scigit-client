@@ -46,7 +46,7 @@ namespace SciGit_Client
     }
 
     protected override void MergeInWord(object sender, RequestNavigateEventArgs e) {
-      Util.CompareInWord(fullpath, newFullpath, e.Target, dir, "Updated Version");
+      Util.CompareInWord(fullpath, newFullpath, e.Target, dir, "Updated Version", true);
     }
   }
 }
