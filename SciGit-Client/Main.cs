@@ -522,6 +522,13 @@ namespace SciGit_Client
       const string config = "Host *\n  StrictHostKeyChecking no\n";
       fileHandle.Write(Encoding.ASCII.GetBytes(config), 0, config.Length);
       fileHandle.Close();
+
+      // Clear the known_hosts file, just in case the SciGit server was moved/updated.
+      // (This isn't necessary, but it clears the nasty warnings)
+      string knownHostsFile = Util.PathCombine(sshDir, "known_hosts");
+      if (File.Exists(knownHostsFile)) {
+        File.Delete(knownHostsFile);
+      }
     }
 
     private void OnClosed(object sender, FormClosedEventArgs e) {

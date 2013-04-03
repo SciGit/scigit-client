@@ -36,7 +36,7 @@ namespace SciGit_Client
     public List<ProjectCallback> projectUpdatedCallbacks, projectEditedCallbacks;
 
     private Thread monitorThread;
-    private const int monitorDelay = 5 * 1000;
+    private const int monitorDelay = 10 * 1000;
     private bool connected = true;
 
     private List<Project> projects, updatedProjects, editedProjects;
