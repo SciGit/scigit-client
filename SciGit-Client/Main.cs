@@ -506,7 +506,7 @@ namespace SciGit_Client
       GitWrapper.GlobalConfig("user.name", RestClient.Username);
       GitWrapper.GlobalConfig("user.email", RestClient.Username);
 
-      string key = File.ReadAllText(keyFile + ".pub").Trim();
+      string key = Util.ReadFile(keyFile + ".pub").Trim();
       bool? uploadResult = RestClient.UploadPublicKey(key);
       if (uploadResult != true) {
         Util.ShowMessageBox(uploadResult == false ?
@@ -516,17 +516,12 @@ namespace SciGit_Client
         Environment.Exit(1);
       }
 
-      // Add scigit server to known_hosts
-      string knownHostsFile = Util.PathCombine(sshDir, "known_hosts");
-      GitWrapper.RemoveHostSSHKey(GitWrapper.ServerHost);
-      string hostKey = GitWrapper.GetHostSSHKey(GitWrapper.ServerHost).Output;
-      if (hostKey.Contains('\n')) {
-        hostKey = hostKey.Substring(0, hostKey.IndexOf('\n'));
-      }
-      hostKey += "\n";
-      var knownHostsHandle = File.Open(knownHostsFile, FileMode.Append);
-      knownHostsHandle.Write(Encoding.ASCII.GetBytes(hostKey), 0, hostKey.Length);
-      knownHostsHandle.Close();
+      // Disable host key checking
+      string configFile = Util.PathCombine(sshDir, "config");
+      var fileHandle = File.Open(configFile, FileMode.Create);
+      const string config = "Host *\n  StrictHostKeyChecking no\n";
+      fileHandle.Write(Encoding.ASCII.GetBytes(config), 0, config.Length);
+      fileHandle.Close();
     }
 
     private void OnClosed(object sender, FormClosedEventArgs e) {

@@ -191,13 +191,5 @@ namespace SciGit_Client
     public static ProcessReturn GenerateSSHKey(string keyFile) {
       return ExecuteCommand(String.Format("-t rsa -f \"{0}\" -P ''", keyFile), "", "ssh-keygen.exe");
     }
-
-    public static ProcessReturn RemoveHostSSHKey(string hostName) {
-      return ExecuteCommand("-R " + hostName, "", "ssh-keygen.exe");
-    }
-
-    public static ProcessReturn GetHostSSHKey(string hostName) {
-      return ExecuteCommand("-t rsa " + hostName, "", "ssh-keyscan.exe");
-    }
   }
 }
