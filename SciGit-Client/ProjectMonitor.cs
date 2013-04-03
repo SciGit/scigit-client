@@ -238,7 +238,7 @@ namespace SciGit_Client
 
           Thread.Sleep(monitorDelay);
         }
-      } catch (ThreadAbortException ex) {
+      } catch (ThreadAbortException) {
         // just ignore, this is normal
       } catch (Exception ex) {
         exceptionHandler(ex);

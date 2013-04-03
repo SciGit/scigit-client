@@ -97,8 +97,26 @@ namespace SciGit_Client
     }
 
     private static string EscapeShellArg(string s) {
-      // We assume s does not contain any shell metacharacters (()%!^"<>&|;,)
-      return '"' + s + '"';
+      // Windows command line handles double quotes in a retarded way.
+      string escaped = "";
+      for (int i = 0; i < s.Length; i++) {
+        int j = i;
+        while (j < s.Length && s[j] == '\\') j++;
+        if (j == s.Length) {
+          // A sequence of n backslashes at the end of the string must be converted into 2n backslashes.
+          escaped += new string('\\', (j - i)*2);
+        } else if (s[j] == '"') {
+          // Every sequence of n backslashes + a " has to be converted into (2n+1) backslashes + a "
+          escaped += new string('\\', (j - i)*2 + 1);
+          escaped += '"';
+        } else {
+          escaped += new string('\\', j - i);
+          escaped += s[j];
+        }
+        i = j;
+      }
+
+      return '"' + escaped + '"';
     }
 
     public static ProcessReturn Clone(string dir, Project p, string options = "") {
@@ -171,7 +189,7 @@ namespace SciGit_Client
     }
 
     public static ProcessReturn GenerateSSHKey(string keyFile) {
-      return ExecuteCommand(String.Format("-t rsa -f '{0}' -P ''", keyFile), "", "ssh-keygen.exe");
+      return ExecuteCommand(String.Format("-t rsa -f \"{0}\" -P ''", keyFile), "", "ssh-keygen.exe");
     }
 
     public static ProcessReturn RemoveHostSSHKey(string hostName) {
