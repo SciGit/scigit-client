@@ -7,8 +7,10 @@ using System.Security.Permissions;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Threading;
 using SciGit_Client.Properties;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SciGit_Client
 {
@@ -35,20 +37,23 @@ namespace SciGit_Client
 
     public List<ProjectCallback> projectAddedCallbacks, projectRemovedCallbacks;
     public List<ProjectCallback> projectUpdatedCallbacks, projectEditedCallbacks;
+    public Action<string, string> messageCallback;
 
-    private Thread monitorThread;
+    private Thread monitorThread, updaterThread;
     private const int monitorDelay = 10 * 1000;
+    private const int updaterDelay = 5 * 1000;
     private bool connected = true;
 
     private List<Project> projects, updatedProjects, editedProjects;
+    private Dictionary<int, Mutex> projectLocks;
+    private Dictionary<int, bool> projectLocked;
     private static string projectDirectory;
     private FileSystemWatcher fileWatcher;
-    private int activeProjectId;
-    private Action<Exception> exceptionHandler;
+    private Form parent;
 
     [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
-    public ProjectMonitor(Action<Exception> exHandler) {
-      exceptionHandler = exHandler;
+    public ProjectMonitor(Form parent) {
+      this.parent = parent;
       projectDirectory = Settings.Default.ProjectDirectory;
       if (String.IsNullOrEmpty(projectDirectory)) {
         projectDirectory = DefaultProjectDirectory();
@@ -62,8 +67,11 @@ namespace SciGit_Client
       this.projects = new List<Project>();
       updatedProjects = new List<Project>();
       editedProjects = new List<Project>();
+      projectLocks = new Dictionary<int, Mutex>();
+      projectLocked = new Dictionary<int, bool>();
 
       monitorThread = new Thread(MonitorProjects);
+      updaterThread = new Thread(AutoUpdater);
       updateCallbacks = new List<Action>();
       loadedCallbacks = new List<Action>();
       disconnectCallbacks = new List<Action>();
@@ -84,10 +92,12 @@ namespace SciGit_Client
 
     public void StartMonitoring() {
       monitorThread.Start();
+      updaterThread.Start();
     }
 
     public void StopMonitoring() {
       monitorThread.Abort();
+      updaterThread.Abort();
     }
 
     // Return a clone to avoid concurrency issues.
@@ -148,6 +158,21 @@ namespace SciGit_Client
         return false;
       }
       return true;
+    }
+
+    // Make sure only one thread can run git operations on a project.
+    private void LockProject(int id) {
+      projectLocks[id].WaitOne();
+      projectLocked[id] = true;
+    }
+
+    private void UnlockProject(int id) {
+      projectLocked[id] = false;
+      projectLocks[id].ReleaseMutex();
+    }
+
+    private bool LockedProject(int id) {
+      return projectLocked[id];
     }
 
     private void DispatchCallbacks(List<ProjectCallback> callbacks, Project p) {
@@ -242,7 +267,36 @@ namespace SciGit_Client
       } catch (ThreadAbortException) {
         // just ignore, this is normal
       } catch (Exception ex) {
-        exceptionHandler(ex);
+        Thread.Sleep(2000);
+        parent.Invoke(new Action(() => Util.HandleException(ex)));
+      }
+    }
+
+    private void AutoUpdater() {
+      try {
+        while (true) {
+          if (Settings.Default.AutoSave) {
+            // Try uploading projects
+            List<Project> projects;
+            lock (editedProjects) {
+              projects = new List<Project>(editedProjects);
+            }
+            foreach (var p in projects) {
+              try {
+                AutoUploadProject(p);
+              } catch (Exception ex) {
+                Logger.LogException(ex);
+              }
+            }
+          }
+
+          Thread.Sleep(updaterDelay);
+        }
+      } catch (ThreadAbortException) {
+        // just ignore, this is normal
+      } catch (Exception ex) {
+        Thread.Sleep(2000);
+        parent.Invoke(new Action(() => Util.HandleException(ex)));
       }
     }
 
@@ -251,8 +305,11 @@ namespace SciGit_Client
       string pdir = Util.PathCombine(dir, p.name);
       ProcessReturn ret;
 
-      int oldActive = activeProjectId;
-      activeProjectId = p.id;
+      if (!projectLocks.ContainsKey(p.id)) {
+        projectLocks.Add(p.id, new Mutex());
+      }
+
+      LockProject(p.id);
 
       try {
         if (Directory.Exists(pdir)) {
@@ -283,12 +340,19 @@ namespace SciGit_Client
         Logger.LogException(ex);
         return false;
       } finally {
-        activeProjectId = oldActive;
+        UnlockProject(p.id);
       }
     }
 
     private ProcessReturn CheckReturn(string command, ProcessReturn ret, BackgroundWorker worker) {
       worker.ReportProgress(-1, command + ": " + ret.Output);
+      if (ret.ReturnValue != 0) {
+        throw new Exception(command + ": " + ret.Output);
+      }
+      return ret;
+    }
+
+    private ProcessReturn CheckReturn(string command, ProcessReturn ret) {
       if (ret.ReturnValue != 0) {
         throw new Exception(command + ": " + ret.Output);
       }
@@ -302,28 +366,30 @@ namespace SciGit_Client
     }
 
     public bool UpdateProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
-      activeProjectId = p.id;
+      LockProject(p.id);
 
       string dir = GetProjectDirectory(p);
-      if (!Directory.Exists(dir)) {
-        worker.ReportProgress(progress ? 25 : -1, "Repairing project...");
-        MessageBoxResult result = MessageBox.Show("Project " + p.name + " does not exist. Would you like to re-create it?",
-                                                  "Project does not exist", MessageBoxButton.YesNo);
-        if (result == MessageBoxResult.Yes) {
-          if (!InitializeProject(p)) {
-            ShowError(window, "Could not obtain project from the SciGit servers. Please try again later.");
-          } else {
-            worker.ReportProgress(progress ? 100 : -1, "Repair and update successful.");
-            return true;
-          }
-        }
-        return false;
-      }
-
       bool possibleCommit = false, rebaseStarted = false, success = false;
       ProcessReturn ret;
 
       try {
+        if (worker.CancellationPending) return false;
+
+        if (!Directory.Exists(dir)) {
+          worker.ReportProgress(progress ? 25 : -1, "Repairing project...");
+          MessageBoxResult result = MessageBox.Show("Project " + p.name + " does not exist. Would you like to re-create it?",
+                                                    "Project does not exist", MessageBoxButton.YesNo);
+          if (result == MessageBoxResult.Yes) {
+            if (!InitializeProject(p)) {
+              ShowError(window, "Could not obtain project from the SciGit servers. Please try again later.");
+            } else {
+              worker.ReportProgress(progress ? 100 : -1, "Repair and update successful.");
+              return true;
+            }
+          }
+          return false;
+        }
+
         if (GitWrapper.RebaseInProgress(dir)) {
           GitWrapper.Rebase(dir, "--abort");
         }
@@ -471,30 +537,165 @@ namespace SciGit_Client
           }
           updateCallbacks.ForEach(c => c.Invoke());
         }
-        activeProjectId = 0;
+        UnlockProject(p.id);
+      }
+
+      return success;
+    }
+
+    private bool AutoUpdateProject(Project p) {
+      LockProject(p.id);
+
+      string dir = GetProjectDirectory(p);
+      bool possibleCommit = false, rebaseStarted = false, success = false;
+      ProcessReturn ret;
+
+      try {
+        if (!Directory.Exists(dir)) {
+          if (!InitializeProject(p)) {
+            return false;
+          }
+          return true;
+        }
+
+        if (GitWrapper.RebaseInProgress(dir)) {
+          GitWrapper.Rebase(dir, "--abort");
+        }
+
+        ret = GitWrapper.Fetch(dir);
+        if (ret.ReturnValue != 0) {
+          if (ret.Output.Contains("Not a git")) {
+            /* string gitDir = Path.Combine(dir, ".git");
+            if (Directory.Exists(gitDir)) {
+              Directory.Delete(gitDir, true);
+            }
+            if (!InitializeProject(p)) {
+              return false;
+            }
+            ret = GitWrapper.Fetch(dir); */
+          }
+          if (ret.ReturnValue != 0) {
+            // ShowError(window, "Could not connect to the SciGit servers. Please try again later.");
+            return false;
+          }
+        }
+
+        // Reset commits until we get to something in common with FETCH_HEAD.
+        ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"));
+        string baseCommit = ret.Stdout.Trim();
+        GitWrapper.Reset(dir, baseCommit);
+
+        // Make a temporary commit to facilitate merging.
+        GitWrapper.AddAll(dir);
+        ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
+        possibleCommit = true;
+
+        ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
+        if (ret.Output.Contains("Permission denied")) {
+          var match = Regex.Match(ret.Output, "error: unable to unlink old '(.*)' \\(Permission denied\\)");
+          string file = "";
+          if (match.Success) {
+            file = "(" + match.Groups[1].Value + ") ";
+          }
+          // One of the files is open.
+          var msgReturn = Util.ShowMessageBox("One of the project files is currently open " + file + "and cannot be edited. "
+            + "Please save and close your changes, and try again.", "Auto-update failed", MessageBoxButton.OKCancel);
+          // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
+          if (ret.ReturnValue == 0) {
+            GitWrapper.Reset(dir, baseCommit);
+          } else {
+            rebaseStarted = true;
+          }
+        } else if (ret.ReturnValue != 0) {
+          rebaseStarted = true;
+          if (ret.Output.Contains("CONFLICT")) {
+            const string dialogMsg =
+              "Merge conflict(s) were detected. Would you like to resolve them now using the SciGit editor?\r\n" +
+              "Please save any changes to open files before continuing.";
+            MessageBoxResult resp = Util.ShowMessageBox(dialogMsg, "Auto-update: merge conflict", MessageBoxButton.OKCancel);
+            MergeResolver mr = null;
+            Exception exception = null;
+            if (resp == MessageBoxResult.OK) {
+              parent.Invoke(new Action(() => {
+                try {
+                  mr = new MergeResolver(p);
+                  mr.ShowDialog();
+                } catch (Exception e) {
+                  if (mr != null) mr.Hide();
+                  exception = e;
+                }
+              }));
+            }
+            if (exception != null) throw new Exception("", exception);
+
+            if (resp != MessageBoxResult.No && (mr == null || !mr.Saved)) {
+              // Cancel the process here.
+              return false;
+            } else {
+              GitWrapper.AddAll(dir);
+              ret = GitWrapper.Rebase(dir, "--continue");
+              if (ret.ReturnValue != 0) {
+                if (ret.Output.Contains("No changes")) {
+                  // The temp commit was effectively ignored. Just skip it.
+                  CheckReturn("rebase", GitWrapper.Rebase(dir, "--skip"));
+                } else {
+                  throw new Exception("rebase: " + ret.Output);
+                }
+              }
+              success = true;
+              rebaseStarted = false;
+            }
+          } else {
+            throw new Exception("rebase: " + ret.Output);
+          }
+        } else {
+          success = true;
+          if (!ret.Output.Contains("up to date")) {
+            messageCallback("Auto-update successful", "Project " + p.name + " was successfully updated.");
+          }
+        }
+      } catch (Exception e) {
+        return false;
+      } finally {
+        if (rebaseStarted) GitWrapper.Rebase(dir, "--abort");
+        if (possibleCommit) {
+          // Reset commits until we get to something in common with FETCH_HEAD.
+          ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"));
+          CheckReturn("reset", GitWrapper.Reset(dir, ret.Stdout.Trim()));
+        }
+        if (success) {
+          lock (updatedProjects) {
+            updatedProjects.RemoveAll(pr => pr.id == p.id);
+          }
+          updateCallbacks.ForEach(c => c.Invoke());
+        }
+        UnlockProject(p.id);
       }
 
       return success;
     }
 
     public bool UploadProject(Project p, Window window, BackgroundWorker worker, bool progress = true) {
-      activeProjectId = p.id;
+      LockProject(p.id);
 
-      Project updatedProject;
-      lock (projects) {
-        updatedProject = projects.Find(pr => pr.id == p.id);
-      }
-      if (!updatedProject.can_write) {
-        window.Dispatcher.Invoke(new Action(() =>
-          MessageBox.Show(window, "You don't have write access to this project.", "Not Authorized")
-        ));
-        return false;
-      }
       string dir = GetProjectDirectory(p);
-
       bool committed = false, success = false;
       string commitMsg = null;
+
       try {
+        if (worker.CancellationPending) return false;
+
+        Project updatedProject;
+        lock (projects) {
+          updatedProject = projects.Find(pr => pr.id == p.id);
+        }
+        if (!updatedProject.can_write) {
+          window.Dispatcher.Invoke(new Action(() =>
+            MessageBox.Show(window, "You don't have write access to this project.", "Not Authorized")
+          ));
+          return false;
+        }
+
         while (true) {
           worker.ReportProgress(progress ? 25 : -1, "First, checking for updates...");
           if (!UpdateProject(p, window, worker, false)) {
@@ -561,7 +762,61 @@ namespace SciGit_Client
           CheckReturn("reset", GitWrapper.Reset(dir, "HEAD^"), worker);
         }
         updateCallbacks.ForEach(c => c.Invoke());
-        activeProjectId = 0;
+        UnlockProject(p.id);
+      }
+    }
+
+    private void AutoUploadProject(Project p) {
+      LockProject(p.id);
+
+      string dir = GetProjectDirectory(p);
+      bool committed = false, success = false;
+
+      try {
+        Project updatedProject;
+        lock (projects) {
+          updatedProject = projects.Find(pr => pr.id == p.id);
+        }
+        if (!updatedProject.can_write) {
+          return;
+        }
+
+        while (true) {
+          if (!AutoUpdateProject(p)) {
+            return;
+          }
+
+          GitWrapper.AddAll(dir);
+          ProcessReturn ret = CheckReturn("status", GitWrapper.Status(dir));
+          if (ret.Stdout.Trim() != "") {
+            CheckReturn("commit", GitWrapper.Commit(dir, "autocommit"));
+            committed = true;
+
+            ret = GitWrapper.Push(dir);
+            if (ret.ReturnValue == 0) {
+              break;
+            } else if (ret.Output.Contains("non-fast-forward")) {
+              committed = false;
+              CheckReturn("reset", GitWrapper.Reset(dir, "HEAD^"));
+              // have to update; repeat the loop
+              return;
+            } else {
+              return;
+            }
+          } else {
+            break;
+          }
+        }
+        success = true;
+        messageCallback("Auto-save successful", "Changes to project " + p.name + " were uploaded successfully.");
+      } catch (Exception e) {
+        return;
+      } finally {
+        if (!success && committed) {
+          GitWrapper.Reset(dir, "HEAD^");
+        }
+        updateCallbacks.ForEach(c => c.Invoke());
+        UnlockProject(p.id);
       }
     }
 
@@ -616,23 +871,28 @@ namespace SciGit_Client
       return ret.Stdout.Trim() != "";
     }
 
+    private DateTime lastEdit = new DateTime(0);
     private void FileChanged(object sender, FileSystemEventArgs e) {
       string filename = e.FullPath;
       Project p = GetProjectFromFilename(ref filename);
+
       if (p.id != 0) {
         lock (editedProjects) {
           bool contains = editedProjects.Find(pr => pr.id == p.id).id != 0;
           if (HasUpload(p)) {
             if (!contains) {
               editedProjects.Add(p);
-              if (connected && p.can_write && activeProjectId != p.id) {
+            }
+            if (!Settings.Default.AutoSave && p.can_write && !LockedProject(p.id)) {
+              if ((DateTime.Now - lastEdit).Seconds > 5) {
                 DispatchCallbacks(projectEditedCallbacks, p);
                 updateCallbacks.ForEach(c => c.Invoke());
+                lastEdit = DateTime.Now;
               }
             }
           } else if (contains) {
             editedProjects.RemoveAll(pr => pr.id == p.id);
-            if (connected && activeProjectId != p.id) {
+            if (connected && !LockedProject(p.id)) {
               updateCallbacks.ForEach(c => c.Invoke());
             }
           }

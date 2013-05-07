@@ -57,18 +57,19 @@ namespace SciGit_Client
       notifyIcon.BalloonTipClosed += BalloonTipClosed;
       notifyIcon.BalloonTipClicked += BalloonTipClicked;
 
-      projectMonitor = new ProjectMonitor(HandleException);
+      projectMonitor = new ProjectMonitor(this);
       projectMonitor.updateCallbacks.Add(UpdateContextMenu);
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
       projectMonitor.projectRemovedCallbacks.Add(ProjectRemoved);
       projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
       projectMonitor.projectEditedCallbacks.Add(ProjectEdited);
+      projectMonitor.messageCallback = DisplayBalloonTip;
       projectMonitor.loadedCallbacks.Add(OnProjectMonitorLoaded);
       projectMonitor.failureCallbacks.Add(OnProjectMonitorFailure);
       projectMonitor.disconnectCallbacks.Add(OnProjectMonitorDisconnect);
       projectMonitor.StartMonitoring();
 
-      updateChecker = new UpdateChecker(HandleException);
+      updateChecker = new UpdateChecker(this);
       updateChecker.Start();
 
       // Show the intro if it's the first load.
@@ -78,12 +79,6 @@ namespace SciGit_Client
         Settings.Default.Loaded = true;
         Settings.Default.Save();
       }
-    }
-
-    private void HandleException(Exception ex) {
-      Thread.Sleep(2000);
-      Logger.LogException(ex);
-      this.Invoke(new Action(() => Util.HandleException(ex)));
     }
 
     // Simple hack to bring a window to the front.
@@ -319,12 +314,14 @@ namespace SciGit_Client
     private void BalloonTipClicked(object sender, EventArgs e) {
       lock (balloonTips) {
         BalloonTip bt = balloonTips.Peek();
-        bt.onClick(sender, e);
+        if (bt.onClick != null) {
+          bt.onClick(sender, e);
+        }
         BalloonTipClosed(sender, e);
       }
     }
 
-    private void QueueBalloonTip(string title, string message, EventHandler onClick) {
+    private void QueueBalloonTip(string title, string message, EventHandler onClick = null) {
       lock (balloonTips) {
         balloonTips.Enqueue(new BalloonTip { title = title, message = message, onClick = onClick });
         if (balloonTips.Count == 1 && loaded) {
@@ -358,11 +355,15 @@ namespace SciGit_Client
     }
 
     private void ProjectEdited(Project p) {
-      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpload) != 0) {
+      if (!Settings.Default.AutoSave && (Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpload) != 0) {
         QueueBalloonTip("Project Edited",
                         "You made changes to project " + p.name + ". Click to upload your changes...",
                         CreateUploadProjectHandler(p));
       }
+    }
+
+    private void DisplayBalloonTip(string title, string content) {
+      QueueBalloonTip(title, content);
     }
 
     // ContextMenuStrip (from the designer) is inconsistent with Windows context menus.

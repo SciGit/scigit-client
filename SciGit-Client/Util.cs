@@ -94,6 +94,7 @@ namespace SciGit_Client
     }
 
     public static void HandleException(Exception ex) {
+      Logger.LogException(ex);
       new ErrorForm(ex).ShowDialog();
       Environment.Exit(1);
     }

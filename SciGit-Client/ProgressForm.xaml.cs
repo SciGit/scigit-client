@@ -32,16 +32,6 @@ namespace SciGit_Client
       bg.WorkerReportsProgress = true;
       bg.WorkerSupportsCancellation = true;
       bg.DoWork += (bw, dwe) => {
-        bool owned;
-        var mutex = new Mutex(true, "SciGitOperationMutex", out owned);
-        if (!owned) {
-          status.Dispatcher.Invoke(new Action(() => status.Text = "Waiting for other operations to finish..."));
-          this.Dispatcher.Invoke(new Action(() => close.IsEnabled = true));
-          mutex.WaitOne();
-          this.Dispatcher.Invoke(new Action(() => close.IsEnabled = false));
-        }
-        this.Dispatcher.Invoke(new Action(() => cancel.IsEnabled = true));
-
         try {
           if (!action(this, (BackgroundWorker)bw)) {
             dwe.Cancel = true;
@@ -52,7 +42,6 @@ namespace SciGit_Client
             status.Text = "Error.";
           }));
         }
-        mutex.ReleaseMutex();
       };
       bg.ProgressChanged += UpdateProgress;
       bg.RunWorkerCompleted += Completed;

@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
+using System.Windows.Forms;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SciGit_Client
 {
@@ -11,10 +13,10 @@ namespace SciGit_Client
     private Thread thread;
     private const int retryIntervalMs = 5 * 1000;
     private const int updateIntervalMs = 3600*1000; // once per hour
-    private Action<Exception> exHandler;
+    private Form parent;
 
-    public UpdateChecker(Action<Exception> exHandler) {
-      this.exHandler = exHandler;
+    public UpdateChecker(Form parent) {
+      this.parent = parent;
       thread = new Thread(new ThreadStart(CheckForUpdates));
     }
 
@@ -53,7 +55,8 @@ namespace SciGit_Client
       } catch (ThreadAbortException) {
         // just ignore, this is normal
       } catch (Exception ex) {
-        exHandler(ex);
+        Thread.Sleep(2000);
+        parent.Invoke(new Action(() => Util.HandleException(ex)));
       }
     }
   }
