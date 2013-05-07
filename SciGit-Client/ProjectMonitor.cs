@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Security.Permissions;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -306,13 +307,13 @@ namespace SciGit_Client
       string dir = GetProjectDirectory(p);
       if (!Directory.Exists(dir)) {
         worker.ReportProgress(progress ? 25 : -1, "Repairing project...");
-        MessageBoxResult result = Util.ShowMessageBox("Project " + p.name + " does not exist. Would you like to re-create it?",
-                                                      "Project does not exist", MessageBoxButton.YesNo);
+        MessageBoxResult result = MessageBox.Show("Project " + p.name + " does not exist. Would you like to re-create it?",
+                                                  "Project does not exist", MessageBoxButton.YesNo);
         if (result == MessageBoxResult.Yes) {
           if (!InitializeProject(p)) {
             ShowError(window, "Could not obtain project from the SciGit servers. Please try again later.");
           } else {
-            worker.ReportProgress(progress ? 100 : -1, "Repair successful.");
+            worker.ReportProgress(progress ? 100 : -1, "Repair and update successful.");
             return true;
           }
         }
@@ -333,7 +334,7 @@ namespace SciGit_Client
         worker.ReportProgress(-1, ret.Output);
         if (ret.ReturnValue != 0) {
           if (ret.Output.Contains("Not a git")) {
-            MessageBoxResult res = Util.ShowMessageBox("Project " + p.name + " seems to be corrupted. Do you want SciGit to repair it?\r\n" +
+            MessageBoxResult res = MessageBox.Show("Project " + p.name + " seems to be corrupted. Do you want SciGit to repair it?\r\n" +
               "You may want to back up your files first.", "Project corrupted", MessageBoxButton.YesNo);
             if (res == MessageBoxResult.Yes) {
               string gitDir = Path.Combine(dir, ".git");
@@ -379,8 +380,13 @@ namespace SciGit_Client
         worker.ReportProgress(-1, ret.Output);
 
         if (ret.Output.Contains("Permission denied")) {
+          var match = Regex.Match(ret.Output, "error: unable to unlink old '(.*)' \\(Permission denied\\)");
+          string file = "";
+          if (match.Success) {
+            file = "(" + match.Groups[1].Value + ") ";
+          }
           // One of the files is open.
-          Util.ShowMessageBox("One of the project files is currently open and cannot be edited. "
+          MessageBox.Show("One of the project files is currently open " + file + "and cannot be edited. "
             + "Please save and close your changes before continuing.", "File Locked");
           // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
           if (ret.ReturnValue == 0) {
@@ -440,7 +446,7 @@ namespace SciGit_Client
           worker.ReportProgress(progress ? 100 : -1, ret.Output.Contains("up to date") ? "No changes." : "Changes merged without conflict.");
           success = true;
           if (progress && !ret.Output.Contains("up to date")) {
-            var result = Util.ShowMessageBox("Project " + p.name + " was successfully updated. Would you like to view the changes?",
+            var result = MessageBox.Show("Project " + p.name + " was successfully updated. Would you like to view the changes?",
                 "Project updated", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes) {
               window.Dispatcher.Invoke(new Action(() => {
