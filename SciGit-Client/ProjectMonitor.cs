@@ -425,42 +425,53 @@ namespace SciGit_Client
           }
         }
 
-        if (worker.CancellationPending) return false;
+        while (true) {
+          if (worker.CancellationPending) return false;
 
-        // Reset commits until we get to something in common with FETCH_HEAD.
-        ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
-        string baseCommit = ret.Stdout.Trim();
-        GitWrapper.Reset(dir, baseCommit);
-        if (worker.CancellationPending) return false;
+          // Reset commits until we get to something in common with FETCH_HEAD.
+          ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"), worker);
+          string baseCommit = ret.Stdout.Trim();
+          GitWrapper.Reset(dir, baseCommit);
 
-        // Make a temporary commit to facilitate merging.
-        GitWrapper.AddAll(dir);
-        worker.ReportProgress(-1, "Creating temporary commit...");
-        ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
-        possibleCommit = true;
-        worker.ReportProgress(-1, ret.Output);
-        if (worker.CancellationPending) return false;
+          if (worker.CancellationPending) return false;
 
-        worker.ReportProgress(progress ? 50 : -1, "Merging...");
-        ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
-        worker.ReportProgress(-1, ret.Output);
+          // Make a temporary commit to facilitate merging.
+          GitWrapper.AddAll(dir);
+          worker.ReportProgress(-1, "Creating temporary commit...");
+          ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
+          possibleCommit = true;
+          worker.ReportProgress(-1, ret.Output);
 
-        if (ret.Output.Contains("Permission denied")) {
-          var match = Regex.Match(ret.Output, "error: unable to unlink old '(.*)' \\(Permission denied\\)");
-          string file = "";
-          if (match.Success) {
-            file = "(" + match.Groups[1].Value + ") ";
-          }
-          // One of the files is open.
-          MessageBox.Show("One of the project files is currently open " + file + "and cannot be edited. "
-            + "Please save and close your changes before continuing.", "File Locked");
-          // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
-          if (ret.ReturnValue == 0) {
-            GitWrapper.Reset(dir, baseCommit);
+          if (worker.CancellationPending) return false;
+
+          worker.ReportProgress(progress ? 50 : -1, "Merging...");
+          ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
+          worker.ReportProgress(-1, ret.Output);
+          if (ret.Output.Contains("Permission denied")) {
+            // One of the files is open.
+            // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
+            if (ret.ReturnValue == 0) {
+              GitWrapper.Reset(dir, baseCommit);
+            } else {
+              rebaseStarted = true;
+            }
+            var match = Regex.Match(ret.Output, "error: unable to unlink old '(.*)' \\(Permission denied\\)");
+            string file = "";
+            if (match.Success) {
+              file = "(" + match.Groups[1].Value + ") ";
+            }
+            var resp = MessageBox.Show("One of the project files is currently open " + file + "and cannot be edited. "
+              + "Please save and close your changes before continuing.", "File Locked", MessageBoxButton.OKCancel);
+            if (resp == MessageBoxResult.Cancel) {
+              return false;
+            }
+            if (rebaseStarted) GitWrapper.Rebase(dir, "--abort");
           } else {
-            rebaseStarted = true;
+            break;
           }
-        } else if (ret.ReturnValue != 0) {
+        }
+
+        if (ret.ReturnValue != 0) {
           rebaseStarted = true;
           if (worker.CancellationPending) return false;
           if (ret.Output.Contains("CONFLICT")) {
@@ -580,33 +591,43 @@ namespace SciGit_Client
           }
         }
 
-        // Reset commits until we get to something in common with FETCH_HEAD.
-        ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"));
-        string baseCommit = ret.Stdout.Trim();
-        GitWrapper.Reset(dir, baseCommit);
+        while (true) {
+          // Reset commits until we get to something in common with FETCH_HEAD.
+          ret = CheckReturn("merge-base", GitWrapper.MergeBase(dir, "HEAD", "FETCH_HEAD"));
+          string baseCommit = ret.Stdout.Trim();
+          GitWrapper.Reset(dir, baseCommit);
 
-        // Make a temporary commit to facilitate merging.
-        GitWrapper.AddAll(dir);
-        ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
-        possibleCommit = true;
+          // Make a temporary commit to facilitate merging.
+          GitWrapper.AddAll(dir);
+          ret = GitWrapper.Commit(dir, "tempCommit " + DateTime.Now);
+          possibleCommit = true;
 
-        ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
-        if (ret.Output.Contains("Permission denied")) {
-          var match = Regex.Match(ret.Output, "error: unable to unlink old '(.*)' \\(Permission denied\\)");
-          string file = "";
-          if (match.Success) {
-            file = "(" + match.Groups[1].Value + ") ";
-          }
-          // One of the files is open.
-          var msgReturn = Util.ShowMessageBox("One of the project files is currently open " + file + "and cannot be edited. "
-            + "Please save and close your changes, and try again.", "Auto-update failed", MessageBoxButton.OKCancel);
-          // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
-          if (ret.ReturnValue == 0) {
-            GitWrapper.Reset(dir, baseCommit);
+          ret = GitWrapper.Rebase(dir, "FETCH_HEAD");
+          if (ret.Output.Contains("Permission denied")) {
+            // One of the files is open.
+            // If the return value isn't 0, there was a merge conflict on top of this (so abort the rebase)
+            if (ret.ReturnValue == 0) {
+              GitWrapper.Reset(dir, baseCommit);
+            } else {
+              rebaseStarted = true;
+            }
+            var match = Regex.Match(ret.Output, "error: unable to unlink old '(.*)' \\(Permission denied\\)");
+            string file = "";
+            if (match.Success) {
+              file = "(" + match.Groups[1].Value + ") ";
+            }
+            var resp = MessageBox.Show("One of the project files is currently open " + file + "and cannot be edited. "
+              + "Please save and close your changes before continuing.", "File Locked", MessageBoxButton.OKCancel);
+            if (resp == MessageBoxResult.Cancel) {
+              return false;
+            }
+            if (rebaseStarted) GitWrapper.Rebase(dir, "--abort");
           } else {
-            rebaseStarted = true;
+            break;
           }
-        } else if (ret.ReturnValue != 0) {
+        }
+
+        if (ret.ReturnValue != 0) {
           rebaseStarted = true;
           if (ret.Output.Contains("CONFLICT")) {
             const string dialogMsg =
@@ -760,6 +781,10 @@ namespace SciGit_Client
       } finally {
         if (!success && committed) {
           CheckReturn("reset", GitWrapper.Reset(dir, "HEAD^"), worker);
+        } else if (success) {
+          lock (editedProjects) {
+            editedProjects.RemoveAll(pr => pr.id == p.id);
+          }
         }
         updateCallbacks.ForEach(c => c.Invoke());
         UnlockProject(p.id);
@@ -814,6 +839,10 @@ namespace SciGit_Client
       } finally {
         if (!success && committed) {
           GitWrapper.Reset(dir, "HEAD^");
+        } else if (success) {
+          lock (editedProjects) {
+            editedProjects.RemoveAll(pr => pr.id == p.id);
+          }
         }
         updateCallbacks.ForEach(c => c.Invoke());
         UnlockProject(p.id);
@@ -875,6 +904,7 @@ namespace SciGit_Client
     private void FileChanged(object sender, FileSystemEventArgs e) {
       string filename = e.FullPath;
       Project p = GetProjectFromFilename(ref filename);
+      if (filename.Contains(".git")) return;
 
       if (p.id != 0) {
         lock (editedProjects) {
