@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,6 +38,12 @@ namespace SciGit_Client
     public SettingsForm() {
       InitializeComponent();
       Style = (Style)FindResource(typeof(Window));
+
+      Assembly assembly = Assembly.GetExecutingAssembly();
+      version.Text = "SciGit v" + FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
+
+      autoSave.IsChecked = Settings.Default.AutoSave;
+      autoUpdate.IsChecked = Settings.Default.AutoUpdate;
 
       int notifyMask = Settings.Default.NotifyMask;
       projectFolder = Settings.Default.ProjectDirectory;
@@ -73,6 +80,10 @@ namespace SciGit_Client
 
     private void ClickOK(object sender, EventArgs e) {
       int newNotifyMask = 0;
+
+      Settings.Default.AutoSave = autoSave.IsChecked == true;
+      Settings.Default.AutoUpdate = autoUpdate.IsChecked == true;
+
       if (notifyUpdate.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyUpdate;
       if (notifyAddDelete.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyAddDelete;
       if (notifyUpload.IsChecked ?? false) newNotifyMask |= (int)NotifyFlags.NotifyUpload;
@@ -109,6 +120,15 @@ namespace SciGit_Client
 
     private void ClickCancel(object sender, EventArgs e) {
       Close();
+    }
+
+    private void AutoUpdateChecked(object sender, RoutedEventArgs e) {
+      var res = MessageBox.Show("Warning: in certain text editors, this may cause your files to be updated while you have unsaved changes pending, "
+        + "potentially causing loss of data. Are you sure you want to enable this feature?\n\n" +
+          "This is not an issue if you are working with Word documents.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+      if (res == MessageBoxResult.No) {
+        autoUpdate.IsChecked = false;
+      }
     }
   }
 }
