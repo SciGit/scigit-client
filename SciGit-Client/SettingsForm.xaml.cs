@@ -34,6 +34,7 @@ namespace SciGit_Client
   public partial class SettingsForm : Window
   {
     private string projectFolder;
+    private bool autocheck = true;
 
     public SettingsForm() {
       InitializeComponent();
@@ -44,6 +45,7 @@ namespace SciGit_Client
 
       autoSave.IsChecked = Settings.Default.AutoSave;
       autoUpdate.IsChecked = Settings.Default.AutoUpdate;
+      autocheck = false;
 
       int notifyMask = Settings.Default.NotifyMask;
       projectFolder = Settings.Default.ProjectDirectory;
@@ -123,6 +125,7 @@ namespace SciGit_Client
     }
 
     private void AutoUpdateChecked(object sender, RoutedEventArgs e) {
+      if (autocheck) return;
       var res = MessageBox.Show("Warning: in certain text editors, this may cause your files to be updated while you have unsaved changes pending, "
         + "potentially causing loss of data. Are you sure you want to enable this feature?\n\n" +
           "This is not an issue if you are working with Word documents.", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
