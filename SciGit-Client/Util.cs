@@ -39,8 +39,8 @@ namespace SciGit_Client
     }
 
     // Shows the message box on top.
-    public static MessageBoxResult ShowMessageBox(string content, string title, MessageBoxButton buttons = MessageBoxButton.OK) {
-      return MessageBox.Show(content, title, buttons, MessageBoxImage.None, MessageBoxResult.OK, MessageBoxOptions.DefaultDesktopOnly);
+    public static DialogResult ShowMessageBox(string content, string title, MessageBoxButtons buttons = MessageBoxButtons.OK) {
+      return System.Windows.Forms.MessageBox.Show(content, title, buttons, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, System.Windows.Forms.MessageBoxOptions.DefaultDesktopOnly);
     }
 
     public static void CompareInWord(string fullpath, string newFullpath, string saveName, string saveDir, string author, bool save = false) {

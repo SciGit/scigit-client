@@ -61,6 +61,7 @@ namespace SciGit_Client
       projectMonitor.updateCallbacks.Add(UpdateContextMenu);
       projectMonitor.projectAddedCallbacks.Add(ProjectAdded);
       projectMonitor.projectRemovedCallbacks.Add(ProjectRemoved);
+      projectMonitor.projectAutoUpdatedCallbacks.Add(ProjectAutoUpdated);
       projectMonitor.projectUpdatedCallbacks.Add(ProjectUpdated);
       projectMonitor.projectEditedCallbacks.Add(ProjectEdited);
       projectMonitor.messageCallback = DisplayBalloonTip;
@@ -244,10 +245,10 @@ namespace SciGit_Client
       };
     }
 
-    private EventHandler CreateViewProjectHistoryHandler(Project p) {
+    private EventHandler CreateViewProjectHistoryHandler(Project p, string hash = null) {
       return (s, e) => {
         if (!projectMonitor.CheckProject(p)) return;
-        var ph = new ProjectHistory(p);
+        var ph = new ProjectHistory(p, hash);
         ShowTop(ph);
       };
     }
@@ -292,6 +293,9 @@ namespace SciGit_Client
 
     private void ExitClick(object sender, EventArgs e) {
       notifyIcon.Visible = false;
+      projectMonitor.StopMonitoring();
+      updateChecker.Stop();
+      if (shellCmdHandler != null) shellCmdHandler.Stop();
       Environment.Exit(0);
     }
 
@@ -347,10 +351,18 @@ namespace SciGit_Client
     }
 
     private void ProjectUpdated(Project p) {
-      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpdate) != 0) {
+      if (!Settings.Default.AutoUpdate && (Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpdate) != 0) {
         QueueBalloonTip("Project Updated",
                         "Project " + p.name + " has been updated. Click to update the local version...",
                         CreateUpdateProjectHandler(p));
+      }
+    }
+
+    private void ProjectAutoUpdated(Project p) {
+      if ((Settings.Default.NotifyMask & (int)NotifyFlags.NotifyUpdate) != 0) {
+        QueueBalloonTip("Project Updated",
+                        "Project " + p.name + " has been successfully auto-updated. Click to view changes...",
+                        CreateViewProjectHistoryHandler(p, "HEAD"));
       }
     }
 
@@ -476,7 +488,11 @@ namespace SciGit_Client
       // Hide the loading indicator and show others
       notifyIcon.Icon = updNames.Count > 0 || uploadable > 0 ? notifyIconUpdate : notifyIconBase;
       notifyIcon.Text = "SciGit\n";
-      if (updNames.Count > 0) {
+
+      if (projectMonitor.syncing > 0) {
+        notifyIcon.Icon = notifyIconLoading;
+        notifyIcon.Text += "Syncing projects...";
+      } else if (updNames.Count > 0) {
         notifyIcon.Text += "Project updates available.";
       } else if (uploadable > 0) {
         notifyIcon.Text += "Local changes awaiting upload.";
@@ -530,12 +546,6 @@ namespace SciGit_Client
       if (File.Exists(knownHostsFile)) {
         File.Delete(knownHostsFile);
       }
-    }
-
-    private void OnClosed(object sender, FormClosedEventArgs e) {
-      projectMonitor.StopMonitoring();
-      updateChecker.Stop();
-      if (shellCmdHandler != null) shellCmdHandler.Stop();
     }
   }
 }

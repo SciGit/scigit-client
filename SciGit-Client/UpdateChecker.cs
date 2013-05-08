@@ -53,7 +53,7 @@ namespace SciGit_Client
           }
         }
       } catch (ThreadAbortException) {
-        // just ignore, this is normal
+        // Normal, just ignore
       } catch (Exception ex) {
         Thread.Sleep(2000);
         parent.Invoke(new Action(() => Util.HandleException(ex)));
