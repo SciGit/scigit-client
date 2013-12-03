@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -51,13 +52,16 @@ namespace SciGit_Client
       }
 
       foreach (var commit in actualCommits) {
-        string[] data = commit.Split(new[] { ' ' }, 4);
-        commitHashes.Add(data[0]);
-        if (data[0] == hash) {
-          hashIndex = cIndex;
+        var match = Regex.Match(commit, "^([a-z0-9]+) '(.*?)' ([0-9]+) (.*)$");
+        if (match.Success) {
+          commitHashes.Add(match.Groups[1].Value);
+          if (match.Groups[1].Value == hash) {
+            hashIndex = cIndex;
+          }
+          cIndex++;
+          projectHistory.Items.Add(CreateListViewItem(match.Groups[1].Value, match.Groups[4].Value,
+              match.Groups[2].Value, int.Parse(match.Groups[3].Value)));
         }
-        cIndex++;
-        projectHistory.Items.Add(CreateListViewItem(data[0], data[3], data[1], int.Parse(data[2])));
       }
 
       if (hash != null && hashIndex == null) {
